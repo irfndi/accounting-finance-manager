@@ -1,27 +1,70 @@
 /**
  * Finance Manager Core Module
  * Corporate Finance & Accounting Core Functionality
+ * Professional Double-Entry Bookkeeping Engine
  */
+
+import type {
+  Currency,
+  AccountType,
+  NormalBalance,
+  TransactionStatus,
+  Account,
+  Transaction,
+  JournalEntry,
+  TransactionEntry,
+  TransactionData,
+  ValidationError,
+  AccountingError,
+  AccountBalance,
+} from '@finance-manager/types';
 
 // Core financial constants
 export const FINANCIAL_CONSTANTS = {
   DECIMAL_PLACES: 2,
-  DEFAULT_CURRENCY: 'USD',
+  DEFAULT_CURRENCY: 'USD' as Currency,
   ACCOUNT_TYPES: {
-    ASSET: 'asset',
-    LIABILITY: 'liability',
-    EQUITY: 'equity',
-    REVENUE: 'revenue',
-    EXPENSE: 'expense',
+    ASSET: 'ASSET',
+    LIABILITY: 'LIABILITY', 
+    EQUITY: 'EQUITY',
+    REVENUE: 'REVENUE',
+    EXPENSE: 'EXPENSE',
+  } as const,
+  NORMAL_BALANCES: {
+    ASSET: 'DEBIT',
+    EXPENSE: 'DEBIT',
+    LIABILITY: 'CREDIT',
+    EQUITY: 'CREDIT',
+    REVENUE: 'CREDIT',
   } as const,
 } as const;
+
+// Custom Error Classes
+export class AccountingValidationError extends Error implements AccountingError {
+  public readonly code: string;
+  public readonly details?: ValidationError[];
+
+  constructor(message: string, code: string, details?: ValidationError[]) {
+    super(message);
+    this.name = 'AccountingValidationError';
+    this.code = code;
+    this.details = details;
+  }
+}
+
+export class DoubleEntryError extends AccountingValidationError {
+  constructor(message: string, details?: ValidationError[]) {
+    super(message, 'DOUBLE_ENTRY_VIOLATION', details);
+    this.name = 'DoubleEntryError';
+  }
+}
 
 // Utility functions
 export function formatCurrency(
   amount: number, 
-  currency = FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+  currency: Currency = FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
   locale = 'en-US'
-) {
+): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -30,36 +73,289 @@ export function formatCurrency(
   }).format(amount);
 }
 
-export function validateAccountNumber(accountNumber: string): boolean {
-  // Basic account number validation
-  return /^[0-9]{4,10}$/.test(accountNumber);
+export function roundToDecimalPlaces(amount: number, places: number = FINANCIAL_CONSTANTS.DECIMAL_PLACES): number {
+  const factor = Math.pow(10, places);
+  return Math.round(amount * factor) / factor;
 }
 
-// Export types
-export type AccountType = typeof FINANCIAL_CONSTANTS.ACCOUNT_TYPES[keyof typeof FINANCIAL_CONSTANTS.ACCOUNT_TYPES];
-
-export interface FinancialAccount {
-  id: string;
-  name: string;
-  type: AccountType;
-  number: string;
-  balance: number;
-  currency: string;
+export function getNormalBalance(accountType: AccountType): NormalBalance {
+  return FINANCIAL_CONSTANTS.NORMAL_BALANCES[accountType] as NormalBalance;
 }
 
-// Core business logic placeholder
-export class FinanceManager {
-  private accounts: FinancialAccount[] = [];
+// Transaction Validator Class
+export class TransactionValidator {
+  /**
+   * Validates that the sum of debits equals the sum of credits
+   */
+  static validateDoubleEntry(entries: TransactionEntry[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+    
+    if (!entries || entries.length === 0) {
+      errors.push({
+        field: 'entries',
+        message: 'Transaction must have at least one journal entry',
+        code: 'NO_ENTRIES'
+      });
+      return errors;
+    }
 
-  addAccount(account: FinancialAccount): void {
-    this.accounts.push(account);
+    if (entries.length < 2) {
+      errors.push({
+        field: 'entries',
+        message: 'Transaction must have at least two journal entries for double-entry bookkeeping',
+        code: 'INSUFFICIENT_ENTRIES'
+      });
+    }
+
+    let totalDebits = 0;
+    let totalCredits = 0;
+
+    entries.forEach((entry, index) => {
+      // Validate entry structure
+      if (!entry.accountId) {
+        errors.push({
+          field: `entries[${index}].accountId`,
+          message: 'Account ID is required for each entry',
+          code: 'MISSING_ACCOUNT_ID'
+        });
+      }
+
+      // Validate amounts
+      const debitAmount = entry.debitAmount || 0;
+      const creditAmount = entry.creditAmount || 0;
+
+      if (debitAmount < 0) {
+        errors.push({
+          field: `entries[${index}].debitAmount`,
+          message: 'Debit amount cannot be negative',
+          code: 'NEGATIVE_DEBIT'
+        });
+      }
+
+      if (creditAmount < 0) {
+        errors.push({
+          field: `entries[${index}].creditAmount`,
+          message: 'Credit amount cannot be negative',
+          code: 'NEGATIVE_CREDIT'
+        });
+      }
+
+      if (debitAmount > 0 && creditAmount > 0) {
+        errors.push({
+          field: `entries[${index}]`,
+          message: 'Entry cannot have both debit and credit amounts',
+          code: 'BOTH_DEBIT_AND_CREDIT'
+        });
+      }
+
+      if (debitAmount === 0 && creditAmount === 0) {
+        errors.push({
+          field: `entries[${index}]`,
+          message: 'Entry must have either a debit or credit amount',
+          code: 'NO_AMOUNT'
+        });
+      }
+
+      totalDebits += roundToDecimalPlaces(debitAmount);
+      totalCredits += roundToDecimalPlaces(creditAmount);
+    });
+
+    // Check double-entry balance
+    const debitTotal = roundToDecimalPlaces(totalDebits);
+    const creditTotal = roundToDecimalPlaces(totalCredits);
+
+    if (debitTotal !== creditTotal) {
+      errors.push({
+        field: 'entries',
+        message: `Total debits (${debitTotal}) must equal total credits (${creditTotal})`,
+        code: 'UNBALANCED_TRANSACTION'
+      });
+    }
+
+    return errors;
   }
 
-  getAccount(id: string): FinancialAccount | undefined {
-    return this.accounts.find(account => account.id === id);
+  /**
+   * Validates transaction data structure
+   */
+  static validateTransactionData(transactionData: TransactionData): ValidationError[] {
+    const errors: ValidationError[] = [];
+
+    if (!transactionData.description?.trim()) {
+      errors.push({
+        field: 'description',
+        message: 'Transaction description is required',
+        code: 'MISSING_DESCRIPTION'
+      });
+    }
+
+    if (!transactionData.transactionDate) {
+      errors.push({
+        field: 'transactionDate',
+        message: 'Transaction date is required',
+        code: 'MISSING_TRANSACTION_DATE'
+      });
+    }
+
+    if (!transactionData.currency) {
+      errors.push({
+        field: 'currency',
+        message: 'Transaction currency is required',
+        code: 'MISSING_CURRENCY'
+      });
+    }
+
+    // Validate journal entries
+    const entryErrors = this.validateDoubleEntry(transactionData.entries);
+    errors.push(...entryErrors);
+
+    return errors;
+  }
+}
+
+// Transaction Builder Class
+export class TransactionBuilder {
+  private transactionData: Partial<TransactionData> = {
+    entries: [],
+    currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+    transactionDate: new Date(),
+  };
+
+  constructor() {
+    this.reset();
   }
 
-  getTotalBalance(): number {
-    return this.accounts.reduce((total, account) => total + account.balance, 0);
+  reset(): TransactionBuilder {
+    this.transactionData = {
+      entries: [],
+      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+      transactionDate: new Date(),
+    };
+    return this;
   }
-} 
+
+  setDescription(description: string): TransactionBuilder {
+    this.transactionData.description = description;
+    return this;
+  }
+
+  setReference(reference: string): TransactionBuilder {
+    this.transactionData.reference = reference;
+    return this;
+  }
+
+  setDate(date: Date): TransactionBuilder {
+    this.transactionData.transactionDate = date;
+    return this;
+  }
+
+  setCurrency(currency: Currency): TransactionBuilder {
+    this.transactionData.currency = currency;
+    return this;
+  }
+
+  debit(accountId: number, amount: number, description?: string): TransactionBuilder {
+    this.transactionData.entries!.push({
+      accountId,
+      debitAmount: roundToDecimalPlaces(amount),
+      creditAmount: 0,
+      description,
+      currency: this.transactionData.currency,
+    });
+    return this;
+  }
+
+  credit(accountId: number, amount: number, description?: string): TransactionBuilder {
+    this.transactionData.entries!.push({
+      accountId,
+      debitAmount: 0,
+      creditAmount: roundToDecimalPlaces(amount),
+      description,
+      currency: this.transactionData.currency,
+    });
+    return this;
+  }
+
+  validate(): ValidationError[] {
+    return TransactionValidator.validateTransactionData(this.transactionData as TransactionData);
+  }
+
+  build(): TransactionData {
+    const errors = this.validate();
+    if (errors.length > 0) {
+      throw new DoubleEntryError('Invalid transaction data', errors);
+    }
+    return { ...this.transactionData } as TransactionData;
+  }
+}
+
+// Balance Calculator
+export class BalanceCalculator {
+  /**
+   * Calculates the balance for an account based on its normal balance type
+   */
+  static calculateAccountBalance(
+    accountType: AccountType,
+    normalBalance: NormalBalance,
+    debitTotal: number,
+    creditTotal: number
+  ): number {
+    const debits = roundToDecimalPlaces(debitTotal);
+    const credits = roundToDecimalPlaces(creditTotal);
+
+    if (normalBalance === 'DEBIT') {
+      return debits - credits;
+    } else {
+      return credits - debits;
+    }
+  }
+}
+
+// Core Accounting Engine
+export class AccountingEngine {
+  /**
+   * Creates a new transaction with validation
+   */
+  static createTransaction(transactionData: TransactionData): TransactionData {
+    const errors = TransactionValidator.validateTransactionData(transactionData);
+    if (errors.length > 0) {
+      throw new DoubleEntryError('Transaction validation failed', errors);
+    }
+    return transactionData;
+  }
+
+  /**
+   * Validates an existing transaction
+   */
+  static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+
+    const transactionEntries = journalEntries.filter(entry => entry.transactionId === transaction.id);
+    
+    if (transactionEntries.length === 0) {
+      errors.push({
+        field: 'journalEntries',
+        message: 'Transaction has no journal entries',
+        code: 'NO_JOURNAL_ENTRIES'
+      });
+      return errors;
+    }
+
+    // Convert journal entries to transaction entries for validation
+    const entries: TransactionEntry[] = transactionEntries.map(entry => ({
+      accountId: entry.accountId,
+      debitAmount: entry.debitAmount,
+      creditAmount: entry.creditAmount,
+      description: entry.description,
+      currency: entry.currency,
+    }));
+
+    const entryErrors = TransactionValidator.validateDoubleEntry(entries);
+    errors.push(...entryErrors);
+
+    return errors;
+  }
+}
+
+// Export everything
+export * from '@finance-manager/types'; 

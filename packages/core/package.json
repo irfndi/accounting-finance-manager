@@ -19,7 +19,8 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@finance-manager/types": "workspace:*"
+    "@finance-manager/types": "workspace:*",
+    "@finance-manager/db": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^3.2.4",

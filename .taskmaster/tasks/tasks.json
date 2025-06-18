@@ -301,8 +301,65 @@
         "dependencies": [
           5
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Transaction Validation Logic",
+            "description": "Create logic to ensure that for every transaction, the sum of debits equals the sum of credits.",
+            "dependencies": [],
+            "details": "Implement validation in `packages/core` to check Σ debits = Σ credits for each transaction. Throw errors for violations.\n<info added on 2025-06-18T16:43:58.662Z>\nCreate Double-Entry Transaction Types interface with debit/credit properties. Implement balance validation in FinanceManager class to verify Σ debits = Σ credits before transaction processing. Add validation error handling with specific accounting violation messages. Integrate with D1 database schema by mapping transaction entries to journal_entries table. Build test cases covering valid/invalid transaction scenarios.\n</info added on 2025-06-18T16:43:58.662Z>\n<info added on 2025-06-18T16:59:40.410Z>\nDouble-Entry Validation Engine successfully implemented with TransactionValidator class ensuring Σ debits = Σ credits for all transactions. Robust error handling system in place with custom DoubleEntryError and AccountingValidationError classes providing detailed validation messages. Transaction Builder Pattern created with fluent API for constructing balanced transactions, including automatic decimal rounding and reset functionality. Comprehensive test suite covering 40 scenarios including real-world accounting cases, edge conditions, and multi-entry validations. Validation features include balance verification, entry structure checks, negative amount rejection, missing field detection, account ID requirements, and currency/date validation. Core validation logic fully integrated with FinanceManager class and D1 database schema.\n</info added on 2025-06-18T16:59:40.410Z>",
+            "status": "done",
+            "testStrategy": "Unit tests with valid and invalid transaction examples."
+          },
+          {
+            "id": 2,
+            "title": "Develop Account Balance Calculation",
+            "description": "Implement logic to calculate and update account balances based on journal entries.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create functions in `packages/core` to compute balances for all accounts, ensuring they reflect all posted transactions.",
+            "status": "pending",
+            "testStrategy": "Integration tests verifying balance updates after transactions."
+          },
+          {
+            "id": 3,
+            "title": "Create Journal Entry Creation and Validation",
+            "description": "Implement functions to create and validate journal entries, ensuring they comply with accounting rules.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop methods in `packages/core` to generate and validate journal entries before posting to the database.",
+            "status": "pending",
+            "testStrategy": "Unit tests for entry creation and validation scenarios."
+          },
+          {
+            "id": 4,
+            "title": "Integrate with D1 Database Schema",
+            "description": "Ensure the core logic integrates seamlessly with the existing D1 database schema.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Map the core logic to the `accounts`, `transactions`, and `journal_entries` tables in D1, ensuring data consistency.",
+            "status": "pending",
+            "testStrategy": "Database integration tests verifying CRUD operations."
+          },
+          {
+            "id": 5,
+            "title": "Implement Error Handling for Accounting Violations",
+            "description": "Add comprehensive error handling for cases where accounting rules are violated.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Develop error classes and handlers in `packages/core` to manage and report accounting rule violations.",
+            "status": "pending",
+            "testStrategy": "Error scenario tests verifying proper exception handling."
+          }
+        ]
       },
       {
         "id": 8,
@@ -649,7 +706,7 @@
     ],
     "metadata": {
       "created": "2025-06-18T14:16:21.370Z",
-      "updated": "2025-06-18T15:55:37.751Z",
+      "updated": "2025-06-18T16:59:45.352Z",
       "description": "Tasks for master context"
     }
   }

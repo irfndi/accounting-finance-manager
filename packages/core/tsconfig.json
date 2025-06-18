@@ -12,14 +12,15 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@finance-manager/types": ["../types/src"]
+      "@finance-manager/types": ["../types/src"],
+      "@finance-manager/db": ["../db/src"]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../types/src/**/*"
   ],
   "exclude": [
     "dist",
