@@ -79,6 +79,310 @@ export class DoubleEntryError extends AccountingValidationError {
   }
 }
 
+// Enhanced Error System - Severity and Categories
+export type ErrorSeverity = 'WARNING' | 'ERROR' | 'CRITICAL';
+export type ErrorCategory = 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE';
+
+export interface EnhancedValidationError extends ValidationError {
+  severity: ErrorSeverity;
+  category: ErrorCategory;
+  suggestions?: string[];
+  context?: Record<string, unknown>;
+  timestamp?: Date;
+}
+
+// Specialized Error Classes
+export class BalanceSheetError extends AccountingValidationError {
+  constructor(message: string, details?: ValidationError[]) {
+    super(message, 'BALANCE_SHEET_VIOLATION', details);
+    this.name = 'BalanceSheetError';
+  }
+}
+
+export class AccountRegistryError extends AccountingValidationError {
+  constructor(message: string, details?: ValidationError[]) {
+    super(message, 'ACCOUNT_REGISTRY_ERROR', details);
+    this.name = 'AccountRegistryError';
+  }
+}
+
+export class CurrencyConversionError extends AccountingValidationError {
+  constructor(message: string, details?: ValidationError[]) {
+    super(message, 'CURRENCY_CONVERSION_ERROR', details);
+    this.name = 'CurrencyConversionError';
+  }
+}
+
+export class PeriodClosureError extends AccountingValidationError {
+  constructor(message: string, details?: ValidationError[]) {
+    super(message, 'PERIOD_CLOSURE_VIOLATION', details);
+    this.name = 'PeriodClosureError';
+  }
+}
+
+export class FiscalYearError extends AccountingValidationError {
+  constructor(message: string, details?: ValidationError[]) {
+    super(message, 'FISCAL_YEAR_VIOLATION', details);
+    this.name = 'FiscalYearError';
+  }
+}
+
+export class ComplianceError extends AccountingValidationError {
+  constructor(message: string, details?: ValidationError[]) {
+    super(message, 'COMPLIANCE_VIOLATION', details);
+    this.name = 'ComplianceError';
+  }
+}
+
+// Error Handling Utilities
+export class ErrorAggregator {
+  private errors: EnhancedValidationError[] = [];
+  private warnings: EnhancedValidationError[] = [];
+
+  addError(error: EnhancedValidationError): void {
+    if (error.severity === 'WARNING') {
+      this.warnings.push(error);
+    } else {
+      this.errors.push(error);
+    }
+  }
+
+  addErrors(errors: EnhancedValidationError[]): void {
+    for (const error of errors) {
+      this.addError(error);
+    }
+  }
+
+  hasErrors(): boolean {
+    return this.errors.length > 0;
+  }
+
+  hasWarnings(): boolean {
+    return this.warnings.length > 0;
+  }
+
+  getErrors(): EnhancedValidationError[] {
+    return [...this.errors];
+  }
+
+  getWarnings(): EnhancedValidationError[] {
+    return [...this.warnings];
+  }
+
+  getAllIssues(): EnhancedValidationError[] {
+    return [...this.errors, ...this.warnings];
+  }
+
+  getCriticalErrors(): EnhancedValidationError[] {
+    return this.errors.filter(error => error.severity === 'CRITICAL');
+  }
+
+  getErrorsByCategory(category: ErrorCategory): EnhancedValidationError[] {
+    return this.getAllIssues().filter(error => error.category === category);
+  }
+
+  clear(): void {
+    this.errors = [];
+    this.warnings = [];
+  }
+
+  generateReport(): {
+    summary: {
+      totalErrors: number;
+      totalWarnings: number;
+      criticalErrors: number;
+      byCategory: Record<ErrorCategory, number>;
+      bySeverity: Record<ErrorSeverity, number>;
+    };
+    issues: EnhancedValidationError[];
+  } {
+    const allIssues = this.getAllIssues();
+    
+    const byCategory: Record<ErrorCategory, number> = {
+      VALIDATION: 0,
+      BUSINESS_RULE: 0,
+      SYSTEM: 0,
+      COMPLIANCE: 0
+    };
+
+    const bySeverity: Record<ErrorSeverity, number> = {
+      WARNING: 0,
+      ERROR: 0,
+      CRITICAL: 0
+    };
+
+    for (const issue of allIssues) {
+      byCategory[issue.category]++;
+      bySeverity[issue.severity]++;
+    }
+
+    return {
+      summary: {
+        totalErrors: this.errors.length,
+        totalWarnings: this.warnings.length,
+        criticalErrors: this.getCriticalErrors().length,
+        byCategory,
+        bySeverity
+      },
+      issues: allIssues
+    };
+  }
+}
+
+// Enhanced Error Factory
+export namespace AccountingErrorFactory {
+  export function createValidationError(
+    field: string,
+    message: string,
+    code: string,
+    severity: ErrorSeverity = 'ERROR',
+    category: ErrorCategory = 'VALIDATION',
+    suggestions?: string[],
+    context?: Record<string, unknown>
+  ): EnhancedValidationError {
+    return {
+      field,
+      message,
+      code,
+      severity,
+      category,
+      suggestions,
+      context,
+      timestamp: new Date()
+    };
+  }
+
+  export function createBusinessRuleError(
+    field: string,
+    message: string,
+    code: string,
+    suggestions?: string[]
+  ): EnhancedValidationError {
+    return createValidationError(
+      field,
+      message,
+      code,
+      'ERROR',
+      'BUSINESS_RULE',
+      suggestions
+    );
+  }
+
+  export function createComplianceError(
+    field: string,
+    message: string,
+    code: string,
+    severity: ErrorSeverity = 'CRITICAL'
+  ): EnhancedValidationError {
+    return createValidationError(
+      field,
+      message,
+      code,
+      severity,
+      'COMPLIANCE'
+    );
+  }
+
+  export function createSystemError(
+    field: string,
+    message: string,
+    code: string,
+    context?: Record<string, unknown>
+  ): EnhancedValidationError {
+    return createValidationError(
+      field,
+      message,
+      code,
+      'CRITICAL',
+      'SYSTEM',
+      undefined,
+      context
+    );
+  }
+}
+
+// Error Recovery Strategies
+export namespace ErrorRecoveryManager {
+  const RECOVERY_STRATEGIES: Record<string, string[]> = {
+    UNBALANCED_TRANSACTION: [
+      'Check if all journal entries have been recorded',
+      'Verify debit and credit amounts are correct',
+      'Ensure rounding differences are accounted for'
+    ],
+    MISSING_ACCOUNT_ID: [
+      'Verify the account exists in the chart of accounts',
+      'Check if the account ID is correctly formatted',
+      'Ensure the account is active and allows transactions'
+    ],
+    CURRENCY_CONVERSION_ERROR: [
+      'Check if exchange rates are available for the transaction date',
+      'Verify the currencies are supported',
+      'Update exchange rate data if necessary'
+    ],
+    PERIOD_CLOSURE_VIOLATION: [
+      'Check if the accounting period is still open',
+      'Verify transaction date is within allowed period',
+      'Contact system administrator to reopen period if necessary'
+    ],
+    BALANCE_SHEET_VIOLATION: [
+      'Verify asset accounts have debit balances',
+      'Check liability accounts have credit balances',
+      'Ensure equity accounts maintain proper balance types'
+    ]
+  };
+
+  export function getSuggestions(errorCode: string): string[] {
+    return RECOVERY_STRATEGIES[errorCode] || [
+      'Review the transaction details',
+      'Check accounting policies and procedures',
+      'Contact system administrator if issue persists'
+    ];
+  }
+
+  export function enhanceError(error: ValidationError): EnhancedValidationError {
+    const suggestions = getSuggestions(error.code);
+    
+    return {
+      ...error,
+      severity: determineSeverity(error.code),
+      category: determineCategory(error.code),
+      suggestions,
+      timestamp: new Date()
+    };
+  }
+
+  function determineSeverity(errorCode: string): ErrorSeverity {
+    const criticalCodes = [
+      'BALANCE_SHEET_VIOLATION',
+      'COMPLIANCE_VIOLATION',
+      'SYSTEM_ERROR',
+      'FISCAL_YEAR_VIOLATION'
+    ];
+    
+    const warningCodes = [
+      'ROUNDING_DIFFERENCE',
+      'EXCHANGE_RATE_OUTDATED'
+    ];
+
+    if (criticalCodes.some(code => errorCode.includes(code))) {
+      return 'CRITICAL';
+    }
+    
+    if (warningCodes.some(code => errorCode.includes(code))) {
+      return 'WARNING';
+    }
+
+    return 'ERROR';
+  }
+
+  function determineCategory(errorCode: string): ErrorCategory {
+    if (errorCode.includes('COMPLIANCE')) return 'COMPLIANCE';
+    if (errorCode.includes('SYSTEM')) return 'SYSTEM';
+    if (errorCode.includes('BUSINESS_RULE')) return 'BUSINESS_RULE';
+    return 'VALIDATION';
+  }
+}
+
 // Utility functions
 export function formatCurrency(
   amount: number, 

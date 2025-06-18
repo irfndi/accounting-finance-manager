@@ -355,8 +355,8 @@
               1,
               3
             ],
-            "details": "Develop error classes and handlers in `packages/core` to manage and report accounting rule violations.",
-            "status": "pending",
+            "details": "Develop error classes and handlers in `packages/core` to manage and report accounting rule violations.\n<info added on 2025-06-18T17:26:10.013Z>\nExpand error handling to include specialized accounting violation classes and enhanced reporting:\n- New error classes for balance sheet violations (BalanceSheetError) and account registry issues (AccountRegistryError)\n- Severity classification system (WARNING/ERROR/CRITICAL) with contextual metadata\n- Error recovery suggestions and audit trail capabilities\n- Specialized validations for period closures, fiscal boundaries, and regulatory compliance\n- Test coverage for all new error scenarios\n- Error aggregation utilities for batch processing\n- Multi-currency validation enhancements\n- Detailed error codes with remediation guidance\n</info added on 2025-06-18T17:26:10.013Z>\n<info added on 2025-06-18T17:32:07.268Z>\n✅ **COMPLETED: Enhanced Error Handling for Accounting Violations**\n\n**What was accomplished:**\n\n🔧 **Specialized Error Classes:**\n- Added 5 new specialized error classes: `BalanceSheetError`, `AccountRegistryError`, `CurrencyConversionError`, `PeriodClosureError`, `FiscalYearError`, `ComplianceError`\n- All inherit from `AccountingValidationError` with specific error codes\n- Maintains consistency with existing error handling architecture\n\n📊 **Enhanced Error System:**\n- Introduced `ErrorSeverity` type: 'WARNING' | 'ERROR' | 'CRITICAL'\n- Introduced `ErrorCategory` type: 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE'\n- Created `EnhancedValidationError` interface extending basic ValidationError with severity, category, suggestions, context, and timestamp\n\n🛠️ **Error Handling Utilities:**\n- **ErrorAggregator**: Collects, categorizes, and reports errors by severity and category\n- **AccountingErrorFactory**: Creates enhanced validation errors with proper categorization\n- **ErrorRecoveryManager**: Provides contextual suggestions and error enhancement strategies\n\n🎯 **Key Features:**\n- Error aggregation with comprehensive reporting (summary statistics by category/severity)\n- Recovery strategies with actionable suggestions for common error codes\n- Automatic error enhancement with severity/category determination\n- Context preservation for debugging and audit trails\n- Comprehensive test coverage (26 new tests, 92 total tests passing)\n\n**Technical Implementation:**\n- Fixed all linter errors (converted static classes to namespaces, replaced forEach with for...of)\n- Enhanced error messages with recovery suggestions\n- Contextual error categorization based on error codes\n- Timestamp tracking for audit trails\n- Support for error context metadata\n\n**Files Modified:**\n- `packages/core/src/index.ts` - Added enhanced error handling system\n- `packages/core/src/index.test.ts` - Added comprehensive test coverage\n\n**Test Results:** All 92 tests passing ✅ (66 existing + 26 new error handling tests)\n</info added on 2025-06-18T17:32:07.268Z>",
+            "status": "done",
             "testStrategy": "Error scenario tests verifying proper exception handling."
           }
         ]
@@ -552,6 +552,7 @@
         "status": "pending",
         "subtasks": []
       },
+      {},
       {
         "id": 22,
         "title": "Audit Logging",
@@ -706,7 +707,7 @@
     ],
     "metadata": {
       "created": "2025-06-18T14:16:21.370Z",
-      "updated": "2025-06-18T17:22:25.462Z",
+      "updated": "2025-06-18T17:32:13.388Z",
       "description": "Tasks for master context"
     }
   }

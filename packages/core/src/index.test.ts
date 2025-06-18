@@ -5,6 +5,10 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
+  FINANCIAL_CONSTANTS,
+  formatCurrency,
+  roundToDecimalPlaces,
+  getNormalBalance,
   TransactionValidator,
   TransactionBuilder,
   BalanceCalculator,
@@ -12,21 +16,26 @@ import {
   AccountBalanceManager,
   AccountRegistry,
   DoubleEntryError,
-  formatCurrency,
-  roundToDecimalPlaces,
-  getNormalBalance,
-  FINANCIAL_CONSTANTS,
+  AccountingValidationError,
   JournalEntryManager,
-} from './index';
+  BalanceSheetError,
+  AccountRegistryError,
+  CurrencyConversionError,
+  PeriodClosureError,
+  FiscalYearError,
+  ComplianceError,
+  ErrorAggregator,
+  AccountingErrorFactory,
+  ErrorRecoveryManager,
+} from './index.js';
 import type {
   TransactionEntry,
   TransactionData,
   ValidationError,
-  AccountType,
-  NormalBalance,
   Account,
-  Transaction,
+  AccountType,
   JournalEntry,
+  Currency,
 } from '@finance-manager/types';
 
 describe('Financial Constants', () => {
@@ -1176,21 +1185,360 @@ describe('JournalEntryManager', () => {
     });
 
     it('should reset manager state', () => {
+      journalManager.reset();
+      
+      expect(journalManager.getAllJournalEntries()).toHaveLength(0);
+      expect(journalManager.getStatistics().totalEntries).toBe(0);
+    });
+  });
+});
+
+// Enhanced Error Handling System Tests
+describe('Enhanced Error Handling System', () => {
+  describe('Specialized Error Classes', () => {
+    it('should create BalanceSheetError', () => {
+      const error = new BalanceSheetError('Balance sheet violation');
+      expect(error.name).toBe('BalanceSheetError');
+      expect(error.code).toBe('BALANCE_SHEET_VIOLATION');
+      expect(error.message).toBe('Balance sheet violation');
+    });
+
+    it('should create AccountRegistryError', () => {
+      const error = new AccountRegistryError('Account registry error');
+      expect(error.name).toBe('AccountRegistryError');
+      expect(error.code).toBe('ACCOUNT_REGISTRY_ERROR');
+    });
+
+    it('should create CurrencyConversionError', () => {
+      const error = new CurrencyConversionError('Currency conversion failed');
+      expect(error.name).toBe('CurrencyConversionError');
+      expect(error.code).toBe('CURRENCY_CONVERSION_ERROR');
+    });
+
+    it('should create PeriodClosureError', () => {
+      const error = new PeriodClosureError('Period is closed');
+      expect(error.name).toBe('PeriodClosureError');
+      expect(error.code).toBe('PERIOD_CLOSURE_VIOLATION');
+    });
+
+    it('should create FiscalYearError', () => {
+      const error = new FiscalYearError('Fiscal year violation');
+      expect(error.name).toBe('FiscalYearError');
+      expect(error.code).toBe('FISCAL_YEAR_VIOLATION');
+    });
+
+    it('should create ComplianceError', () => {
+      const error = new ComplianceError('Compliance violation');
+      expect(error.name).toBe('ComplianceError');
+      expect(error.code).toBe('COMPLIANCE_VIOLATION');
+    });
+  });
+
+  describe('ErrorAggregator', () => {
+    let aggregator: ErrorAggregator;
+
+    beforeEach(() => {
+      aggregator = new ErrorAggregator();
+    });
+
+    it('should add and categorize errors by severity', () => {
+      const warning = AccountingErrorFactory.createValidationError(
+        'test', 'Warning message', 'WARNING_CODE', 'WARNING'
+      );
+      const error = AccountingErrorFactory.createValidationError(
+        'test', 'Error message', 'ERROR_CODE', 'ERROR'
+      );
+      const critical = AccountingErrorFactory.createValidationError(
+        'test', 'Critical message', 'CRITICAL_CODE', 'CRITICAL'
+      );
+
+      aggregator.addError(warning);
+      aggregator.addError(error);
+      aggregator.addError(critical);
+
+      expect(aggregator.hasWarnings()).toBe(true);
+      expect(aggregator.hasErrors()).toBe(true);
+      expect(aggregator.getWarnings()).toHaveLength(1);
+      expect(aggregator.getErrors()).toHaveLength(2); // ERROR and CRITICAL
+      expect(aggregator.getCriticalErrors()).toHaveLength(1);
+    });
+
+    it('should add multiple errors at once', () => {
+      const errors = [
+        AccountingErrorFactory.createValidationError('test1', 'Error 1', 'ERROR_1'),
+        AccountingErrorFactory.createValidationError('test2', 'Error 2', 'ERROR_2')
+      ];
+
+      aggregator.addErrors(errors);
+      expect(aggregator.getAllIssues()).toHaveLength(2);
+    });
+
+    it('should filter errors by category', () => {
+      const validationError = AccountingErrorFactory.createValidationError(
+        'test', 'Validation error', 'VALIDATION_ERROR', 'ERROR', 'VALIDATION'
+      );
+      const businessError = AccountingErrorFactory.createBusinessRuleError(
+        'test', 'Business rule error', 'BUSINESS_ERROR'
+      );
+
+      aggregator.addError(validationError);
+      aggregator.addError(businessError);
+
+      const validationErrors = aggregator.getErrorsByCategory('VALIDATION');
+      const businessErrors = aggregator.getErrorsByCategory('BUSINESS_RULE');
+
+      expect(validationErrors).toHaveLength(1);
+      expect(businessErrors).toHaveLength(1);
+    });
+
+    it('should generate comprehensive error report', () => {
+      const errors = [
+        AccountingErrorFactory.createValidationError('test1', 'Error 1', 'ERROR_1', 'WARNING'),
+        AccountingErrorFactory.createValidationError('test2', 'Error 2', 'ERROR_2', 'ERROR'),
+        AccountingErrorFactory.createValidationError('test3', 'Error 3', 'ERROR_3', 'CRITICAL'),
+        AccountingErrorFactory.createBusinessRuleError('test4', 'Business Error', 'BUSINESS_ERROR')
+      ];
+
+      aggregator.addErrors(errors);
+      const report = aggregator.generateReport();
+
+      expect(report.summary.totalErrors).toBe(3); // ERROR, CRITICAL, and BUSINESS_RULE
+      expect(report.summary.totalWarnings).toBe(1);
+      expect(report.summary.criticalErrors).toBe(1);
+      expect(report.summary.byCategory.VALIDATION).toBe(3);
+      expect(report.summary.byCategory.BUSINESS_RULE).toBe(1);
+      expect(report.summary.bySeverity.WARNING).toBe(1);
+      expect(report.summary.bySeverity.ERROR).toBe(2);
+      expect(report.summary.bySeverity.CRITICAL).toBe(1);
+      expect(report.issues).toHaveLength(4);
+    });
+
+    it('should clear all errors', () => {
+      aggregator.addError(AccountingErrorFactory.createValidationError(
+        'test', 'Error', 'ERROR_CODE'
+      ));
+      
+      expect(aggregator.hasErrors()).toBe(true);
+      
+      aggregator.clear();
+      
+      expect(aggregator.hasErrors()).toBe(false);
+      expect(aggregator.hasWarnings()).toBe(false);
+      expect(aggregator.getAllIssues()).toHaveLength(0);
+    });
+  });
+
+  describe('AccountingErrorFactory', () => {
+    it('should create validation error with default values', () => {
+      const error = AccountingErrorFactory.createValidationError(
+        'testField', 'Test message', 'TEST_CODE'
+      );
+
+      expect(error.field).toBe('testField');
+      expect(error.message).toBe('Test message');
+      expect(error.code).toBe('TEST_CODE');
+      expect(error.severity).toBe('ERROR');
+      expect(error.category).toBe('VALIDATION');
+      expect(error.timestamp).toBeInstanceOf(Date);
+    });
+
+    it('should create validation error with custom values', () => {
+      const suggestions = ['Fix this', 'Try that'];
+      const context = { transactionId: 123 };
+      
+      const error = AccountingErrorFactory.createValidationError(
+        'testField', 
+        'Test message', 
+        'TEST_CODE',
+        'CRITICAL',
+        'SYSTEM',
+        suggestions,
+        context
+      );
+
+      expect(error.severity).toBe('CRITICAL');
+      expect(error.category).toBe('SYSTEM');
+      expect(error.suggestions).toEqual(suggestions);
+      expect(error.context).toEqual(context);
+    });
+
+    it('should create business rule error', () => {
+      const suggestions = ['Check business rules'];
+      const error = AccountingErrorFactory.createBusinessRuleError(
+        'businessField', 'Business rule violated', 'BUSINESS_VIOLATION', suggestions
+      );
+
+      expect(error.category).toBe('BUSINESS_RULE');
+      expect(error.severity).toBe('ERROR');
+      expect(error.suggestions).toEqual(suggestions);
+    });
+
+    it('should create compliance error', () => {
+      const error = AccountingErrorFactory.createComplianceError(
+        'complianceField', 'Compliance violated', 'COMPLIANCE_VIOLATION'
+      );
+
+      expect(error.category).toBe('COMPLIANCE');
+      expect(error.severity).toBe('CRITICAL');
+    });
+
+    it('should create system error', () => {
+      const context = { systemId: 'SYS001' };
+      const error = AccountingErrorFactory.createSystemError(
+        'systemField', 'System error', 'SYSTEM_ERROR', context
+      );
+
+      expect(error.category).toBe('SYSTEM');
+      expect(error.severity).toBe('CRITICAL');
+      expect(error.context).toEqual(context);
+    });
+  });
+
+  describe('ErrorRecoveryManager', () => {
+    it('should provide suggestions for known error codes', () => {
+      const suggestions = ErrorRecoveryManager.getSuggestions('UNBALANCED_TRANSACTION');
+      
+      expect(suggestions).toContain('Check if all journal entries have been recorded');
+      expect(suggestions).toContain('Verify debit and credit amounts are correct');
+      expect(suggestions).toContain('Ensure rounding differences are accounted for');
+    });
+
+    it('should provide default suggestions for unknown error codes', () => {
+      const suggestions = ErrorRecoveryManager.getSuggestions('UNKNOWN_ERROR_CODE');
+      
+      expect(suggestions).toContain('Review the transaction details');
+      expect(suggestions).toContain('Check accounting policies and procedures');
+      expect(suggestions).toContain('Contact system administrator if issue persists');
+    });
+
+    it('should enhance basic validation error with suggestions and metadata', () => {
+      const basicError: ValidationError = {
+        field: 'entries',
+        message: 'Transaction is unbalanced',
+        code: 'UNBALANCED_TRANSACTION'
+      };
+
+      const enhancedError = ErrorRecoveryManager.enhanceError(basicError);
+
+      expect(enhancedError.field).toBe(basicError.field);
+      expect(enhancedError.message).toBe(basicError.message);
+      expect(enhancedError.code).toBe(basicError.code);
+      expect(enhancedError.severity).toBe('ERROR');
+      expect(enhancedError.category).toBe('VALIDATION');
+      expect(enhancedError.suggestions).toContain('Check if all journal entries have been recorded');
+      expect(enhancedError.timestamp).toBeInstanceOf(Date);
+    });
+
+    it('should determine critical severity for balance sheet violations', () => {
+      const error: ValidationError = {
+        field: 'balance',
+        message: 'Balance sheet violation',
+        code: 'BALANCE_SHEET_VIOLATION'
+      };
+
+      const enhanced = ErrorRecoveryManager.enhanceError(error);
+      expect(enhanced.severity).toBe('CRITICAL');
+    });
+
+    it('should determine warning severity for rounding differences', () => {
+      const error: ValidationError = {
+        field: 'amount',
+        message: 'Rounding difference detected',
+        code: 'ROUNDING_DIFFERENCE'
+      };
+
+      const enhanced = ErrorRecoveryManager.enhanceError(error);
+      expect(enhanced.severity).toBe('WARNING');
+    });
+
+    it('should categorize compliance errors correctly', () => {
+      const error: ValidationError = {
+        field: 'compliance',
+        message: 'Compliance violation',
+        code: 'COMPLIANCE_VIOLATION'
+      };
+
+      const enhanced = ErrorRecoveryManager.enhanceError(error);
+      expect(enhanced.category).toBe('COMPLIANCE');
+    });
+
+    it('should categorize system errors correctly', () => {
+      const error: ValidationError = {
+        field: 'system',
+        message: 'System error',
+        code: 'SYSTEM_ERROR'
+      };
+
+      const enhanced = ErrorRecoveryManager.enhanceError(error);
+      expect(enhanced.category).toBe('SYSTEM');
+    });
+
+    it('should categorize business rule errors correctly', () => {
+      const error: ValidationError = {
+        field: 'business',
+        message: 'Business rule violation',
+        code: 'BUSINESS_RULE_VIOLATION'
+      };
+
+      const enhanced = ErrorRecoveryManager.enhanceError(error);
+      expect(enhanced.category).toBe('BUSINESS_RULE');
+    });
+  });
+
+  describe('Error Integration Tests', () => {
+    it('should handle complex error scenarios with aggregation', () => {
+      const aggregator = new ErrorAggregator();
+      
+      // Create various types of errors
+      const errors = [
+        new BalanceSheetError('Assets must have debit balances'),
+        new CurrencyConversionError('Exchange rate not available'),
+        new PeriodClosureError('Period is closed for transactions')
+      ];
+
+      // Convert to enhanced errors and add to aggregator
+      for (const error of errors) {
+        const basicError: ValidationError = {
+          field: 'transaction',
+          message: error.message,
+          code: error.code
+        };
+        const enhanced = ErrorRecoveryManager.enhanceError(basicError);
+        aggregator.addError(enhanced);
+      }
+
+      const report = aggregator.generateReport();
+      
+      expect(report.summary.totalErrors).toBe(3);
+      expect(report.summary.criticalErrors).toBe(1); // Period closure is critical
+      expect(report.issues.every(issue => issue.suggestions && issue.suggestions.length > 0)).toBe(true);
+    });
+
+    it('should provide contextual error handling for transaction validation', () => {
       const transactionData: TransactionData = {
-        description: 'Test Transaction',
+        description: 'Test transaction',
         transactionDate: new Date(),
         currency: 'IDR',
         entries: [
-          { accountId: 1001, debitAmount: 100000 },
-          { accountId: 4001, creditAmount: 100000 }
+          { accountId: 1001, debitAmount: 100 },
+          { accountId: 1002, creditAmount: 50 } // Unbalanced
         ]
       };
 
-      journalManager.createJournalEntriesFromTransaction(1, transactionData);
-      expect(journalManager.getAllJournalEntries()).toHaveLength(2);
+      const errors = TransactionValidator.validateTransactionData(transactionData);
+      const aggregator = new ErrorAggregator();
 
-      journalManager.reset();
-      expect(journalManager.getAllJournalEntries()).toHaveLength(0);
+      for (const error of errors) {
+        const enhanced = ErrorRecoveryManager.enhanceError(error);
+        aggregator.addError(enhanced);
+      }
+
+      expect(aggregator.hasErrors()).toBe(true);
+      const report = aggregator.generateReport();
+      const unbalancedError = report.issues.find(issue => issue.code === 'UNBALANCED_TRANSACTION');
+      
+      expect(unbalancedError).toBeDefined();
+      expect(unbalancedError?.suggestions).toContain('Check if all journal entries have been recorded');
     });
   });
 }); 
