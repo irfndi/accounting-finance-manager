@@ -1,0 +1,189 @@
+/**
+ * Corporate Finance Manager - Cloudflare Worker API
+ * Main entry point for the finance management system API
+ */
+
+export interface Env {
+  // D1 Database binding (to be configured)
+  // DB: D1Database;
+  
+  // KV Storage binding (if needed)
+  // CACHE: KVNamespace;
+  
+  // R2 Storage binding (for documents)
+  // DOCUMENTS: R2Bucket;
+  
+  // Environment variables
+  ENVIRONMENT: string;
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    const { pathname, method } = { pathname: url.pathname, method: request.method };
+
+    // CORS headers for development
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+
+    // Handle CORS preflight
+    if (method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    try {
+      // API Routes
+      if (pathname.startsWith('/api/')) {
+        return handleApiRequest(request, env, pathname, method);
+      }
+
+      // Health check
+      if (pathname === '/health') {
+        return new Response(JSON.stringify({
+          status: 'healthy',
+          environment: env.ENVIRONMENT,
+          timestamp: new Date().toISOString(),
+          worker: 'finance-manager'
+        }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders 
+          }
+        });
+      }
+
+      // Default response
+      return new Response(JSON.stringify({
+        message: 'Corporate Finance Manager API',
+        environment: env.ENVIRONMENT,
+        endpoints: [
+          '/health - Health check',
+          '/api/accounts - Chart of accounts management',
+          '/api/transactions - Financial transactions',
+          '/api/reports - Financial reporting'
+        ]
+      }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders 
+        }
+      });
+
+    } catch (error) {
+      console.error('Worker error:', error);
+      return new Response(JSON.stringify({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }), {
+        status: 500,
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders 
+        }
+      });
+    }
+  },
+};
+
+async function handleApiRequest(
+  request: Request, 
+  env: Env, 
+  pathname: string, 
+  method: string
+): Promise<Response> {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
+  // Parse API route
+  const apiPath = pathname.replace('/api/', '');
+  const [resource, ...params] = apiPath.split('/');
+
+  switch (resource) {
+    case 'accounts':
+      return handleAccountsApi(request, env, method, params);
+    
+    case 'transactions':
+      return handleTransactionsApi(request, env, method, params);
+    
+    case 'reports':
+      return handleReportsApi(request, env, method, params);
+    
+    default:
+      return new Response(JSON.stringify({
+        error: 'Not found',
+        message: `API endpoint /${resource} not found`
+      }), {
+        status: 404,
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders 
+        }
+      });
+  }
+}
+
+async function handleAccountsApi(
+  request: Request, 
+  env: Env, 
+  method: string, 
+  params: string[]
+): Promise<Response> {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json'
+  };
+
+  // TODO: Implement with D1 database
+  return new Response(JSON.stringify({
+    message: 'Accounts API - Coming soon with D1 database integration',
+    method,
+    params,
+    note: 'Will implement chart of accounts management'
+  }), { headers: corsHeaders });
+}
+
+async function handleTransactionsApi(
+  request: Request, 
+  env: Env, 
+  method: string, 
+  params: string[]
+): Promise<Response> {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json'
+  };
+
+  // TODO: Implement with D1 database
+  return new Response(JSON.stringify({
+    message: 'Transactions API - Coming soon with D1 database integration',
+    method,
+    params,
+    note: 'Will implement double-entry accounting transactions'
+  }), { headers: corsHeaders });
+}
+
+async function handleReportsApi(
+  request: Request, 
+  env: Env, 
+  method: string, 
+  params: string[]
+): Promise<Response> {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json'
+  };
+
+  // TODO: Implement with D1 database
+  return new Response(JSON.stringify({
+    message: 'Reports API - Coming soon with D1 database integration',
+    method,
+    params,
+    note: 'Will implement financial reporting and analytics'
+  }), { headers: corsHeaders });
+} 

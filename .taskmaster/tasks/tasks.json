@@ -211,15 +211,46 @@
       {
         "id": 5,
         "title": "Setup D1 Database",
-        "description": "Configure D1 SQLite database with Drizzle ORM for type-safe SQL operations.",
-        "details": "Create D1 database via Cloudflare Dashboard. Define schema in `packages/db` using Drizzle ORM. Implement migrations for core tables (`accounts`, `transactions`, `entries`, `raw_docs`, `audit_log`).",
-        "testStrategy": "Run migrations and verify schema creation with test queries.",
-        "priority": "high",
+        "description": "Configure D1 SQLite database with Drizzle ORM for type-safe SQL operations in Cloudflare environment.",
+        "status": "pending",
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "high",
+        "details": "Waiting for Cloudflare configuration details to proceed. Once provided: Create D1 database via Cloudflare Dashboard. Define schema in `packages/db` using Drizzle ORM. Implement migrations for core tables (`accounts`, `transactions`, `entries`, `raw_docs`, `audit_log`, `entities`, `periods`). Integrate with existing worker package structure.",
+        "testStrategy": "Run migrations and verify schema creation with test queries. Validate integration with worker package.",
+        "subtasks": [
+          {
+            "id": 5.1,
+            "title": "Await Cloudflare configuration details",
+            "description": "Wait for user to provide Cloudflare Worker deployment details, D1 database name, KV/R2 configuration, and Wrangler CLI access",
+            "status": "pending"
+          },
+          {
+            "id": 5.2,
+            "title": "Configure D1 database via Cloudflare Dashboard",
+            "description": "Set up D1 database with provided configuration details",
+            "status": "pending"
+          },
+          {
+            "id": 5.3,
+            "title": "Define schema with Drizzle ORM",
+            "description": "Implement schema definitions for all core tables in `packages/db`",
+            "status": "pending"
+          },
+          {
+            "id": 5.4,
+            "title": "Implement database migrations",
+            "description": "Create migration scripts for all tables including new entities and periods tables",
+            "status": "pending"
+          },
+          {
+            "id": 5.5,
+            "title": "Integrate with worker package",
+            "description": "Ensure database connection works with existing worker package structure",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 6,
