@@ -1,0 +1,30 @@
+{
+  "name": "@finance-manager/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.2",
+    "@cloudflare/workers-types": "^4.20250618.0",
+    "@finance-manager/types": "workspace:*"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.1"
+  }
+} 

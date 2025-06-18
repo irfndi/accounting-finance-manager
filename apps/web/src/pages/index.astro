@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FinanceDashboard from "../components/FinanceDashboard.tsx";
+---
+
+<Layout
+    title="Dashboard - Corporate Finance Manager"
+    description="Financial overview and key performance metrics"
+    currentPath="/"
+>
+    <FinanceDashboard client:load />
+</Layout>

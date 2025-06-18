@@ -1,0 +1,43 @@
+/* Import Inter font for professional corporate look */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* Import Tailwind CSS v4 */
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'ss01' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography improvements */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  /* Better text selection */
+  ::selection {
+    background-color: rgb(59 130 246 / 0.2);
+    color: rgb(30 64 175);
+  }
+}
+
+@layer components {
+  /* Custom components can be added here as needed */
+  .btn-financial {
+    background-color: var(--color-financial-profit);
+    color: white;
+  }
+  
+  .btn-financial:hover {
+    background-color: #059669;
+  }
+} 

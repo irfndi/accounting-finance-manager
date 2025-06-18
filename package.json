@@ -1,0 +1,56 @@
+{
+  "name": "finance-manager",
+  "version": "0.1.0",
+  "description": "AI-powered accounting & finance management platform built on Cloudflare Workers",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.14.4",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "make dev",
+    "build": "make prod/build",
+    "lint": "make lint",
+    "test": "make unit",
+    "test:e2e": "make e2e",
+    "deploy": "make publish",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@changesets/cli": "^2.29.4",
+    "@types/node": "^24.0.3",
+    "oxlint": "^1.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "playwright": "^1.53.0",
+    "miniflare": "^4.20250617.0",
+    "wrangler": "^4.20.2"
+  },
+  "keywords": [
+    "finance",
+    "accounting",
+    "cloudflare-workers",
+    "astro",
+    "ai",
+    "ocr",
+    "double-entry"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/irfndi/finance-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/irfndi/finance-manager/issues"
+  },
+  "homepage": "https://github.com/irfndi/finance-manager#readme"
+} 

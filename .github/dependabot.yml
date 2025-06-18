@@ -1,0 +1,159 @@
+version: 2
+updates:
+  # Root package.json (Node.js dependencies)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "irfndi" # Replace with actual GitHub username
+    assignees:
+      - "irfndi" # Replace with actual GitHub username
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "automated"
+
+  # Web application dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "irfndi"
+    assignees:
+      - "irfndi"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "web-app"
+      - "automated"
+
+  # Worker dependencies
+  - package-ecosystem: "npm"
+    directory: "/worker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "irfndi"
+    assignees:
+      - "irfndi"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "worker"
+      - "automated"
+
+  # Core package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/core"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "irfndi"
+    assignees:
+      - "irfndi"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "core"
+      - "automated"
+
+  # AI package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/ai"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "irfndi"
+    assignees:
+      - "irfndi"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "ai"
+      - "automated"
+
+  # Database package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/db"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "irfndi"
+    assignees:
+      - "irfndi"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "database"
+      - "automated"
+
+  # Types package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/types"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "irfndi"
+    assignees:
+      - "irfndi"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels:
+      - "dependencies"
+      - "types"
+      - "automated"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "irfndi"
+    assignees:
+      - "irfndi"
+    commit-message:
+      prefix: "chore(actions)"
+    labels:
+      - "github-actions"
+      - "ci-cd"
+      - "automated" 

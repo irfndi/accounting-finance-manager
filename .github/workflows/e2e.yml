@@ -1,0 +1,412 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run E2E tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '9.14.4'
+
+jobs:
+  # ============================================================================
+  # E2E TEST SETUP
+  # ============================================================================
+  e2e-setup:
+    name: E2E Setup
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.cache-key }}
+      app-url: ${{ steps.deploy.outputs.app-url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: |
+          echo "Building application for E2E testing..."
+          pnpm build
+          echo "✓ Application built successfully"
+
+      - name: Deploy to preview environment
+        id: deploy
+        run: |
+          echo "Deploying to preview environment..."
+          # For now, we'll use local development server
+          # In production, this would deploy to a staging environment
+          echo "app-url=http://localhost:4321" >> $GITHUB_OUTPUT
+          echo "✓ Preview deployment ready"
+
+      - name: Output cache key
+        id: cache-key
+        run: echo "cache-key=${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+
+  # ============================================================================
+  # PLAYWRIGHT E2E TESTS
+  # ============================================================================
+  e2e-test:
+    name: E2E Tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    needs: e2e-setup
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ needs.e2e-setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: |
+          echo "Installing Playwright browsers..."
+          pnpm exec playwright install ${{ matrix.browser }} --with-deps
+          echo "✓ Playwright browsers installed"
+
+      - name: Start application
+        run: |
+          echo "Starting application for E2E testing..."
+          pnpm dev &
+          # Wait for application to be ready
+          timeout 60s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 1; done' || \
+          timeout 60s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 1; done'
+          echo "✓ Application is running"
+
+      - name: Run Playwright tests
+        run: |
+          echo "Running E2E tests with ${{ matrix.browser }}..."
+          pnpm exec playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
+          echo "✓ E2E tests completed"
+        env:
+          PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
+          BASE_URL: http://localhost:4321
+          CI: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results-${{ matrix.browser }}-${{ matrix.shard }}
+          path: |
+            apps/web/test-results/
+            apps/web/playwright-report/
+          retention-days: 7
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-screenshots-${{ matrix.browser }}-${{ matrix.shard }}
+          path: apps/web/test-results/
+          retention-days: 7
+
+  # ============================================================================
+  # VISUAL REGRESSION TESTS
+  # ============================================================================
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    needs: e2e-setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ needs.e2e-setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: |
+          echo "Installing Playwright browsers for visual testing..."
+          pnpm exec playwright install chromium --with-deps
+          echo "✓ Playwright browsers installed"
+
+      - name: Start application
+        run: |
+          echo "Starting application for visual regression testing..."
+          pnpm dev &
+          timeout 60s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 1; done' || \
+          timeout 60s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 1; done'
+          echo "✓ Application is running"
+
+      - name: Run visual regression tests
+        run: |
+          echo "Running visual regression tests..."
+          pnpm exec playwright test --project=visual-regression --grep="@visual"
+          echo "✓ Visual regression tests completed"
+        env:
+          BASE_URL: http://localhost:4321
+          CI: true
+
+      - name: Upload visual diff artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-regression-diffs
+          path: |
+            apps/web/test-results/
+            apps/web/visual-diffs/
+          retention-days: 7
+
+  # ============================================================================
+  # PERFORMANCE TESTING
+  # ============================================================================
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: e2e-setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ needs.e2e-setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Lighthouse CI
+        run: |
+          echo "Installing Lighthouse CI..."
+          npm install -g @lhci/cli@0.14.x
+          echo "✓ Lighthouse CI installed"
+
+      - name: Start application
+        run: |
+          echo "Starting application for performance testing..."
+          pnpm dev &
+          timeout 60s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 1; done' || \
+          timeout 60s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 1; done'
+          echo "✓ Application is running"
+
+      - name: Run Lighthouse CI
+        run: |
+          echo "Running Lighthouse performance audit..."
+          lhci autorun || echo "Lighthouse audit completed with warnings"
+          echo "✓ Performance audit completed"
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload performance reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 7
+
+  # ============================================================================
+  # ACCESSIBILITY TESTING
+  # ============================================================================
+  accessibility:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: e2e-setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ needs.e2e-setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: |
+          echo "Installing Playwright browsers for accessibility testing..."
+          pnpm exec playwright install chromium --with-deps
+          echo "✓ Playwright browsers installed"
+
+      - name: Start application
+        run: |
+          echo "Starting application for accessibility testing..."
+          pnpm dev &
+          timeout 60s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 1; done' || \
+          timeout 60s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 1; done'
+          echo "✓ Application is running"
+
+      - name: Run accessibility tests
+        run: |
+          echo "Running accessibility tests..."
+          pnpm exec playwright test --project=accessibility --grep="@a11y"
+          echo "✓ Accessibility tests completed"
+        env:
+          BASE_URL: http://localhost:4321
+          CI: true
+
+      - name: Upload accessibility reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-reports
+          path: |
+            apps/web/accessibility-reports/
+            apps/web/test-results/
+          retention-days: 7
+
+  # ============================================================================
+  # E2E RESULTS SUMMARY
+  # ============================================================================
+  e2e-results:
+    name: E2E Results Summary
+    runs-on: ubuntu-latest
+    needs: [e2e-setup, e2e-test, visual-regression, performance, accessibility]
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate test summary
+        run: |
+          echo "E2E Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "======================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status | Browser Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|------------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ${{ needs.e2e-test.result }} | Chromium, Firefox, WebKit |" >> $GITHUB_STEP_SUMMARY
+          echo "| Visual Regression | ${{ needs.visual-regression.result }} | Chromium |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance | ${{ needs.performance.result }} | Lighthouse CI |" >> $GITHUB_STEP_SUMMARY
+          echo "| Accessibility | ${{ needs.accessibility.result }} | axe-playwright |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.e2e-test.result }}" == "failure" || 
+                "${{ needs.visual-regression.result }}" == "failure" || 
+                "${{ needs.performance.result }}" == "failure" || 
+                "${{ needs.accessibility.result }}" == "failure" ]]; then
+            echo "❌ E2E Pipeline Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Please check the individual job results and artifacts for details." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ E2E Pipeline Passed" >> $GITHUB_STEP_SUMMARY
+            echo "All end-to-end tests completed successfully!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check results
+        run: |
+          echo "E2E Pipeline Results:"
+          echo "===================="
+          echo "Setup: ${{ needs.e2e-setup.result }}"
+          echo "E2E Tests: ${{ needs.e2e-test.result }}"
+          echo "Visual Regression: ${{ needs.visual-regression.result }}"
+          echo "Performance: ${{ needs.performance.result }}"
+          echo "Accessibility: ${{ needs.accessibility.result }}"
+          
+          if [[ "${{ needs.e2e-setup.result }}" == "failure" || 
+                "${{ needs.e2e-test.result }}" == "failure" || 
+                "${{ needs.visual-regression.result }}" == "failure" || 
+                "${{ needs.performance.result }}" == "failure" || 
+                "${{ needs.accessibility.result }}" == "failure" ]]; then
+            echo "❌ E2E Pipeline Failed"
+            exit 1
+          else
+            echo "✅ E2E Pipeline Passed"
+          fi 

@@ -1,0 +1,286 @@
+# Finance Manager: Cloudflare Worker-Based Accounting & Finance Management Platform
+
+## Product Overview
+
+Building a single-runtime Cloudflare Worker that serves an Astro (TypeScript) front-end, exposes an API, runs an accounting engine, integrates with all Cloudflare data products, uses OpenRouter/Cloudflare-AI for OCR & data cleanup, and ships with industrial-grade CI/CD & test coverage.
+
+## Architecture
+
+```
+Browser (Astro Islands, HTMX/Alpine)
+     ⬇ fetch/WS
+  Cloudflare Worker (Hono router) ──▶  D1 (SQL, ACID)
+        │                         ├─▶  R2 (files, receipts)
+        │                         ├─▶  KV (sessions, feature flags)
+        │                         ├─▶  Vectorize (doc embeddings)
+        │                         ├─▶  OpenRouter / CF-AI / AI SDK (LLM/OCR)
+        └─▶ AWS SES (mail)
+```
+
+## Key Technical Requirements
+
+### Runtime & Deployment
+- Single Cloudflare Worker bundle containing both frontend and API
+- Hono for Express-style routing with type-safe middleware
+- Astro with "static" + "islands" output mode
+- Built HTML/JS served via Hono's serveStatic
+- Wrangler.toml configuration for site and modules sections
+
+### Data Storage & Management
+- D1 SQLite database for transactional data with ACID compliance
+- Drizzle ORM for type-safe SQL operations
+- R2 bucket for file storage (receipts, documents)
+- KV store for sessions and feature flags
+- Vectorize for document embeddings and semantic search
+
+### Accounting Engine Requirements
+- Double-entry bookkeeping system with strict balance validation
+- Core accounting entities: Accounts, Transactions, Entries
+- Account types: Asset, Liability, Equity, Revenue, Expense
+- Automated statement generation: Balance Sheet, P&L, Cash Flow
+- Real-time balance validation (Σ debits = Σ credits)
+
+### AI Integration Pipeline
+- File upload to R2 with UUID-based naming
+- Cloudflare AI content scanning for text extraction
+- OpenRouter LLM integration for data structuring
+- JSON schema validation for extracted data
+- Vectorize embeddings for semantic document search
+- Automated categorization and account suggestion
+
+### Authentication & Security
+- Cloudflare Access JWT or DIY email magic-link flow
+- KV-based session management
+- HS256 JWT signing with CF_JWT_SECRET
+- Argon2id password hashing (Wasm implementation)
+- CSP headers, SameSite cookies, CSRF protection
+- Immutable audit log in D1
+
+## Repository Structure
+
+```
+.
+├─ apps/
+│  └─ web/           # Astro project
+├─ packages/
+│  ├─ db/            # Drizzle schema & migrator
+│  ├─ core/          # Pure accounting engine
+│  ├─ ai/            # OpenRouter + Vectorize helpers
+│  └─ types/         # Shared zod schemas & types
+├─ worker/
+│  ├─ router.ts      # Hono routing
+│  └─ index.ts       # Worker entry point
+├─ scripts/
+│  ├─ dev/           # Development scripts
+│  └─ prod/          # Production scripts
+├─ .github/
+│  └─ workflows/     # CI/CD pipelines
+├─ Makefile
+└─ pnpm-workspace.yaml
+```
+
+## Data Model
+
+### Core Tables
+- **accounts**: Chart of accounts with codes, names, and types
+- **transactions**: Financial transactions with descriptions and timestamps
+- **entries**: Individual debit/credit entries linked to transactions and accounts
+- **raw_docs**: AI-processed document data
+- **audit_log**: Immutable activity tracking
+
+### Relationships
+- One transaction has multiple entries (debits and credits)
+- Each entry belongs to one account and one transaction
+- All transactions must balance (total debits = total credits)
+
+## Feature Requirements
+
+### Core Accounting Features
+- Chart of accounts management
+- Transaction entry with automatic balancing
+- Financial statement generation (real-time)
+- Account reconciliation
+- Multi-currency support
+- Audit trail maintenance
+
+### AI-Powered Features
+- Receipt/document OCR processing
+- Automatic transaction categorization
+- Vendor/payee recognition
+- Semantic document search
+- Duplicate transaction detection
+- Smart account suggestions
+
+### User Interface Features
+- Responsive design with light/dark themes
+- Astro Islands for interactive components
+- Real-time data updates
+- Accessible design (WCAG 2.1 AA)
+- Mobile-first approach
+- Keyboard navigation support
+
+### Integration Features
+- Email notifications via AWS SES
+- Magic-link authentication
+- Webhook endpoints for external systems
+- CSV import/export functionality
+- API endpoints for third-party integrations
+
+## Testing Requirements
+
+### Test Coverage
+- 100% line and branch coverage requirement
+- Unit tests with Vitest + ts-mock
+- Integration tests with Miniflare 3
+- End-to-end tests with Playwright
+- Performance testing with load scenarios
+
+### Test Environment
+- Miniflare 3 for local CF services emulation
+- Automated test data generation
+- CI/CD pipeline integration
+- Coverage reporting with NYC/Istanbul
+
+## CI/CD Pipeline
+
+### Development Workflow
+- ESLint + Prettier + TypeScript checking
+- Pre-commit hooks for code quality
+- Hot reload for development
+- Local CF services emulation
+
+### Production Pipeline
+- Automated testing on all PRs
+- Staging deployment for testing
+- Production deployment on main branch
+- Database migration automation
+- Rollback capabilities
+
+## Design System
+
+### UI Framework
+- Tailwind CSS 3 for styling
+- shadcn/ui components (Radix-based)
+- Figma design tokens integration
+- Consistent color scheme management
+
+### Accessibility
+- WCAG 2.1 AA compliance
+- Screen reader compatibility
+- Keyboard navigation
+- High contrast mode support
+
+## Performance Requirements
+
+### Response Times
+- API responses < 200ms (95th percentile)
+- Page load times < 2s
+- File upload handling up to 10MB
+- Concurrent user support (1000+)
+
+### Scalability
+- Multi-tenant isolation support
+- Horizontal scaling via CF Workers
+- Efficient database query optimization
+- CDN-based asset delivery
+
+## Security Requirements
+
+### Data Protection
+- Encryption at rest and in transit
+- PII data handling compliance
+- Secure file upload validation
+- SQL injection prevention
+- XSS attack mitigation
+
+### Access Control
+- Role-based permissions
+- Session timeout management
+- Rate limiting implementation
+- Audit logging for all actions
+
+## Development Timeline (12 Weeks)
+
+### Phase 1: Foundation (Weeks 1-2)
+- Repository setup and monorepo configuration
+- Basic Astro + Worker skeleton
+- CI/CD pipeline establishment
+- Development environment setup
+
+### Phase 2: Core Infrastructure (Weeks 3-4)
+- Authentication system implementation
+- Database schema and migrations
+- Basic API routing with Hono
+- Session management
+
+### Phase 3: Accounting Engine (Weeks 5-6)
+- Double-entry bookkeeping logic
+- Transaction processing
+- Financial statement generation
+- Data validation and integrity
+
+### Phase 4: AI Integration (Weeks 7-8)
+- File upload to R2
+- OCR pipeline with CF AI
+- LLM integration for data extraction
+- Vectorize search implementation
+
+### Phase 5: User Experience (Weeks 9-10)
+- Frontend UI implementation
+- Email integration with SES
+- Responsive design completion
+- Accessibility compliance
+
+### Phase 6: Hardening (Weeks 11-12)
+- Performance optimization
+- Security hardening
+- Comprehensive testing
+- Documentation and deployment
+
+## Success Metrics
+
+### Technical Metrics
+- Test coverage: 100% lines/branches
+- API response time: < 200ms p95
+- Uptime: 99.9%
+- Security vulnerabilities: 0 critical
+
+### Business Metrics
+- User onboarding completion rate
+- Transaction processing accuracy
+- Document processing success rate
+- User satisfaction scores
+
+## Risk Mitigation
+
+### Technical Risks
+- CF Worker runtime limitations
+- D1 database performance constraints
+- AI service availability and accuracy
+- Third-party API dependencies
+
+### Business Risks
+- Regulatory compliance requirements
+- Data migration challenges
+- User adoption barriers
+- Competitive landscape changes
+
+## Future Enhancements
+
+### Multi-tenancy
+- Tenant isolation in D1 tables
+- KV key prefixing strategy
+- Resource usage tracking
+- Billing integration
+
+### Advanced Features
+- Time-zone aware processing
+- Plugin marketplace architecture
+- Advanced reporting and analytics
+- Mobile application development
+
+### Integration Expansions
+- Bank account connectivity
+- Payment processor integration
+- Tax preparation software links
+- ERP system connections 
