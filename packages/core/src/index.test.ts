@@ -3,7 +3,7 @@
  * Unit tests for double-entry accounting engine
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   FINANCIAL_CONSTANTS,
   formatCurrency,
@@ -27,6 +27,9 @@ import {
   ErrorAggregator,
   AccountingErrorFactory,
   ErrorRecoveryManager,
+  DatabaseAdapter,
+  DatabaseAccountRegistry,
+  DatabaseJournalEntryManager,
 } from './index.js';
 import type {
   TransactionEntry,
@@ -1539,6 +1542,434 @@ describe('Enhanced Error Handling System', () => {
       
       expect(unbalancedError).toBeDefined();
       expect(unbalancedError?.suggestions).toContain('Check if all journal entries have been recorded');
+    });
+  });
+
+  it('should generate report with detailed error information', () => {
+    const aggregator = new ErrorAggregator();
+    
+    const error1 = AccountingErrorFactory.createValidationError(
+      'amount',
+      'Invalid amount',
+      'INVALID_AMOUNT',
+      'ERROR',
+      'VALIDATION',
+      ['Check amount format']
+    );
+    
+    const error2 = AccountingErrorFactory.createBusinessRuleError(
+      'account',
+      'Account not found',
+      'ACCOUNT_NOT_FOUND',
+      ['Verify account exists']
+    );
+
+    aggregator.addError(error1);
+    aggregator.addError(error2);
+
+    const report = aggregator.generateReport();
+    
+    expect(report.summary.totalErrors).toBe(2);
+    expect(report.summary.totalWarnings).toBe(0);
+    expect(report.summary.byCategory.VALIDATION).toBe(1);
+    expect(report.summary.byCategory.BUSINESS_RULE).toBe(1);
+    expect(report.issues).toHaveLength(2);
+  });
+});
+
+// D1 Database Integration Tests
+describe('D1 Database Integration', () => {
+  // Mock D1 Database
+  const createMockD1Database = () => {
+    const mockResults = new Map<string, unknown[]>();
+    
+    return {
+      prepare: (query: string) => ({
+        bind: (...values: unknown[]) => ({
+          all: async () => ({
+            results: mockResults.get(query) || []
+          }),
+          first: async () => {
+            const results = mockResults.get(query) || [];
+            return results[0] || null;
+          },
+          run: async () => ({
+            success: true,
+            meta: { changes: 1, last_row_id: 1 }
+          })
+        })
+      }),
+      setMockResults: (query: string, results: unknown[]) => {
+        mockResults.set(query, results);
+      }
+    } as any;
+  };
+
+  describe('DatabaseAdapter', () => {
+    let dbAdapter: any;
+    let mockDb: any;
+
+    beforeEach(() => {
+      mockDb = createMockD1Database();
+      dbAdapter = new DatabaseAdapter({
+        database: mockDb,
+        entityId: 'test-entity',
+        defaultCurrency: 'IDR'
+      });
+    });
+
+    it('should create account in database', async () => {
+      const mockAccount = {
+        id: 1,
+        code: '1000',
+        name: 'Cash',
+        type: 'ASSET',
+        normal_balance: 'DEBIT',
+        is_active: 1,
+        is_system: 0,
+        allow_transactions: 1,
+        level: 0,
+        path: '1000',
+        current_balance: 0,
+        created_at: Date.now(),
+        updated_at: Date.now()
+      };
+
+      // Set up mock to return the account data when the createAccount method calls first()
+      const insertQuery = `
+      INSERT INTO accounts (
+        code, name, description, type, subtype, category,
+        parent_id, level, path, is_active, is_system, allow_transactions,
+        normal_balance, report_category, report_order, current_balance,
+        entity_id, created_at, updated_at, created_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      RETURNING *
+    `;
+      mockDb.setMockResults(insertQuery.trim(), [mockAccount]);
+
+      const accountData = {
+        code: '1000',
+        name: 'Cash',
+        type: 'ASSET' as const,
+        normalBalance: 'DEBIT' as const,
+        isActive: true,
+        isSystem: false,
+        allowTransactions: true
+      };
+
+      const result = await dbAdapter.createAccount(accountData);
+      
+      expect(result.code).toBe('1000');
+      expect(result.name).toBe('Cash');
+      expect(result.type).toBe('ASSET');
+    });
+
+    it('should get account from database', async () => {
+      const mockAccount = {
+        id: 1,
+        code: '1000',
+        name: 'Cash',
+        type: 'ASSET',
+        normal_balance: 'DEBIT',
+        is_active: 1,
+        is_system: 0,
+        allow_transactions: 1,
+        level: 0,
+        path: '1000',
+        current_balance: 0,
+        created_at: Date.now(),
+        updated_at: Date.now()
+      };
+
+      mockDb.setMockResults('SELECT * FROM accounts WHERE id = ? AND entity_id = ?', [mockAccount]);
+
+      const result = await dbAdapter.getAccount(1);
+      
+      expect(result).not.toBeNull();
+      expect(result?.code).toBe('1000');
+      expect(result?.name).toBe('Cash');
+    });
+
+    it('should return null for non-existent account', async () => {
+      mockDb.setMockResults('SELECT * FROM accounts WHERE id = ? AND entity_id = ?', []);
+
+      const result = await dbAdapter.getAccount(999);
+      
+      expect(result).toBeNull();
+    });
+
+    it('should create transaction in database', async () => {
+      const mockTransaction = {
+        id: 1,
+        transaction_number: '2025-000001',
+        description: 'Test transaction',
+        transaction_date: Date.now(),
+        posting_date: Date.now(),
+        type: 'JOURNAL',
+        source: 'MANUAL',
+        total_amount: 1000,
+        status: 'DRAFT',
+        entity_id: 'test-entity',
+        created_at: Date.now(),
+        updated_at: Date.now(),
+        created_by: 'test-user'
+      };
+
+      mockDb.setMockResults('INSERT INTO transactions', [mockTransaction]);
+      mockDb.setMockResults('SELECT COUNT(*) as count', [{ count: 0 }]);
+
+      const transactionData = {
+        description: 'Test transaction',
+        date: new Date(),
+        entries: [
+          { accountId: 1, debitAmount: 1000, creditAmount: 0, currency: 'IDR' as const },
+          { accountId: 2, debitAmount: 0, creditAmount: 1000, currency: 'IDR' as const }
+        ],
+        createdBy: 'test-user'
+      };
+
+      const result = await dbAdapter.createTransaction(transactionData);
+      
+      expect(result.description).toBe('Test transaction');
+      expect(result.status).toBe('DRAFT');
+    });
+
+    it('should create journal entries in database', async () => {
+      const mockEntry = {
+        id: 1,
+        transaction_id: 1,
+        line_number: 1,
+        account_id: 1000,
+        debit_amount: 1000,
+        credit_amount: 0,
+        currency_code: 'IDR',
+        exchange_rate: 1.0,
+        is_reconciled: 0,
+        created_at: Date.now(),
+        updated_at: Date.now()
+      };
+
+      mockDb.setMockResults('INSERT INTO journal_entries', [mockEntry]);
+
+      const journalEntries = [{
+        id: 1,
+        transactionId: 1,
+        lineNumber: 1,
+        accountId: 1000,
+        debitAmount: 1000,
+        creditAmount: 0,
+        currency: 'IDR' as const,
+        exchangeRate: 1.0,
+        isReconciled: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }];
+
+      const result = await dbAdapter.createJournalEntries(journalEntries);
+      
+      expect(result).toHaveLength(1);
+      expect(result[0].accountId).toBe(1000);
+      expect(result[0].debitAmount).toBe(1000);
+    });
+  });
+
+  describe('DatabaseAccountRegistry', () => {
+    let registry: any;
+    let mockDbAdapter: any;
+
+    beforeEach(() => {
+      mockDbAdapter = {
+        getAllAccounts: vi.fn(),
+        createAccount: vi.fn(),
+        getAccount: vi.fn(),
+        getAccountsByType: vi.fn()
+      };
+
+                    registry = new DatabaseAccountRegistry(mockDbAdapter);
+    });
+
+    it('should load accounts from database', async () => {
+      const mockAccounts = [
+        {
+          id: '1',
+          code: '1000',
+          name: 'Cash',
+          type: 'ASSET',
+          normalBalance: 'DEBIT',
+          isActive: true,
+          isSystem: false,
+          allowTransactions: true,
+          level: 0,
+          path: '1000',
+          currentBalance: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      mockDbAdapter.getAllAccounts.mockResolvedValue(mockAccounts);
+
+      await registry.loadAccountsFromDatabase();
+
+      expect(mockDbAdapter.getAllAccounts).toHaveBeenCalled();
+      expect(registry.hasAccount('1')).toBe(true);
+    });
+
+    it('should register account in database', async () => {
+      const account = {
+        code: '2000',
+        name: 'Accounts Payable',
+        type: 'LIABILITY' as const,
+        normalBalance: 'CREDIT' as const,
+        isActive: true,
+        isSystem: false,
+        allowTransactions: true
+      };
+
+      const createdAccount = {
+        ...account,
+        id: '2',
+        level: 0,
+        path: '2000',
+        currentBalance: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      mockDbAdapter.createAccount.mockResolvedValue(createdAccount);
+
+      const result = await registry.registerAccount(account);
+
+      expect(mockDbAdapter.createAccount).toHaveBeenCalledWith(account);
+      expect(result.id).toBe('2');
+      expect(registry.hasAccount('2')).toBe(true);
+    });
+  });
+
+  describe('DatabaseJournalEntryManager', () => {
+    let manager: any;
+    let mockDbAdapter: any;
+    let mockAccountRegistry: any;
+
+    beforeEach(() => {
+      mockDbAdapter = {
+        createTransaction: vi.fn(),
+        createJournalEntries: vi.fn(),
+        updateTransactionStatus: vi.fn(),
+        getJournalEntriesByTransaction: vi.fn(),
+        getAccount: vi.fn()
+      };
+
+      mockAccountRegistry = {
+        getAccount: vi.fn()
+      };
+
+      manager = new DatabaseJournalEntryManager(mockDbAdapter, mockAccountRegistry);
+    });
+
+    it('should create and persist transaction with journal entries', async () => {
+      const mockTransaction = {
+        id: 1,
+        transactionNumber: '2025-000001',
+        description: 'Test transaction',
+        date: new Date(),
+        status: 'DRAFT' as const,
+        createdBy: 'test-user'
+      };
+
+      const mockJournalEntries = [
+        {
+          id: 1,
+          transactionId: 1,
+          lineNumber: 1,
+          accountId: 1000,
+          debitAmount: 1000,
+          creditAmount: 0,
+          currency: 'IDR' as const,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      mockDbAdapter.createTransaction.mockResolvedValue(mockTransaction);
+      mockDbAdapter.createJournalEntries.mockResolvedValue(mockJournalEntries);
+
+      const transactionData = {
+        description: 'Test transaction',
+        date: new Date(),
+        entries: [
+          { accountId: 1000, debitAmount: 1000, creditAmount: 0, currency: 'IDR' as const },
+          { accountId: 2000, debitAmount: 0, creditAmount: 1000, currency: 'IDR' as const }
+        ],
+        createdBy: 'test-user'
+      };
+
+      const result = await manager.createAndPersistTransaction(transactionData);
+
+      expect(mockDbAdapter.createTransaction).toHaveBeenCalledWith(transactionData);
+      expect(mockDbAdapter.createJournalEntries).toHaveBeenCalled();
+      expect(result.transaction.id).toBe(1);
+      expect(result.journalEntries).toHaveLength(1);
+    });
+
+    it('should post transaction and update status', async () => {
+      const mockJournalEntries = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 1000,
+          debitAmount: 1000,
+          creditAmount: 0,
+          currency: 'IDR' as const
+        }
+      ];
+
+      const mockAccount = {
+        id: '1000',
+        normalBalance: 'DEBIT' as const,
+        currentBalance: 5000
+      };
+
+      mockDbAdapter.getJournalEntriesByTransaction.mockResolvedValue(mockJournalEntries);
+      mockDbAdapter.getAccount.mockResolvedValue(mockAccount);
+
+      await manager.postTransaction(1, 'test-user');
+
+      expect(mockDbAdapter.updateTransactionStatus).toHaveBeenCalledWith(1, 'POSTED', 'test-user');
+      expect(mockDbAdapter.getJournalEntriesByTransaction).toHaveBeenCalledWith(1);
+    });
+
+    it('should get transaction journal entries', async () => {
+      const mockEntries = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 1000,
+          debitAmount: 1000,
+          creditAmount: 0
+        }
+      ];
+
+      mockDbAdapter.getJournalEntriesByTransaction.mockResolvedValue(mockEntries);
+
+      const result = await manager.getTransactionJournalEntries(1);
+
+      expect(mockDbAdapter.getJournalEntriesByTransaction).toHaveBeenCalledWith(1);
+      expect(result).toEqual(mockEntries);
+    });
+
+    it('should throw validation error for invalid transaction data', async () => {
+      const invalidTransactionData = {
+        description: '',
+        date: new Date(),
+        entries: [], // Empty entries should cause validation error
+        createdBy: 'test-user'
+      };
+
+      await expect(manager.createAndPersistTransaction(invalidTransactionData))
+        .rejects
+        .toThrow('Transaction validation failed');
     });
   });
 }); 
