@@ -168,11 +168,48 @@ async function handleAccountsApi(
       case 'POST': {
         // Create new account
         const body = await request.json() as Record<string, unknown>;
+        
+        // Calculate hierarchical path and level
+        let level = 0;
+        let path = body.code as string;
+        
+        if (body.parentId) {
+          const parent = await db.select().from(accounts).where(eq(accounts.id, Number(body.parentId)));
+          if (parent[0]) {
+            level = parent[0].level + 1;
+            path = `${parent[0].path}.${body.code}`;
+          }
+        }
+        
+        // Determine normal balance based on account type
+        const accountType = body.type as string;
+        const normalBalance = body.normalBalance as string || 
+          (['ASSET', 'EXPENSE'].includes(accountType) ? 'DEBIT' : 'CREDIT');
+        
         const newAccount = await db.insert(accounts).values({
-          ...body,
+          code: body.code as string,
+          name: body.name as string,
+          description: body.description as string || null,
+          type: body.type as string,
+          subtype: body.subtype as string || null,
+          category: body.category as string || null,
+          parentId: body.parentId ? Number(body.parentId) : null,
+          level,
+          path,
+          isActive: Boolean(body.isActive ?? true),
+          isSystem: Boolean(body.isSystem ?? false),
+          allowTransactions: Boolean(body.allowTransactions ?? true),
+          normalBalance,
+          reportCategory: body.reportCategory as string || null,
+          reportOrder: body.reportOrder ? Number(body.reportOrder) : 0,
+          currentBalance: body.currentBalance ? Number(body.currentBalance) : 0,
+          entityId: body.entityId ? Number(body.entityId) : null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          createdBy: body.createdBy as string || null,
+          updatedBy: body.updatedBy as string || null,
         }).returning();
+        
         return new Response(JSON.stringify({
           account: newAccount[0],
           message: 'Account created successfully',

@@ -35,4 +35,5 @@ binding = "FINANCE_MANAGER_DOCUMENTS"
 bucket_name = "finance-manager-documents" 
 
 logpush = true
-
+[observability.logs]
+enabled = true
