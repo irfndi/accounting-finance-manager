@@ -9,6 +9,8 @@ import {
   TransactionBuilder,
   BalanceCalculator,
   AccountingEngine,
+  AccountBalanceManager,
+  AccountRegistry,
   DoubleEntryError,
   formatCurrency,
   roundToDecimalPlaces,
@@ -21,6 +23,8 @@ import type {
   ValidationError,
   AccountType,
   NormalBalance,
+  Account,
+  Transaction,
 } from '@finance-manager/types';
 
 describe('Financial Constants', () => {
@@ -29,7 +33,7 @@ describe('Financial Constants', () => {
   });
 
   it('should have correct default currency', () => {
-    expect(FINANCIAL_CONSTANTS.DEFAULT_CURRENCY).toBe('USD');
+    expect(FINANCIAL_CONSTANTS.DEFAULT_CURRENCY).toBe('IDR');
   });
 
   it('should have correct normal balances for account types', () => {
@@ -44,13 +48,13 @@ describe('Financial Constants', () => {
 describe('Utility Functions', () => {
   describe('formatCurrency', () => {
     it('should format currency correctly', () => {
-      expect(formatCurrency(1234.56)).toBe('$1,234.56');
-      expect(formatCurrency(0)).toBe('$0.00');
-      expect(formatCurrency(-500.25)).toBe('-$500.25');
+      expect(formatCurrency(1234.56)).toBe('Rp 1.235');
+      expect(formatCurrency(0)).toBe('Rp 0');
+      expect(formatCurrency(-500.25)).toBe('Rp -500');
     });
 
     it('should format different currencies', () => {
-      const result = formatCurrency(1000, 'EUR', 'de-DE');
+      const result = formatCurrency(1000, 'EUR');
       expect(result).toContain('1.000,00');
       expect(result).toContain('€');
     });
@@ -485,5 +489,171 @@ describe('Real-world Accounting Scenarios', () => {
 
     expect(transaction.entries).toHaveLength(2);
     expect(TransactionValidator.validateTransactionData(transaction)).toHaveLength(0);
+  });
+});
+
+// TODO: Add AccountBalanceManager tests once Transaction interface is finalized
+
+describe('AccountRegistry', () => {
+  let registry: AccountRegistry;
+
+  beforeEach(() => {
+    registry = new AccountRegistry();
+  });
+
+  describe('Account Management', () => {
+    it('should register and retrieve accounts', () => {
+      const account: Account = {
+        id: 1001,
+        code: '1001',
+        name: 'Cash',
+        type: 'ASSET',
+        normalBalance: 'DEBIT',
+        parentId: undefined,
+        level: 1,
+        path: '1001',
+        isActive: true,
+        isSystem: false,
+        allowTransactions: true,
+        reportOrder: 1,
+        currentBalance: 0,
+        description: 'Cash account',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      registry.registerAccount(account);
+
+      const retrieved = registry.getAccount('1001');
+      expect(retrieved).toEqual(account);
+      expect(registry.hasAccount('1001')).toBe(true);
+    });
+
+    it('should get accounts by type', () => {
+      const assetAccount: Account = {
+        id: 1001,
+        code: '1001',
+        name: 'Cash',
+        type: 'ASSET',
+        normalBalance: 'DEBIT',
+        parentId: undefined,
+        level: 1,
+        path: '1001',
+        isActive: true,
+        isSystem: false,
+        allowTransactions: true,
+        reportOrder: 1,
+        currentBalance: 0,
+        description: 'Cash account',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const liabilityAccount: Account = {
+        id: 2001,
+        code: '2001',
+        name: 'Accounts Payable',
+        type: 'LIABILITY',
+        normalBalance: 'CREDIT',
+        parentId: undefined,
+        level: 1,
+        path: '2001',
+        isActive: true,
+        isSystem: false,
+        allowTransactions: true,
+        reportOrder: 2,
+        currentBalance: 0,
+        description: 'Accounts payable',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      registry.registerAccount(assetAccount);
+      registry.registerAccount(liabilityAccount);
+
+      const assets = registry.getAccountsByType('ASSET');
+      const liabilities = registry.getAccountsByType('LIABILITY');
+
+      expect(assets).toHaveLength(1);
+      expect(liabilities).toHaveLength(1);
+      expect(assets[0].name).toBe('Cash');
+      expect(liabilities[0].name).toBe('Accounts Payable');
+    });
+
+    it('should get account normal balance', () => {
+      const account: Account = {
+        id: 1001,
+        code: '1001',
+        name: 'Cash',
+        type: 'ASSET',
+        normalBalance: 'DEBIT',
+        parentId: undefined,
+        level: 1,
+        path: '1001',
+        isActive: true,
+        isSystem: false,
+        allowTransactions: true,
+        reportOrder: 1,
+        currentBalance: 0,
+        description: 'Cash account',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      registry.registerAccount(account);
+
+      const normalBalance = registry.getAccountNormalBalance('1001');
+      expect(normalBalance).toBe('DEBIT');
+    });
+
+    it('should remove accounts', () => {
+      const account: Account = {
+        id: 1001,
+        code: '1001',
+        name: 'Cash',
+        type: 'ASSET',
+        normalBalance: 'DEBIT',
+        parentId: undefined,
+        level: 1,
+        path: '1001',
+        isActive: true,
+        isSystem: false,
+        allowTransactions: true,
+        reportOrder: 1,
+        currentBalance: 0,
+        description: 'Cash account',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      registry.registerAccount(account);
+      expect(registry.hasAccount('1001')).toBe(true);
+
+      const removed = registry.removeAccount('1001');
+      expect(removed).toBe(true);
+      expect(registry.hasAccount('1001')).toBe(false);
+    });
+  });
+});
+
+describe('IDR Currency Formatting', () => {
+  it('should format IDR currency without decimal places', () => {
+    const formatted = formatCurrency(1000000, 'IDR');
+    expect(formatted).toBe('Rp 1.000.000');
+  });
+
+  it('should format USD currency with decimal places', () => {
+    const formatted = formatCurrency(1000.50, 'USD');
+    expect(formatted).toBe('$ 1,000.50');
+  });
+
+  it('should use IDR as default currency', () => {
+    const formatted = formatCurrency(500000);
+    expect(formatted).toBe('Rp 500.000');
+  });
+
+  it('should format other supported currencies', () => {
+    expect(formatCurrency(100000, 'SGD')).toBe('S$ 100,000.00');
+    expect(formatCurrency(100000, 'MYR')).toBe('RM 100,000.00');
   });
 }); 

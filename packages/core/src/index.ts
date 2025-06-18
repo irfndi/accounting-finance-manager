@@ -17,26 +17,46 @@ import type {
   ValidationError,
   AccountingError,
   AccountBalance,
+  TrialBalance,
+  BalanceSheet,
+  IncomeStatement,
 } from '@finance-manager/types';
 
 // Core financial constants
 export const FINANCIAL_CONSTANTS = {
   DECIMAL_PLACES: 2,
-  DEFAULT_CURRENCY: 'USD' as Currency,
+  DEFAULT_CURRENCY: 'IDR' as const,
+  SUPPORTED_CURRENCIES: ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'] as const,
+  CURRENCY_SYMBOLS: {
+    IDR: 'Rp',
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    SGD: 'S$',
+    MYR: 'RM'
+  },
+  CURRENCY_LOCALES: {
+    IDR: 'id-ID',
+    USD: 'en-US',
+    EUR: 'de-DE',
+    GBP: 'en-GB',
+    SGD: 'en-SG',
+    MYR: 'ms-MY'
+  },
   ACCOUNT_TYPES: {
     ASSET: 'ASSET',
-    LIABILITY: 'LIABILITY', 
+    LIABILITY: 'LIABILITY',
     EQUITY: 'EQUITY',
     REVENUE: 'REVENUE',
-    EXPENSE: 'EXPENSE',
+    EXPENSE: 'EXPENSE'
   } as const,
   NORMAL_BALANCES: {
     ASSET: 'DEBIT',
     EXPENSE: 'DEBIT',
     LIABILITY: 'CREDIT',
     EQUITY: 'CREDIT',
-    REVENUE: 'CREDIT',
-  } as const,
+    REVENUE: 'CREDIT'
+  } as const
 } as const;
 
 // Custom Error Classes
@@ -62,15 +82,20 @@ export class DoubleEntryError extends AccountingValidationError {
 // Utility functions
 export function formatCurrency(
   amount: number, 
-  currency: Currency = FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
-  locale = 'en-US'
+  currency: Currency = FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
 ): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: FINANCIAL_CONSTANTS.DECIMAL_PLACES,
-    maximumFractionDigits: FINANCIAL_CONSTANTS.DECIMAL_PLACES,
-  }).format(amount);
+  const locale = FINANCIAL_CONSTANTS.CURRENCY_LOCALES[currency];
+  const symbol = FINANCIAL_CONSTANTS.CURRENCY_SYMBOLS[currency];
+  
+  // For IDR, we don't typically use decimal places in everyday formatting
+  const options: Intl.NumberFormatOptions = {
+    style: 'decimal',
+    minimumFractionDigits: currency === 'IDR' ? 0 : FINANCIAL_CONSTANTS.DECIMAL_PLACES,
+    maximumFractionDigits: currency === 'IDR' ? 0 : FINANCIAL_CONSTANTS.DECIMAL_PLACES,
+  };
+  
+  const formattedAmount = new Intl.NumberFormat(locale, options).format(amount);
+  return `${symbol} ${formattedAmount}`;
 }
 
 export function roundToDecimalPlaces(amount: number, places: number = FINANCIAL_CONSTANTS.DECIMAL_PLACES): number {
@@ -358,4 +383,315 @@ export class AccountingEngine {
 }
 
 // Export everything
-export * from '@finance-manager/types'; 
+export * from '@finance-manager/types';
+
+/**
+ * Account Balance Manager - Handles balance calculations and account management
+ */
+export class AccountBalanceManager {
+  private accountBalances: Map<string, AccountBalance> = new Map();
+  private transactions: Transaction[] = [];
+
+  /**
+   * Add a transaction to the balance manager
+   */
+  addTransaction(transaction: Transaction): void {
+    this.transactions.push(transaction);
+    this.updateBalancesFromTransaction(transaction);
+  }
+
+  /**
+   * Update account balances based on a transaction
+   */
+  private updateBalancesFromTransaction(transaction: Transaction): void {
+    for (const entry of transaction.entries) {
+      const accountId = entry.accountId;
+      const currentBalance = this.accountBalances.get(accountId) || {
+        accountId,
+        balance: 0,
+        currency: entry.amount.currency,
+        lastUpdated: new Date(),
+        normalBalance: this.getNormalBalanceForAccount(accountId)
+      };
+
+      // Update balance based on debit/credit and normal balance
+      const balanceChange = entry.type === 'DEBIT' ? entry.amount.amount : -entry.amount.amount;
+      const newBalance = currentBalance.balance + balanceChange;
+
+      this.accountBalances.set(accountId, {
+        ...currentBalance,
+        balance: roundToDecimalPlaces(newBalance, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+        lastUpdated: new Date()
+      });
+    }
+  }
+
+  /**
+   * Get balance for a specific account
+   */
+  getAccountBalance(accountId: string): AccountBalance | null {
+    return this.accountBalances.get(accountId) || null;
+  }
+
+  /**
+   * Get all account balances
+   */
+  getAllBalances(): Map<string, AccountBalance> {
+    return new Map(this.accountBalances);
+  }
+
+  /**
+   * Calculate balance for an account based on all transactions
+   */
+  calculateAccountBalance(
+    accountId: string, 
+    accountType: AccountType,
+    asOfDate?: Date
+  ): number {
+    const relevantTransactions = asOfDate 
+      ? this.transactions.filter(t => new Date(t.date) <= asOfDate)
+      : this.transactions;
+
+    let balance = 0;
+    
+    for (const transaction of relevantTransactions) {
+      for (const entry of transaction.entries) {
+        if (entry.accountId === accountId) {
+          const amount = entry.amount.amount;
+          if (entry.type === 'DEBIT') {
+            balance += amount;
+          } else {
+            balance -= amount;
+          }
+        }
+      }
+    }
+
+    // Adjust for normal balance
+    const normalBalance = getNormalBalance(accountType);
+    if (normalBalance === 'CREDIT') {
+      balance = -balance;
+    }
+
+    return roundToDecimalPlaces(balance, FINANCIAL_CONSTANTS.DECIMAL_PLACES);
+  }
+
+  /**
+   * Generate trial balance
+   */
+  generateTrialBalance(asOfDate?: Date): TrialBalance {
+    const accounts = Array.from(this.accountBalances.keys());
+    const balances: { [accountId: string]: number } = {};
+    let totalDebits = 0;
+    let totalCredits = 0;
+
+    for (const accountId of accounts) {
+      const accountBalance = this.accountBalances.get(accountId);
+      if (!accountBalance) continue;
+
+      const balance = this.calculateAccountBalance(
+        accountId, 
+        this.getAccountTypeForAccount(accountId),
+        asOfDate
+      );
+
+      balances[accountId] = balance;
+
+      if (balance > 0) {
+        totalDebits += balance;
+      } else if (balance < 0) {
+        totalCredits += Math.abs(balance);
+      }
+    }
+
+    return {
+      asOfDate: asOfDate || new Date(),
+      accounts: balances,
+      totalDebits: roundToDecimalPlaces(totalDebits, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      totalCredits: roundToDecimalPlaces(totalCredits, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      isBalanced: Math.abs(totalDebits - totalCredits) < 0.01,
+      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+    };
+  }
+
+  /**
+   * Generate balance sheet
+   */
+  generateBalanceSheet(asOfDate?: Date): BalanceSheet {
+    const trialBalance = this.generateTrialBalance(asOfDate);
+    const assets: { [accountId: string]: number } = {};
+    const liabilities: { [accountId: string]: number } = {};
+    const equity: { [accountId: string]: number } = {};
+
+    for (const [accountId, balance] of Object.entries(trialBalance.accounts)) {
+      const accountType = this.getAccountTypeForAccount(accountId);
+      
+      switch (accountType) {
+        case 'ASSET':
+          assets[accountId] = balance;
+          break;
+        case 'LIABILITY':
+          liabilities[accountId] = Math.abs(balance);
+          break;
+        case 'EQUITY':
+          equity[accountId] = Math.abs(balance);
+          break;
+      }
+    }
+
+    const totalAssets = Object.values(assets).reduce((sum, val) => sum + val, 0);
+    const totalLiabilities = Object.values(liabilities).reduce((sum, val) => sum + val, 0);
+    const totalEquity = Object.values(equity).reduce((sum, val) => sum + val, 0);
+
+    return {
+      asOfDate: asOfDate || new Date(),
+      assets,
+      liabilities,
+      equity,
+      totalAssets: roundToDecimalPlaces(totalAssets, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      totalLiabilities: roundToDecimalPlaces(totalLiabilities, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      totalEquity: roundToDecimalPlaces(totalEquity, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      isBalanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01,
+      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+    };
+  }
+
+  /**
+   * Generate income statement
+   */
+  generateIncomeStatement(
+    startDate: Date, 
+    endDate: Date
+  ): IncomeStatement {
+    const relevantTransactions = this.transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+
+    const revenues: { [accountId: string]: number } = {};
+    const expenses: { [accountId: string]: number } = {};
+
+    for (const transaction of relevantTransactions) {
+      for (const entry of transaction.entries) {
+        const accountType = this.getAccountTypeForAccount(entry.accountId);
+        const amount = entry.amount.amount;
+
+        if (accountType === 'REVENUE') {
+          const currentRevenue = revenues[entry.accountId] || 0;
+          revenues[entry.accountId] = currentRevenue + (entry.type === 'CREDIT' ? amount : -amount);
+        } else if (accountType === 'EXPENSE') {
+          const currentExpense = expenses[entry.accountId] || 0;
+          expenses[entry.accountId] = currentExpense + (entry.type === 'DEBIT' ? amount : -amount);
+        }
+      }
+    }
+
+    const totalRevenues = Object.values(revenues).reduce((sum, val) => sum + val, 0);
+    const totalExpenses = Object.values(expenses).reduce((sum, val) => sum + val, 0);
+    const netIncome = totalRevenues - totalExpenses;
+
+    return {
+      startDate,
+      endDate,
+      revenues,
+      expenses,
+      totalRevenues: roundToDecimalPlaces(totalRevenues, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      totalExpenses: roundToDecimalPlaces(totalExpenses, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      netIncome: roundToDecimalPlaces(netIncome, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+    };
+  }
+
+  /**
+   * Reset all balances and transactions
+   */
+  reset(): void {
+    this.accountBalances.clear();
+    this.transactions = [];
+  }
+
+  /**
+   * Get normal balance for account (helper method)
+   */
+  private getNormalBalanceForAccount(accountId: string): NormalBalance {
+    // This would typically come from a database or account registry
+    // For now, we'll use a simple mapping based on account ID patterns
+    const accountType = this.getAccountTypeForAccount(accountId);
+    return getNormalBalance(accountType);
+  }
+
+  /**
+   * Get account type for account (helper method)
+   */
+  private getAccountTypeForAccount(accountId: string): AccountType {
+    // This would typically come from a database or account registry
+    // For now, we'll use a simple mapping based on account ID patterns
+    if (accountId.startsWith('1')) return 'ASSET';
+    if (accountId.startsWith('2')) return 'LIABILITY';
+    if (accountId.startsWith('3')) return 'EQUITY';
+    if (accountId.startsWith('4')) return 'REVENUE';
+    if (accountId.startsWith('5')) return 'EXPENSE';
+    
+    // Default fallback
+    return 'ASSET';
+  }
+}
+
+/**
+ * Account Registry - Manages account definitions and metadata
+ */
+export class AccountRegistry {
+  private accounts: Map<string, Account> = new Map();
+
+  /**
+   * Register an account
+   */
+  registerAccount(account: Account): void {
+    this.accounts.set(account.id.toString(), account);
+  }
+
+  /**
+   * Get account by ID
+   */
+  getAccount(accountId: string): Account | null {
+    return this.accounts.get(accountId) || null;
+  }
+
+  /**
+   * Get all accounts of a specific type
+   */
+  getAccountsByType(accountType: AccountType): Account[] {
+    return Array.from(this.accounts.values()).filter(
+      account => account.type === accountType
+    );
+  }
+
+  /**
+   * Get all accounts
+   */
+  getAllAccounts(): Account[] {
+    return Array.from(this.accounts.values());
+  }
+
+  /**
+   * Check if account exists
+   */
+  hasAccount(accountId: string): boolean {
+    return this.accounts.has(accountId);
+  }
+
+  /**
+   * Remove account
+   */
+  removeAccount(accountId: string): boolean {
+    return this.accounts.delete(accountId);
+  }
+
+  /**
+   * Get account balance type
+   */
+  getAccountNormalBalance(accountId: string): NormalBalance | null {
+    const account = this.accounts.get(accountId);
+    return account ? getNormalBalance(account.type) : null;
+  }
+} 

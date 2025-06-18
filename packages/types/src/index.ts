@@ -1,4 +1,4 @@
-export type Currency = 'IDR' | 'USD' | 'EUR' | 'GBP';
+export type Currency = 'IDR' | 'USD' | 'EUR' | 'GBP' | 'SGD' | 'MYR';
 export interface Money { amount: number; currency: Currency; }
 
 // Account Types
@@ -34,33 +34,14 @@ export interface Account {
 
 // Transaction Header Interface
 export interface Transaction {
-  id: number;
-  reference: string;
+  id: string;
+  date: string;
   description: string;
-  transactionDate: Date;
-  postingDate?: Date;
+  reference?: string;
   status: TransactionStatus;
-  totalAmount: number;
-  currency: Currency;
-  exchangeRate?: number;
-  baseCurrency?: Currency;
-  baseAmount?: number;
-  entityId?: string;
-  departmentId?: string;
-  projectId?: string;
-  tags?: string[];
-  attachments?: string[];
-  notes?: string;
-  reversalId?: number;
-  isReversal: boolean;
-  approvedBy?: string;
-  approvedAt?: Date;
-  postedBy?: string;
-  postedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy?: string;
-  updatedBy?: string;
+  entries: TransactionEntry[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Journal Entry Interface
@@ -129,16 +110,11 @@ export interface AccountingError extends Error {
 
 // Balance Calculation Types
 export interface AccountBalance {
-  accountId: number;
-  accountCode: string;
-  accountName: string;
-  accountType: AccountType;
-  normalBalance: NormalBalance;
-  debitTotal: number;
-  creditTotal: number;
+  accountId: string;
   balance: number;
   currency: Currency;
-  asOfDate: Date;
+  lastUpdated: Date;
+  normalBalance: NormalBalance;
 }
 
 // Reporting Types

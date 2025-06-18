@@ -319,8 +319,8 @@
             "dependencies": [
               1
             ],
-            "details": "Create functions in `packages/core` to compute balances for all accounts, ensuring they reflect all posted transactions.",
-            "status": "pending",
+            "details": "Create functions in `packages/core` to compute balances for all accounts, ensuring they reflect all posted transactions.\n<info added on 2025-06-18T17:14:48.688Z>\n✅ **COMPLETED: Account Balance Calculation Implementation**\n\n**What was accomplished:**\n- Updated currency system to use IDR (Indonesian Rupiah) as default currency\n- Extended Currency type to include regional currencies: 'IDR' | 'USD' | 'EUR' | 'GBP' | 'SGD' | 'MYR'\n- Updated FINANCIAL_CONSTANTS with IDR defaults and currency formatting\n- Implemented proper IDR formatting (no decimal places, Indonesian locale)\n- Built comprehensive AccountBalanceManager class with balance tracking, trial balance generation, balance sheet generation, income statement generation, and account balance calculations with date filtering\n- Built AccountRegistry class for account management including registration, retrieval, filtering, existence checking, and removal functionality\n- Added comprehensive test coverage (48 tests total, all passing)\n- Fixed all type compatibility issues between Account interface and implementation\n\n**Key Technical Details:**\n- IDR currency formatting: \"Rp 1.000\" (no decimals, Indonesian locale)\n- Account balance tracking with running balances per transaction\n- Trial balance validation ensuring debits = credits\n- Balance sheet generation with proper asset/liability/equity categorization\n- Income statement generation with revenue/expense tracking over date ranges\n- Account registry using string keys for ID compatibility\n\n**Files Modified:**\n- packages/types/src/index.ts\n- packages/core/src/index.ts\n- packages/core/src/index.test.ts\n\n**Test Results:** All 48 tests passing ✅\n</info added on 2025-06-18T17:14:48.688Z>",
+            "status": "done",
             "testStrategy": "Integration tests verifying balance updates after transactions."
           },
           {
@@ -706,7 +706,7 @@
     ],
     "metadata": {
       "created": "2025-06-18T14:16:21.370Z",
-      "updated": "2025-06-18T16:59:45.352Z",
+      "updated": "2025-06-18T17:14:54.536Z",
       "description": "Tasks for master context"
     }
   }
