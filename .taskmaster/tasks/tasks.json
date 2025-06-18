@@ -197,16 +197,47 @@
       {
         "id": 4,
         "title": "Configure Cloudflare Worker",
-        "description": "Set up the Cloudflare Worker with Hono for routing and serveStatic for front-end assets.",
-        "details": "Initialize the Worker in the `worker` directory with `wrangler init`. Configure `wrangler.toml` for site and modules sections. Implement basic Hono routing in `router.ts`.",
-        "testStrategy": "Test the Worker locally with Miniflare and verify routing and static asset serving.",
-        "priority": "high",
+        "description": "Enhance the existing Cloudflare Worker with Hono framework for improved routing and implement front-end asset serving.",
+        "status": "in-progress",
         "dependencies": [
           1,
           3
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "high",
+        "details": "The worker currently has basic routing and configuration complete. Need to:\n1. Add Hono framework for better routing and middleware support\n2. Implement front-end asset serving with fallback handling\n3. Enhance API structure with modular routes and validation\n4. Improve integration with core accounting logic and database operations",
+        "testStrategy": "Test the enhanced Worker locally with Miniflare, verifying:\n- Hono routing functionality\n- Static asset fallback handling\n- API endpoint validation and error handling\n- Integration with core logic and database operations",
+        "subtasks": [
+          {
+            "id": 4.1,
+            "title": "Install and configure Hono framework",
+            "description": "Replace current manual routing with Hono router and add middleware",
+            "status": "todo"
+          },
+          {
+            "id": 4.2,
+            "title": "Implement serveStatic for front-end assets",
+            "description": "Configure Hono's serveStatic middleware for Astro front-end with proper caching",
+            "status": "completed"
+          },
+          {
+            "id": 4.3,
+            "title": "Enhance API structure",
+            "description": "Organize routes into modules, add validation and error handling",
+            "status": "todo"
+          },
+          {
+            "id": 4.4,
+            "title": "Improve core logic integration",
+            "description": "Connect enhanced routing with core accounting engine and database operations",
+            "status": "todo"
+          },
+          {
+            "id": 4.5,
+            "title": "Prepare for Astro front-end integration",
+            "description": "Update fallback route to serve built Astro assets when available",
+            "status": "todo"
+          }
+        ]
       },
       {
         "id": 5,
@@ -301,7 +332,7 @@
         "dependencies": [
           5
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -356,7 +387,7 @@
               3
             ],
             "details": "Develop error classes and handlers in `packages/core` to manage and report accounting rule violations.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Error scenario tests verifying proper exception handling."
           }
         ]
@@ -719,7 +750,7 @@
     ],
     "metadata": {
       "created": "2025-06-18T14:16:21.370Z",
-      "updated": "2025-06-18T17:55:15.440Z",
+      "updated": "2025-06-18T18:02:35.339Z",
       "description": "Tasks for master context"
     }
   }
