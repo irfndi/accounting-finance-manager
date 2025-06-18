@@ -1,30 +1,38 @@
 {
   "name": "@finance-manager/db",
   "version": "0.1.0",
-  "private": true,
+  "description": "Database schema and operations for Corporate Finance Manager",
+  "main": "src/index.ts",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio",
+    "push": "drizzle-kit push",
+    "check": "drizzle-kit check"
   },
   "dependencies": {
+    "@finance-manager/types": "workspace:*",
     "drizzle-orm": "^0.44.2",
-    "@cloudflare/workers-types": "^4.20250618.0",
-    "@finance-manager/types": "workspace:*"
+    "drizzle-zod": "^0.8.2",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.1"
-  }
-} 
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "drizzle-kit": "^0.31.1",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "keywords": [
+    "database",
+    "drizzle",
+    "d1",
+    "finance",
+    "accounting",
+    "orm"
+  ]
+}

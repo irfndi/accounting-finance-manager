@@ -18,18 +18,21 @@ ENVIRONMENT = "development"
 [env.production.vars]
 ENVIRONMENT = "production"
 
-# D1 Database bindings (to be configured)
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "finance-manager-db"
-# database_id = "886fa63b-1b70-42bc-8acd-62c21d68e42b"
+# D1 Database bindings
+[[d1_databases]]
+binding = "FINANCE_MANAGER_DB"
+database_name = "finance-manager-db"
+database_id = "886fa63b-1b70-42bc-8acd-62c21d68e42b"
 
-# KV Storage bindings (if needed)
-# [[kv_namespaces]]
-# binding = "FINANCE_MANAGER_CACHE"
-# id = "0e0af82b22224048a122082d1f3f6d42"
+# KV Storage bindings
+[[kv_namespaces]]
+binding = "FINANCE_MANAGER_CACHE"
+id = "0e0af82b22224048a122082d1f3f6d42"
 
-# R2 Storage bindings (for document storage)
-# [[r2_buckets]]
-# binding = "FINANCE_MANAGER_DOCUMENTS"
-# bucket_name = "finance-manager-documents" 
+# R2 Storage bindings
+[[r2_buckets]]
+binding = "FINANCE_MANAGER_DOCUMENTS"
+bucket_name = "finance-manager-documents" 
+
+logpush = true
+

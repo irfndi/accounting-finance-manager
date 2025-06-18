@@ -3,15 +3,20 @@
  * Main entry point for the finance management system API
  */
 
+// Cloudflare Worker types
+/// <reference types="@cloudflare/workers-types" />
+
+import { createDatabase, accounts, transactions, journalEntries, eq } from "@finance-manager/db";
+
 export interface Env {
-  // D1 Database binding (to be configured)
-  // DB: D1Database;
+  // D1 Database binding
+  FINANCE_MANAGER_DB: D1Database;
   
-  // KV Storage binding (if needed)
-  // CACHE: KVNamespace;
+  // KV Storage binding
+  FINANCE_MANAGER_CACHE: KVNamespace;
   
-  // R2 Storage binding (for documents)
-  // DOCUMENTS: R2Bucket;
+  // R2 Storage binding
+  FINANCE_MANAGER_DOCUMENTS: R2Bucket;
   
   // Environment variables
   ENVIRONMENT: string;
@@ -139,13 +144,63 @@ async function handleAccountsApi(
     'Content-Type': 'application/json'
   };
 
-  // TODO: Implement with D1 database
-  return new Response(JSON.stringify({
-    message: 'Accounts API - Coming soon with D1 database integration',
-    method,
-    params,
-    note: 'Will implement chart of accounts management'
-  }), { headers: corsHeaders });
+  try {
+    const db = createDatabase(env.FINANCE_MANAGER_DB);
+
+    switch (method) {
+      case 'GET': {
+        if (params[0]) {
+          // Get specific account by ID
+          const accountId = Number.parseInt(params[0], 10);
+          const account = await db.select().from(accounts).where(eq(accounts.id, accountId));
+          return new Response(JSON.stringify({
+            account: account[0] || null,
+          }), { headers: corsHeaders });
+        }
+        // Get all accounts
+        const allAccounts = await db.select().from(accounts);
+        return new Response(JSON.stringify({
+          accounts: allAccounts,
+          count: allAccounts.length,
+        }), { headers: corsHeaders });
+      }
+
+      case 'POST': {
+        // Create new account
+        const body = await request.json() as Record<string, unknown>;
+        const newAccount = await db.insert(accounts).values({
+          ...body,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }).returning();
+        return new Response(JSON.stringify({
+          account: newAccount[0],
+          message: 'Account created successfully',
+        }), { 
+          status: 201,
+          headers: corsHeaders,
+        });
+      }
+
+      default:
+        return new Response(JSON.stringify({
+          error: 'Method not allowed',
+          allowed: ['GET', 'POST']
+        }), {
+          status: 405,
+          headers: corsHeaders,
+        });
+    }
+  } catch (error) {
+    console.error('Accounts API Error:', error);
+    return new Response(JSON.stringify({
+      error: 'Database error',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }), {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
 }
 
 async function handleTransactionsApi(
