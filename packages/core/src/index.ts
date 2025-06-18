@@ -99,7 +99,7 @@ export function formatCurrency(
 }
 
 export function roundToDecimalPlaces(amount: number, places: number = FINANCIAL_CONSTANTS.DECIMAL_PLACES): number {
-  const factor = Math.pow(10, places);
+  const factor = 10 ** places;
   return Math.round(amount * factor) / factor;
 }
 
@@ -280,7 +280,10 @@ export class TransactionBuilder {
   }
 
   debit(accountId: number, amount: number, description?: string): TransactionBuilder {
-    this.transactionData.entries!.push({
+    if (!this.transactionData.entries) {
+      this.transactionData.entries = [];
+    }
+    this.transactionData.entries.push({
       accountId,
       debitAmount: roundToDecimalPlaces(amount),
       creditAmount: 0,
@@ -291,7 +294,10 @@ export class TransactionBuilder {
   }
 
   credit(accountId: number, amount: number, description?: string): TransactionBuilder {
-    this.transactionData.entries!.push({
+    if (!this.transactionData.entries) {
+      this.transactionData.entries = [];
+    }
+    this.transactionData.entries.push({
       accountId,
       debitAmount: 0,
       creditAmount: roundToDecimalPlaces(amount),
@@ -355,7 +361,7 @@ export class AccountingEngine {
   static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): ValidationError[] {
     const errors: ValidationError[] = [];
 
-    const transactionEntries = journalEntries.filter(entry => entry.transactionId === transaction.id);
+    const transactionEntries = journalEntries.filter(entry => entry.transactionId.toString() === transaction.id);
     
     if (transactionEntries.length === 0) {
       errors.push({
@@ -405,17 +411,19 @@ export class AccountBalanceManager {
    */
   private updateBalancesFromTransaction(transaction: Transaction): void {
     for (const entry of transaction.entries) {
-      const accountId = entry.accountId;
+      const accountId = entry.accountId.toString();
       const currentBalance = this.accountBalances.get(accountId) || {
         accountId,
         balance: 0,
-        currency: entry.amount.currency,
+        currency: 'IDR' as Currency,
         lastUpdated: new Date(),
         normalBalance: this.getNormalBalanceForAccount(accountId)
       };
 
       // Update balance based on debit/credit and normal balance
-      const balanceChange = entry.type === 'DEBIT' ? entry.amount.amount : -entry.amount.amount;
+      const debitAmount = entry.debitAmount || 0;
+      const creditAmount = entry.creditAmount || 0;
+      const balanceChange = debitAmount - creditAmount;
       const newBalance = currentBalance.balance + balanceChange;
 
       this.accountBalances.set(accountId, {
@@ -693,5 +701,456 @@ export class AccountRegistry {
   getAccountNormalBalance(accountId: string): NormalBalance | null {
     const account = this.accounts.get(accountId);
     return account ? getNormalBalance(account.type) : null;
+  }
+}
+
+/**
+ * Journal Entry Manager - Handles journal entry creation, validation, and posting
+ */
+export class JournalEntryManager {
+  private journalEntries: Map<number, JournalEntry> = new Map();
+  private nextId: number = 1;
+  private accountRegistry: AccountRegistry;
+
+  constructor(accountRegistry?: AccountRegistry) {
+    this.accountRegistry = accountRegistry || new AccountRegistry();
+  }
+
+  /**
+   * Create journal entries from transaction data
+   */
+  createJournalEntriesFromTransaction(
+    transactionId: number,
+    transactionData: TransactionData,
+    createdBy?: string
+  ): JournalEntry[] {
+    const entries: JournalEntry[] = [];
+    const now = new Date();
+
+    for (const entry of transactionData.entries) {
+      // Validate account exists if registry is populated
+      if (this.accountRegistry.hasAccount(entry.accountId.toString())) {
+        const account = this.accountRegistry.getAccount(entry.accountId.toString());
+        if (account && !account.allowTransactions) {
+          throw new DoubleEntryError(`Account ${entry.accountId} does not allow transactions`);
+        }
+      }
+
+      const journalEntry: JournalEntry = {
+        id: this.nextId++,
+        transactionId,
+        accountId: entry.accountId,
+        description: entry.description || transactionData.description,
+        debitAmount: entry.debitAmount || 0,
+        creditAmount: entry.creditAmount || 0,
+        currency: entry.currency || transactionData.currency,
+        exchangeRate: 1.0, // Default to 1.0 for same currency
+        baseCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+        baseDebitAmount: entry.debitAmount || 0,
+        baseCreditAmount: entry.creditAmount || 0,
+        entityId: entry.entityId || transactionData.entityId,
+        departmentId: entry.departmentId || transactionData.departmentId,
+        projectId: entry.projectId || transactionData.projectId,
+        reconciliationId: undefined,
+        isReconciled: false,
+        reconciledAt: undefined,
+        reconciledBy: undefined,
+        createdAt: now,
+        updatedAt: now,
+        createdBy,
+        updatedBy: createdBy
+      };
+
+      // Handle currency conversion if needed
+      if (journalEntry.currency !== FINANCIAL_CONSTANTS.DEFAULT_CURRENCY) {
+        // In a real system, you'd fetch exchange rates from an external service
+        // For now, we'll use a placeholder rate
+        journalEntry.exchangeRate = this.getExchangeRate(
+          journalEntry.currency, 
+          FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+        );
+        journalEntry.baseDebitAmount = (entry.debitAmount || 0) * journalEntry.exchangeRate;
+        journalEntry.baseCreditAmount = (entry.creditAmount || 0) * journalEntry.exchangeRate;
+      }
+
+      entries.push(journalEntry);
+      this.journalEntries.set(journalEntry.id, journalEntry);
+    }
+
+    return entries;
+  }
+
+  /**
+   * Validate journal entries for a transaction
+   */
+  validateJournalEntries(entries: JournalEntry[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+
+    if (entries.length === 0) {
+      errors.push({
+        field: 'entries',
+        message: 'At least one journal entry is required',
+        code: 'NO_ENTRIES'
+      });
+      return errors;
+    }
+
+    if (entries.length === 1) {
+      errors.push({
+        field: 'entries',
+        message: 'At least two journal entries are required for double-entry bookkeeping',
+        code: 'SINGLE_ENTRY'
+      });
+      // Continue validation to catch other errors
+    }
+
+    // Validate each entry
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const entryErrors = this.validateSingleJournalEntry(entry, i);
+      errors.push(...entryErrors);
+    }
+
+    // Validate double-entry balance
+    const balanceErrors = this.validateDoubleEntryBalance(entries);
+    errors.push(...balanceErrors);
+
+    // Validate account compatibility
+    const accountErrors = this.validateAccountCompatibility(entries);
+    errors.push(...accountErrors);
+
+    return errors;
+  }
+
+  /**
+   * Validate a single journal entry
+   */
+  private validateSingleJournalEntry(entry: JournalEntry, index: number): ValidationError[] {
+    const errors: ValidationError[] = [];
+    const fieldPrefix = `entries[${index}]`;
+
+    // Validate account ID
+    if (!entry.accountId || entry.accountId <= 0) {
+      errors.push({
+        field: `${fieldPrefix}.accountId`,
+        message: 'Valid account ID is required',
+        code: 'INVALID_ACCOUNT_ID'
+      });
+    }
+
+    // Validate amounts
+    if (entry.debitAmount < 0 || entry.creditAmount < 0) {
+      errors.push({
+        field: `${fieldPrefix}.amount`,
+        message: 'Amounts cannot be negative',
+        code: 'NEGATIVE_AMOUNT'
+      });
+    }
+
+    if (entry.debitAmount === 0 && entry.creditAmount === 0) {
+      errors.push({
+        field: `${fieldPrefix}.amount`,
+        message: 'Either debit or credit amount must be greater than zero',
+        code: 'ZERO_AMOUNT'
+      });
+    }
+
+    if (entry.debitAmount > 0 && entry.creditAmount > 0) {
+      errors.push({
+        field: `${fieldPrefix}.amount`,
+        message: 'Entry cannot have both debit and credit amounts',
+        code: 'BOTH_DEBIT_CREDIT'
+      });
+    }
+
+    // Validate currency
+    if (!entry.currency || !FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.includes(entry.currency)) {
+      errors.push({
+        field: `${fieldPrefix}.currency`,
+        message: `Currency must be one of: ${FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.join(', ')}`,
+        code: 'INVALID_CURRENCY'
+      });
+    }
+
+    // Validate exchange rate
+    if (entry.exchangeRate && entry.exchangeRate <= 0) {
+      errors.push({
+        field: `${fieldPrefix}.exchangeRate`,
+        message: 'Exchange rate must be positive',
+        code: 'INVALID_EXCHANGE_RATE'
+      });
+    }
+
+    // Validate description
+    if (!entry.description || entry.description.trim().length === 0) {
+      errors.push({
+        field: `${fieldPrefix}.description`,
+        message: 'Description is required',
+        code: 'MISSING_DESCRIPTION'
+      });
+    }
+
+    return errors;
+  }
+
+  /**
+   * Validate double-entry balance
+   */
+  private validateDoubleEntryBalance(entries: JournalEntry[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+    
+    // Group by currency for balance validation
+    const currencyBalances: { [currency: string]: { debits: number; credits: number } } = {};
+    
+    for (const entry of entries) {
+      if (!currencyBalances[entry.currency]) {
+        currencyBalances[entry.currency] = { debits: 0, credits: 0 };
+      }
+      
+      currencyBalances[entry.currency].debits += entry.debitAmount;
+      currencyBalances[entry.currency].credits += entry.creditAmount;
+    }
+
+    // Validate balance for each currency
+    for (const [currency, balance] of Object.entries(currencyBalances)) {
+      const roundedDebits = roundToDecimalPlaces(balance.debits, FINANCIAL_CONSTANTS.DECIMAL_PLACES);
+      const roundedCredits = roundToDecimalPlaces(balance.credits, FINANCIAL_CONSTANTS.DECIMAL_PLACES);
+      
+      if (Math.abs(roundedDebits - roundedCredits) > 0.01) {
+        errors.push({
+          field: 'entries',
+          message: `Transaction is not balanced for currency ${currency}. Debits: ${formatCurrency(roundedDebits, currency as Currency)}, Credits: ${formatCurrency(roundedCredits, currency as Currency)}`,
+          code: 'UNBALANCED_TRANSACTION'
+        });
+      }
+    }
+
+    return errors;
+  }
+
+  /**
+   * Validate account compatibility with registry
+   */
+  private validateAccountCompatibility(entries: JournalEntry[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const account = this.accountRegistry.getAccount(entry.accountId.toString());
+      
+      if (account) {
+        // Check if account allows transactions
+        if (!account.allowTransactions) {
+          errors.push({
+            field: `entries[${i}].accountId`,
+            message: `Account ${account.code} (${account.name}) does not allow transactions`,
+            code: 'ACCOUNT_NO_TRANSACTIONS'
+          });
+        }
+
+        // Check if account is active
+        if (!account.isActive) {
+          errors.push({
+            field: `entries[${i}].accountId`,
+            message: `Account ${account.code} (${account.name}) is inactive`,
+            code: 'ACCOUNT_INACTIVE'
+          });
+        }
+      } else {
+        // Account not found in registry - this might be OK if registry is not fully populated
+        // We'll add a warning but not fail validation
+        console.warn(`Account ${entry.accountId} not found in registry`);
+      }
+    }
+
+    return errors;
+  }
+
+  /**
+   * Post journal entries (mark as posted)
+   */
+  postJournalEntries(entryIds: number[], postedBy?: string): JournalEntry[] {
+    const postedEntries: JournalEntry[] = [];
+    const now = new Date();
+
+    for (const id of entryIds) {
+      const entry = this.journalEntries.get(id);
+      if (entry) {
+        const updatedEntry: JournalEntry = {
+          ...entry,
+          updatedAt: now,
+          updatedBy: postedBy
+        };
+        
+        this.journalEntries.set(id, updatedEntry);
+        postedEntries.push(updatedEntry);
+      }
+    }
+
+    return postedEntries;
+  }
+
+  /**
+   * Get journal entries by transaction ID
+   */
+  getJournalEntriesByTransaction(transactionId: number): JournalEntry[] {
+    return Array.from(this.journalEntries.values())
+      .filter(entry => entry.transactionId === transactionId);
+  }
+
+  /**
+   * Get journal entries by account ID
+   */
+  getJournalEntriesByAccount(accountId: number): JournalEntry[] {
+    return Array.from(this.journalEntries.values())
+      .filter(entry => entry.accountId === accountId);
+  }
+
+  /**
+   * Get journal entry by ID
+   */
+  getJournalEntry(id: number): JournalEntry | null {
+    return this.journalEntries.get(id) || null;
+  }
+
+  /**
+   * Get all journal entries
+   */
+  getAllJournalEntries(): JournalEntry[] {
+    return Array.from(this.journalEntries.values());
+  }
+
+  /**
+   * Reconcile journal entry
+   */
+  reconcileJournalEntry(
+    entryId: number, 
+    reconciliationId: string, 
+    reconciledBy?: string
+  ): JournalEntry | null {
+    const entry = this.journalEntries.get(entryId);
+    if (!entry) return null;
+
+    const reconciledEntry: JournalEntry = {
+      ...entry,
+      reconciliationId,
+      isReconciled: true,
+      reconciledAt: new Date(),
+      reconciledBy,
+      updatedAt: new Date(),
+      updatedBy: reconciledBy
+    };
+
+    this.journalEntries.set(entryId, reconciledEntry);
+    return reconciledEntry;
+  }
+
+  /**
+   * Unreoncile journal entry
+   */
+  unreconcileJournalEntry(entryId: number, unreconciledBy?: string): JournalEntry | null {
+    const entry = this.journalEntries.get(entryId);
+    if (!entry) return null;
+
+    const unreconciledEntry: JournalEntry = {
+      ...entry,
+      reconciliationId: undefined,
+      isReconciled: false,
+      reconciledAt: undefined,
+      reconciledBy: undefined,
+      updatedAt: new Date(),
+      updatedBy: unreconciledBy
+    };
+
+    this.journalEntries.set(entryId, unreconciledEntry);
+    return unreconciledEntry;
+  }
+
+  /**
+   * Delete journal entries by transaction ID
+   */
+  deleteJournalEntriesByTransaction(transactionId: number): number {
+    const entries = this.getJournalEntriesByTransaction(transactionId);
+    let deletedCount = 0;
+
+    for (const entry of entries) {
+      if (this.journalEntries.delete(entry.id)) {
+        deletedCount++;
+      }
+    }
+
+    return deletedCount;
+  }
+
+  /**
+   * Get exchange rate (placeholder implementation)
+   */
+  private getExchangeRate(fromCurrency: Currency, toCurrency: Currency): number {
+    // In a real system, this would fetch from an external service
+    // For now, return placeholder rates
+    if (fromCurrency === toCurrency) return 1.0;
+    
+    // Placeholder exchange rates (as of a hypothetical date)
+    const rates: { [key: string]: number } = {
+      'USD_IDR': 15750,
+      'EUR_IDR': 17200,
+      'GBP_IDR': 19800,
+      'SGD_IDR': 11650,
+      'MYR_IDR': 3520,
+      'IDR_USD': 1 / 15750,
+      'IDR_EUR': 1 / 17200,
+      'IDR_GBP': 1 / 19800,
+      'IDR_SGD': 1 / 11650,
+      'IDR_MYR': 1 / 3520
+    };
+
+    const rateKey = `${fromCurrency}_${toCurrency}`;
+    return rates[rateKey] || 1.0;
+  }
+
+  /**
+   * Reset journal entry manager
+   */
+  reset(): void {
+    this.journalEntries.clear();
+    this.nextId = 1;
+  }
+
+  /**
+   * Get journal entry statistics
+   */
+  getStatistics(): {
+    totalEntries: number;
+    reconciledEntries: number;
+    unreconciledEntries: number;
+    entriesByAccount: { [accountId: number]: number };
+    entriesByCurrency: { [currency: string]: number };
+  } {
+    const entries = this.getAllJournalEntries();
+    const entriesByAccount: { [accountId: number]: number } = {};
+    const entriesByCurrency: { [currency: string]: number } = {};
+
+    let reconciledCount = 0;
+
+    for (const entry of entries) {
+      // Count by account
+      entriesByAccount[entry.accountId] = (entriesByAccount[entry.accountId] || 0) + 1;
+      
+      // Count by currency
+      entriesByCurrency[entry.currency] = (entriesByCurrency[entry.currency] || 0) + 1;
+      
+      // Count reconciled
+      if (entry.isReconciled) {
+        reconciledCount++;
+      }
+    }
+
+    return {
+      totalEntries: entries.length,
+      reconciledEntries: reconciledCount,
+      unreconciledEntries: entries.length - reconciledCount,
+      entriesByAccount,
+      entriesByCurrency
+    };
   }
 } 

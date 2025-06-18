@@ -16,6 +16,7 @@ import {
   roundToDecimalPlaces,
   getNormalBalance,
   FINANCIAL_CONSTANTS,
+  JournalEntryManager,
 } from './index';
 import type {
   TransactionEntry,
@@ -25,6 +26,7 @@ import type {
   NormalBalance,
   Account,
   Transaction,
+  JournalEntry,
 } from '@finance-manager/types';
 
 describe('Financial Constants', () => {
@@ -655,5 +657,540 @@ describe('IDR Currency Formatting', () => {
   it('should format other supported currencies', () => {
     expect(formatCurrency(100000, 'SGD')).toBe('S$ 100,000.00');
     expect(formatCurrency(100000, 'MYR')).toBe('RM 100,000.00');
+  });
+});
+
+describe('JournalEntryManager', () => {
+  let journalManager: JournalEntryManager;
+  let accountRegistry: AccountRegistry;
+  
+  beforeEach(() => {
+    accountRegistry = new AccountRegistry();
+    journalManager = new JournalEntryManager(accountRegistry);
+    
+    // Register some test accounts
+    const cashAccount: Account = {
+      id: 1001,
+      code: '1001',
+      name: 'Cash',
+      type: 'ASSET',
+      normalBalance: 'DEBIT',
+      level: 1,
+      path: '1001',
+      isActive: true,
+      isSystem: false,
+      allowTransactions: true,
+      reportOrder: 1,
+      currentBalance: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const revenueAccount: Account = {
+      id: 4001,
+      code: '4001',
+      name: 'Sales Revenue',
+      type: 'REVENUE',
+      normalBalance: 'CREDIT',
+      level: 1,
+      path: '4001',
+      isActive: true,
+      isSystem: false,
+      allowTransactions: true,
+      reportOrder: 1,
+      currentBalance: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    accountRegistry.registerAccount(cashAccount);
+    accountRegistry.registerAccount(revenueAccount);
+  });
+
+  describe('Journal Entry Creation', () => {
+    it('should create journal entries from transaction data', () => {
+      const transactionData: TransactionData = {
+        description: 'Cash Sale',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000, description: 'Cash received' },
+          { accountId: 4001, creditAmount: 100000, description: 'Sales revenue' }
+        ]
+      };
+
+      const entries = journalManager.createJournalEntriesFromTransaction(1, transactionData, 'testUser');
+
+      expect(entries).toHaveLength(2);
+      expect(entries[0].accountId).toBe(1001);
+      expect(entries[0].debitAmount).toBe(100000);
+      expect(entries[0].creditAmount).toBe(0);
+      expect(entries[0].currency).toBe('IDR');
+      expect(entries[0].createdBy).toBe('testUser');
+      
+      expect(entries[1].accountId).toBe(4001);
+      expect(entries[1].debitAmount).toBe(0);
+      expect(entries[1].creditAmount).toBe(100000);
+    });
+
+    it('should handle currency conversion for non-IDR currencies', () => {
+      const transactionData: TransactionData = {
+        description: 'USD Sale',
+        transactionDate: new Date(),
+        currency: 'USD',
+        entries: [
+          { accountId: 1001, debitAmount: 100, currency: 'USD' },
+          { accountId: 4001, creditAmount: 100, currency: 'USD' }
+        ]
+      };
+
+      const entries = journalManager.createJournalEntriesFromTransaction(1, transactionData);
+
+      expect(entries[0].currency).toBe('USD');
+      expect(entries[0].baseCurrency).toBe('IDR');
+      expect(entries[0].exchangeRate).toBeGreaterThan(1); // USD to IDR should be > 1
+      expect(entries[0].baseDebitAmount).toBeGreaterThan(entries[0].debitAmount);
+    });
+
+    it('should throw error for accounts that do not allow transactions', () => {
+      // Create account that doesn't allow transactions
+      const restrictedAccount: Account = {
+        id: 9999,
+        code: '9999',
+        name: 'Restricted Account',
+        type: 'ASSET',
+        normalBalance: 'DEBIT',
+        level: 1,
+        path: '9999',
+        isActive: true,
+        isSystem: true,
+        allowTransactions: false,
+        reportOrder: 1,
+        currentBalance: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      accountRegistry.registerAccount(restrictedAccount);
+
+      const transactionData: TransactionData = {
+        description: 'Test Transaction',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 9999, debitAmount: 100000 },
+          { accountId: 4001, creditAmount: 100000 }
+        ]
+      };
+
+      expect(() => {
+        journalManager.createJournalEntriesFromTransaction(1, transactionData);
+      }).toThrow('Account 9999 does not allow transactions');
+    });
+  });
+
+  describe('Journal Entry Validation', () => {
+    it('should validate balanced journal entries', () => {
+      const entries: JournalEntry[] = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 1001,
+          description: 'Cash received',
+          debitAmount: 100000,
+          creditAmount: 0,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 100000,
+          baseCreditAmount: 0,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 2,
+          transactionId: 1,
+          accountId: 4001,
+          description: 'Sales revenue',
+          debitAmount: 0,
+          creditAmount: 100000,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 0,
+          baseCreditAmount: 100000,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      const errors = journalManager.validateJournalEntries(entries);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should reject unbalanced journal entries', () => {
+      const entries: JournalEntry[] = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 1001,
+          description: 'Cash received',
+          debitAmount: 150000,
+          creditAmount: 0,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 150000,
+          baseCreditAmount: 0,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 2,
+          transactionId: 1,
+          accountId: 4001,
+          description: 'Sales revenue',
+          debitAmount: 0,
+          creditAmount: 100000,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 0,
+          baseCreditAmount: 100000,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      const errors = journalManager.validateJournalEntries(entries);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(e => e.code === 'UNBALANCED_TRANSACTION')).toBe(true);
+    });
+
+    it('should reject entries with both debit and credit amounts', () => {
+      const entries: JournalEntry[] = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 1001,
+          description: 'Invalid entry',
+          debitAmount: 50000,
+          creditAmount: 50000,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 50000,
+          baseCreditAmount: 50000,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      const errors = journalManager.validateJournalEntries(entries);
+      expect(errors.some(e => e.code === 'BOTH_DEBIT_CREDIT')).toBe(true);
+    });
+
+    it('should reject entries with zero amounts', () => {
+      const entries: JournalEntry[] = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 1001,
+          description: 'Zero amount entry',
+          debitAmount: 0,
+          creditAmount: 0,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 0,
+          baseCreditAmount: 0,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      const errors = journalManager.validateJournalEntries(entries);
+      expect(errors.some(e => e.code === 'ZERO_AMOUNT')).toBe(true);
+    });
+
+    it('should reject single entry transactions', () => {
+      const entries: JournalEntry[] = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 1001,
+          description: 'Single entry',
+          debitAmount: 100000,
+          creditAmount: 0,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 100000,
+          baseCreditAmount: 0,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      const errors = journalManager.validateJournalEntries(entries);
+      expect(errors.some(e => e.code === 'SINGLE_ENTRY')).toBe(true);
+    });
+
+    it('should validate inactive accounts', () => {
+      // Create inactive account
+      const inactiveAccount: Account = {
+        id: 8888,
+        code: '8888',
+        name: 'Inactive Account',
+        type: 'ASSET',
+        normalBalance: 'DEBIT',
+        level: 1,
+        path: '8888',
+        isActive: false,
+        isSystem: false,
+        allowTransactions: true,
+        reportOrder: 1,
+        currentBalance: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      accountRegistry.registerAccount(inactiveAccount);
+
+      const entries: JournalEntry[] = [
+        {
+          id: 1,
+          transactionId: 1,
+          accountId: 8888,
+          description: 'Using inactive account',
+          debitAmount: 100000,
+          creditAmount: 0,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 100000,
+          baseCreditAmount: 0,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 2,
+          transactionId: 1,
+          accountId: 4001,
+          description: 'Revenue',
+          debitAmount: 0,
+          creditAmount: 100000,
+          currency: 'IDR',
+          exchangeRate: 1,
+          baseCurrency: 'IDR',
+          baseDebitAmount: 0,
+          baseCreditAmount: 100000,
+          isReconciled: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      const errors = journalManager.validateJournalEntries(entries);
+      expect(errors.some(e => e.code === 'ACCOUNT_INACTIVE')).toBe(true);
+    });
+  });
+
+  describe('Journal Entry Management', () => {
+    it('should retrieve journal entries by transaction ID', () => {
+      const transactionData: TransactionData = {
+        description: 'Test Transaction',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000 },
+          { accountId: 4001, creditAmount: 100000 }
+        ]
+      };
+
+      journalManager.createJournalEntriesFromTransaction(1, transactionData);
+      const entries = journalManager.getJournalEntriesByTransaction(1);
+
+      expect(entries).toHaveLength(2);
+      expect(entries.every(e => e.transactionId === 1)).toBe(true);
+    });
+
+    it('should retrieve journal entries by account ID', () => {
+      const transactionData: TransactionData = {
+        description: 'Test Transaction',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000 },
+          { accountId: 4001, creditAmount: 100000 }
+        ]
+      };
+
+      journalManager.createJournalEntriesFromTransaction(1, transactionData);
+      const cashEntries = journalManager.getJournalEntriesByAccount(1001);
+
+      expect(cashEntries).toHaveLength(1);
+      expect(cashEntries[0].accountId).toBe(1001);
+      expect(cashEntries[0].debitAmount).toBe(100000);
+    });
+
+    it('should post journal entries', () => {
+      const transactionData: TransactionData = {
+        description: 'Test Transaction',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000 },
+          { accountId: 4001, creditAmount: 100000 }
+        ]
+      };
+
+      const entries = journalManager.createJournalEntriesFromTransaction(1, transactionData);
+      const entryIds = entries.map(e => e.id);
+      const postedEntries = journalManager.postJournalEntries(entryIds, 'postUser');
+
+      expect(postedEntries).toHaveLength(2);
+      expect(postedEntries.every(e => e.updatedBy === 'postUser')).toBe(true);
+    });
+
+    it('should reconcile and unreconcile journal entries', () => {
+      const transactionData: TransactionData = {
+        description: 'Test Transaction',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000 }
+        ]
+      };
+
+      const entries = journalManager.createJournalEntriesFromTransaction(1, transactionData);
+      const entryId = entries[0].id;
+
+      // Reconcile
+      const reconciledEntry = journalManager.reconcileJournalEntry(entryId, 'REC-001', 'reconcileUser');
+      expect(reconciledEntry?.isReconciled).toBe(true);
+      expect(reconciledEntry?.reconciliationId).toBe('REC-001');
+      expect(reconciledEntry?.reconciledBy).toBe('reconcileUser');
+
+      // Unreconcile
+      const unreconciledEntry = journalManager.unreconcileJournalEntry(entryId, 'unreconcileUser');
+      expect(unreconciledEntry?.isReconciled).toBe(false);
+      expect(unreconciledEntry?.reconciliationId).toBeUndefined();
+    });
+
+    it('should delete journal entries by transaction ID', () => {
+      const transactionData: TransactionData = {
+        description: 'Test Transaction',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000 },
+          { accountId: 4001, creditAmount: 100000 }
+        ]
+      };
+
+      journalManager.createJournalEntriesFromTransaction(1, transactionData);
+      
+      expect(journalManager.getJournalEntriesByTransaction(1)).toHaveLength(2);
+      
+      const deletedCount = journalManager.deleteJournalEntriesByTransaction(1);
+      expect(deletedCount).toBe(2);
+      expect(journalManager.getJournalEntriesByTransaction(1)).toHaveLength(0);
+    });
+  });
+
+  describe('Journal Entry Statistics', () => {
+    it('should provide comprehensive statistics', () => {
+      // Create multiple transactions
+      const transaction1: TransactionData = {
+        description: 'Cash Sale',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000 },
+          { accountId: 4001, creditAmount: 100000 }
+        ]
+      };
+
+      const transaction2: TransactionData = {
+        description: 'USD Sale',
+        transactionDate: new Date(),
+        currency: 'USD',
+        entries: [
+          { accountId: 1001, debitAmount: 50, currency: 'USD' },
+          { accountId: 4001, creditAmount: 50, currency: 'USD' }
+        ]
+      };
+
+      const entries1 = journalManager.createJournalEntriesFromTransaction(1, transaction1);
+      const entries2 = journalManager.createJournalEntriesFromTransaction(2, transaction2);
+
+      // Reconcile one entry
+      journalManager.reconcileJournalEntry(entries1[0].id, 'REC-001');
+
+      const stats = journalManager.getStatistics();
+
+      expect(stats.totalEntries).toBe(4);
+      expect(stats.reconciledEntries).toBe(1);
+      expect(stats.unreconciledEntries).toBe(3);
+      expect(stats.entriesByAccount[1001]).toBe(2);
+      expect(stats.entriesByAccount[4001]).toBe(2);
+             expect(stats.entriesByCurrency.IDR).toBe(2);
+       expect(stats.entriesByCurrency.USD).toBe(2);
+    });
+  });
+
+  describe('Exchange Rate Handling', () => {
+    it('should handle exchange rates correctly', () => {
+      const transactionData: TransactionData = {
+        description: 'Multi-currency Transaction',
+        transactionDate: new Date(),
+        currency: 'USD',
+        entries: [
+          { accountId: 1001, debitAmount: 100, currency: 'USD' },
+          { accountId: 4001, creditAmount: 100, currency: 'USD' }
+        ]
+      };
+
+      const entries = journalManager.createJournalEntriesFromTransaction(1, transactionData);
+
+      expect(entries[0].exchangeRate).toBeGreaterThan(1); // USD to IDR
+      expect(entries[0].baseDebitAmount).toBeGreaterThan(entries[0].debitAmount);
+      expect(entries[1].baseCreditAmount).toBeGreaterThan(entries[1].creditAmount);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle non-existent journal entry operations gracefully', () => {
+      expect(journalManager.getJournalEntry(999)).toBeNull();
+      expect(journalManager.reconcileJournalEntry(999, 'REC-001')).toBeNull();
+      expect(journalManager.unreconcileJournalEntry(999)).toBeNull();
+    });
+
+    it('should reset manager state', () => {
+      const transactionData: TransactionData = {
+        description: 'Test Transaction',
+        transactionDate: new Date(),
+        currency: 'IDR',
+        entries: [
+          { accountId: 1001, debitAmount: 100000 },
+          { accountId: 4001, creditAmount: 100000 }
+        ]
+      };
+
+      journalManager.createJournalEntriesFromTransaction(1, transactionData);
+      expect(journalManager.getAllJournalEntries()).toHaveLength(2);
+
+      journalManager.reset();
+      expect(journalManager.getAllJournalEntries()).toHaveLength(0);
+    });
   });
 }); 

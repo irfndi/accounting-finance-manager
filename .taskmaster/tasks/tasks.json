@@ -330,8 +330,8 @@
             "dependencies": [
               1
             ],
-            "details": "Develop methods in `packages/core` to generate and validate journal entries before posting to the database.",
-            "status": "pending",
+            "details": "Develop methods in `packages/core` to generate and validate journal entries before posting to the database.\n<info added on 2025-06-18T17:22:20.794Z>\nBuilt comprehensive JournalEntryManager class with full journal entry lifecycle management. Implemented journal entry creation from transaction data with IDR currency support. Added complete journal entry validation system including double-entry balance validation per currency, single entry validation (amounts, accounts, currencies), account compatibility validation with registry, and multi-currency transaction support. Implemented journal entry posting and management features including entry retrieval by transaction ID and account ID, posting workflow, reconciliation functionality, and entry deletion. Added exchange rate handling for multi-currency transactions and built comprehensive statistics and reporting functionality. Includes 18 comprehensive tests covering all functionality and maintains compatibility with existing AccountRegistry, TransactionData, and JournalEntry interfaces.\n</info added on 2025-06-18T17:22:20.794Z>",
+            "status": "done",
             "testStrategy": "Unit tests for entry creation and validation scenarios."
           },
           {
@@ -706,7 +706,7 @@
     ],
     "metadata": {
       "created": "2025-06-18T14:16:21.370Z",
-      "updated": "2025-06-18T17:14:54.536Z",
+      "updated": "2025-06-18T17:22:25.462Z",
       "description": "Tasks for master context"
     }
   }
