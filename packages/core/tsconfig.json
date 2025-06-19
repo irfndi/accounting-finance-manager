@@ -16,7 +16,8 @@
     "paths": {
       "@finance-manager/types": ["../types/src"],
       "@finance-manager/db": ["../db/src"]
-    }
+    },
+    "types": ["@cloudflare/workers-types"]
   },
   "include": [
     "src/**/*",

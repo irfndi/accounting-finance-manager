@@ -6,7 +6,6 @@ compatibility_flags = ["nodejs_compat"]
 # Worker configuration
 [env.production]
 name = "finance-manager"
-route = { pattern = "finance-manager.irfandimarsya.workers.dev/*", zone_name = "irfandimarsya.workers.dev" }
 
 [env.development]
 name = "finance-manager-dev"
@@ -14,26 +13,66 @@ name = "finance-manager-dev"
 # Variables
 [vars]
 ENVIRONMENT = "development"
+JWT_SECRET = "dev-jwt-secret-please-change-in-production-use-strong-random-key"
+AUTH_SESSION_DURATION = "7d"
 
 [env.production.vars]
 ENVIRONMENT = "production"
+# JWT_SECRET should be set via secrets in production: wrangler secret put JWT_SECRET
+# AUTH_SESSION_DURATION can be set here or via secrets for flexibility
+AUTH_SESSION_DURATION = "7d"
 
 # D1 Database bindings
 [[d1_databases]]
 binding = "FINANCE_MANAGER_DB"
 database_name = "finance-manager-db"
 database_id = "886fa63b-1b70-42bc-8acd-62c21d68e42b"
+migrations_dir = "../packages/db/migrations"
+
+# Production D1 Database (separate instance for production)
+[[env.production.d1_databases]]
+binding = "FINANCE_MANAGER_DB"
+database_name = "prod-finance-manager-db"
+database_id = "5320fcf4-f13e-441f-8952-e94f8b9cfb1d"
+migrations_dir = "../packages/db/migrations"
 
 # KV Storage bindings
 [[kv_namespaces]]
 binding = "FINANCE_MANAGER_CACHE"
 id = "0e0af82b22224048a122082d1f3f6d42"
 
+# Production KV Storage
+[[env.production.kv_namespaces]]
+binding = "FINANCE_MANAGER_CACHE"
+id = "138dfa25adf345539677e7ef493eb335"
+
 # R2 Storage bindings
 [[r2_buckets]]
 binding = "FINANCE_MANAGER_DOCUMENTS"
-bucket_name = "finance-manager-documents" 
+bucket_name = "finance-manager-documents"
 
-logpush = true
+# Production R2 Storage
+[[env.production.r2_buckets]]
+binding = "FINANCE_MANAGER_DOCUMENTS"
+bucket_name = "prod-finance-manager-documents"
+
+# AI bindings for OCR functionality
+[ai]
+binding = "AI"
+
+# Vectorize bindings for document embeddings
+[[vectorize]]
+binding = "DOCUMENT_EMBEDDINGS"
+index_name = "finance-manager-documents"
+
+# Production Vectorize
+[[env.production.vectorize]]
+binding = "DOCUMENT_EMBEDDINGS"
+index_name = "prod-finance-manager-documents"
+
+# Observability
+[observability]
+enabled = true
+
 [observability.logs]
 enabled = true

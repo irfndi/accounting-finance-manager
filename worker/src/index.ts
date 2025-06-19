@@ -10,7 +10,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { prettyJSON } from 'hono/pretty-json'
-import { createDatabase, accounts, transactions, journalEntries, eq } from "@finance-manager/db"
+import api from './routes/api/index'
 
 // Environment bindings interface
 type Env = {
@@ -52,261 +52,191 @@ app.get('/health', (c) => {
   })
 })
 
-// Root endpoint
+// Root endpoint - redirect to enhanced interface
 app.get('/', (c) => {
-  return c.json({
-    message: 'Corporate Finance Manager API',
-    environment: c.env.ENVIRONMENT,
-    endpoints: [
-      '/health - Health check',
-      '/api/accounts - Chart of accounts management',
-      '/api/transactions - Financial transactions',
-      '/api/reports - Financial reporting'
-    ]
-  })
-})
-
-// API Routes
-const api = new Hono<{ Bindings: Env }>()
-
-// Accounts API
-api.get('/accounts', async (c) => {
-  try {
-    const db = createDatabase(c.env.FINANCE_MANAGER_DB)
-    const allAccounts = await db.select().from(accounts)
-    
+  // Check if this is an API request (Accept header contains application/json)
+  const acceptHeader = c.req.header('Accept') || ''
+  if (acceptHeader.includes('application/json')) {
     return c.json({
-      accounts: allAccounts,
-      count: allAccounts.length,
+      message: 'Corporate Finance Manager API',
+      environment: c.env.ENVIRONMENT,
+      endpoints: [
+        '/health - Health check',
+        '/api/accounts - Chart of accounts management',
+        '/api/transactions - Financial transactions',
+        '/api/reports - Financial reporting'
+      ]
     })
-  } catch (error) {
-    console.error('Error fetching accounts:', error)
-    return c.json({
-      error: 'Failed to fetch accounts',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, 500)
   }
-})
-
-api.get('/accounts/:id', async (c) => {
-  try {
-    const accountId = Number.parseInt(c.req.param('id'), 10)
-    if (Number.isNaN(accountId)) {
-      return c.json({ error: 'Invalid account ID' }, 400)
-    }
-
-    const db = createDatabase(c.env.FINANCE_MANAGER_DB)
-    const account = await db.select().from(accounts).where(eq(accounts.id, accountId))
-    
-    return c.json({
-      account: account[0] || null,
-    })
-  } catch (error) {
-    console.error('Error fetching account:', error)
-    return c.json({
-      error: 'Failed to fetch account',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, 500)
-  }
-})
-
-api.post('/accounts', async (c) => {
-  try {
-    const body = await c.req.json()
-    const db = createDatabase(c.env.FINANCE_MANAGER_DB)
-    
-    // Calculate hierarchical path and level
-    let level = 0
-    let path = body.code as string
-    
-    if (body.parentId) {
-      const parent = await db.select().from(accounts).where(eq(accounts.id, Number(body.parentId)))
-      if (parent[0]) {
-        level = parent[0].level + 1
-        path = `${parent[0].path}.${body.code}`
-      }
-    }
-    
-    // Determine normal balance based on account type
-    const accountType = body.type as string
-    const normalBalance = body.normalBalance as string || 
-      (['ASSET', 'EXPENSE'].includes(accountType) ? 'DEBIT' : 'CREDIT')
-    
-    const newAccount = await db.insert(accounts).values({
-      code: body.code as string,
-      name: body.name as string,
-      description: body.description as string || null,
-      type: body.type as string,
-      subtype: body.subtype as string || null,
-      category: body.category as string || null,
-      parentId: body.parentId ? Number(body.parentId) : null,
-      level,
-      path,
-      isActive: Boolean(body.isActive ?? true),
-      isSystem: Boolean(body.isSystem ?? false),
-      allowTransactions: Boolean(body.allowTransactions ?? true),
-      normalBalance,
-      reportCategory: body.reportCategory as string || null,
-      reportOrder: body.reportOrder ? Number(body.reportOrder) : null,
-      currentBalance: 0,
-      entityId: 'default',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      createdBy: 'system'
-    }).returning()
-    
-    return c.json({
-      account: newAccount[0],
-      message: 'Account created successfully'
-    }, 201)
-  } catch (error) {
-    console.error('Error creating account:', error)
-    return c.json({
-      error: 'Failed to create account',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, 500)
-  }
-})
-
-// Transactions API
-api.get('/transactions', async (c) => {
-  try {
-    const db = createDatabase(c.env.FINANCE_MANAGER_DB)
-    const allTransactions = await db.select().from(transactions)
-    
-    return c.json({
-      transactions: allTransactions,
-      count: allTransactions.length,
-    })
-  } catch (error) {
-    console.error('Error fetching transactions:', error)
-    return c.json({
-      error: 'Failed to fetch transactions',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, 500)
-  }
-})
-
-api.get('/transactions/:id', async (c) => {
-  try {
-    const transactionId = Number.parseInt(c.req.param('id'), 10)
-    if (Number.isNaN(transactionId)) {
-      return c.json({ error: 'Invalid transaction ID' }, 400)
-    }
-
-    const db = createDatabase(c.env.FINANCE_MANAGER_DB)
-    const transaction = await db.select().from(transactions).where(eq(transactions.id, transactionId))
-    
-    return c.json({
-      transaction: transaction[0] || null,
-    })
-  } catch (error) {
-    console.error('Error fetching transaction:', error)
-    return c.json({
-      error: 'Failed to fetch transaction',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, 500)
-  }
-})
-
-// Reports API
-api.get('/reports/trial-balance', async (c) => {
-  try {
-    const db = createDatabase(c.env.FINANCE_MANAGER_DB)
-    
-    // Get all accounts with their current balances
-    const accountsWithBalances = await db.select().from(accounts)
-    
-    let totalDebits = 0
-    let totalCredits = 0
-    
-    const trialBalance = accountsWithBalances.map(account => {
-      const balance = account.currentBalance || 0
-      const isDebitBalance = account.normalBalance === 'DEBIT'
-      
-      const debitAmount = isDebitBalance && balance > 0 ? balance : 0
-      const creditAmount = !isDebitBalance && balance > 0 ? balance : 0
-      
-      totalDebits += debitAmount
-      totalCredits += creditAmount
-      
-      return {
-        accountCode: account.code,
-        accountName: account.name,
-        accountType: account.type,
-        debitAmount,
-        creditAmount,
-        balance
-      }
-    })
-    
-    return c.json({
-      trialBalance,
-      summary: {
-        totalDebits,
-        totalCredits,
-        isBalanced: Math.abs(totalDebits - totalCredits) < 0.01
-      },
-      generatedAt: new Date().toISOString()
-    })
-  } catch (error) {
-    console.error('Error generating trial balance:', error)
-    return c.json({
-      error: 'Failed to generate trial balance',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, 500)
-  }
+  
+  // For browser requests, serve the enhanced interface
+  // This will be handled by the catch-all route below
+  return c.redirect('/?interface=web', 302)
 })
 
 // Mount API routes
 app.route('/api', api)
 
 // Static file serving for Astro front-end
-// Note: In Cloudflare Workers, static assets are served automatically when configured with [site] in wrangler.toml
-// This fallback handles SPA routing by serving the main app for non-API routes
+// This handles serving built Astro assets and SPA routing
 app.get('*', async (c) => {
+  const path = c.req.path
+  
   // Check if this is an API route (should not reach here due to routing order)
-  if (c.req.path.startsWith('/api/') || c.req.path === '/health') {
-    return c.json({ error: 'Route not found' }, 404)
+  if (path.startsWith('/api/') || path === '/health') {
+    return c.json({ 
+      error: 'Route not found',
+      message: `The route ${path} was not found`,
+      availableRoutes: ['/api', '/api/accounts', '/api/transactions', '/api/reports', '/health']
+    }, 404)
   }
   
-  // Fallback to serving the main app for client-side routing
-  return c.html(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Corporate Finance Manager</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 2rem; }
-          .container { max-width: 800px; margin: 0 auto; }
-          .header { color: #2563eb; margin-bottom: 2rem; }
-          .nav { background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; }
-          .nav a { color: #2563eb; text-decoration: none; margin-right: 1rem; }
-          .nav a:hover { text-decoration: underline; }
-          .status { color: #059669; font-weight: 500; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1 class="header">Corporate Finance Manager</h1>
-          <div class="status">✅ System Online</div>
+  // TODO: When Astro front-end is built, serve actual static assets
+  // For now, serve enhanced development fallback
+  
+  // Handle specific front-end routes that would exist in production
+  const frontendRoutes = ['/', '/general-ledger', '/reports']
+  const isFrontendRoute = frontendRoutes.includes(path) || path === ''
+  
+  if (isFrontendRoute) {
+    // Enhanced fallback page with navigation to actual front-end pages
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <title>Corporate Finance Manager${path !== '/' ? ` - ${path.replace('/', '').replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}` : ''}</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="description" content="Professional corporate finance and accounting management system">
+          <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+          <style>
+            * { box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; 
+              margin: 0; padding: 0; background: #f8fafc; color: #1e293b;
+            }
+            .header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+            .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+            .nav { display: flex; align-items: center; justify-content: space-between; }
+            .logo { font-size: 1.5rem; font-weight: 700; color: #2563eb; }
+            .nav-links { display: flex; gap: 2rem; }
+            .nav-links a { 
+              color: #64748b; text-decoration: none; font-weight: 500; 
+              transition: color 0.2s;
+            }
+            .nav-links a:hover, .nav-links a.active { color: #2563eb; }
+            .main { padding: 3rem 0; }
+            .status { 
+              background: #dcfce7; color: #166534; padding: 0.75rem 1rem; 
+              border-radius: 8px; margin-bottom: 2rem; font-weight: 500;
+            }
+            .card { 
+              background: white; border-radius: 12px; padding: 2rem; 
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem;
+            }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+            .endpoint { 
+              background: #f1f5f9; padding: 1rem; border-radius: 8px; 
+              border-left: 4px solid #2563eb;
+            }
+            .endpoint h4 { margin: 0 0 0.5rem 0; color: #2563eb; }
+            .endpoint p { margin: 0; color: #64748b; font-size: 0.9rem; }
+            .endpoint a { 
+              color: #2563eb; text-decoration: none; font-weight: 500;
+              display: inline-block; margin-top: 0.5rem;
+            }
+            .endpoint a:hover { text-decoration: underline; }
+            .footer { text-align: center; padding: 2rem; color: #64748b; }
+          </style>
+        </head>
+        <body>
+          <header class="header">
+            <div class="container">
+              <nav class="nav">
+                <div class="logo">Finance Manager</div>
+                <div class="nav-links">
+                  <a href="/" ${path === '/' ? 'class="active"' : ''}>Dashboard</a>
+                  <a href="/general-ledger" ${path === '/general-ledger' ? 'class="active"' : ''}>General Ledger</a>
+                  <a href="/reports" ${path === '/reports' ? 'class="active"' : ''}>Reports</a>
+                </div>
+              </nav>
+            </div>
+          </header>
           
-          <div class="nav">
-            <h3>Available Endpoints:</h3>
-            <a href="/api">API Root</a>
-            <a href="/api/accounts">Chart of Accounts</a>
-            <a href="/api/transactions">Transactions</a>
-            <a href="/health">Health Check</a>
-          </div>
+          <main class="main">
+            <div class="container">
+              <div class="status">
+                ✅ System Online - API Server Running
+              </div>
+              
+              <div class="card">
+                <h2>Corporate Finance & Accounting Manager</h2>
+                <p>Professional-grade double-entry bookkeeping system with comprehensive financial reporting.</p>
+                <p><strong>Current Status:</strong> API fully operational with enhanced accounting engine integration.</p>
+                <p><strong>Note:</strong> This is a development fallback. The Astro front-end will replace this interface when built.</p>
+              </div>
+              
+              <div class="card">
+                <h3>Available API Endpoints</h3>
+                <div class="grid">
+                  <div class="endpoint">
+                    <h4>Chart of Accounts</h4>
+                    <p>Manage your company's chart of accounts with hierarchical structure and validation.</p>
+                    <a href="/api/accounts" target="_blank">→ /api/accounts</a>
+                  </div>
+                  <div class="endpoint">
+                    <h4>Transactions</h4>
+                    <p>Double-entry transaction processing with journal entry management.</p>
+                    <a href="/api/transactions" target="_blank">→ /api/transactions</a>
+                  </div>
+                  <div class="endpoint">
+                    <h4>Financial Reports</h4>
+                    <p>Trial balance, balance sheet, and income statement generation.</p>
+                    <a href="/api/reports/trial-balance" target="_blank">→ /api/reports</a>
+                  </div>
+                  <div class="endpoint">
+                    <h4>System Health</h4>
+                    <p>Monitor system status and performance metrics.</p>
+                    <a href="/health" target="_blank">→ /health</a>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card">
+                <h3>Integration Ready</h3>
+                <p>The worker is configured to serve the Astro front-end when built assets are available:</p>
+                <ul>
+                  <li>✅ Enhanced API routing with core accounting logic</li>
+                  <li>✅ Double-entry bookkeeping validation</li>
+                  <li>✅ Professional financial reporting</li>
+                  <li>✅ SPA routing support for client-side navigation</li>
+                  <li>⏳ Astro static asset serving (pending build integration)</li>
+                </ul>
+              </div>
+            </div>
+          </main>
           
-          <p>This is the Cloudflare Worker serving the Corporate Finance Manager API.</p>
-          <p>The Astro front-end will be integrated here once built.</p>
-        </div>
-      </body>
-    </html>
-  `)
+          <footer class="footer">
+            <p>Corporate Finance Manager v1.0 • Powered by Cloudflare Workers</p>
+          </footer>
+        </body>
+      </html>
+    `)
+  }
+  
+  // Handle other potential static assets (CSS, JS, images)
+  if (path.includes('.')) {
+    // This would be where static assets are served in production
+    // For now, return 404 for missing assets
+    return c.json({
+      error: 'Asset not found',
+      message: `Static asset ${path} is not available in development mode`,
+      note: 'Static assets will be served when Astro front-end is built'
+    }, 404)
+  }
+  
+  // Fallback for any other routes - redirect to home
+  return c.redirect('/', 302)
 })
 
 export default app 

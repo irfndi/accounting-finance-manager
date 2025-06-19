@@ -1,28 +1,42 @@
 {
   "name": "@finance-manager/worker",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "type": "module",
   "description": "Cloudflare Worker API for Corporate Finance Manager",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --local",
     "deploy": "wrangler deploy",
-    "deploy:production": "wrangler deploy --env production",
+    "deploy:prod": "wrangler deploy --env production",
+    "build": "tsc",
+    "build:prod": "wrangler deploy --dry-run --env production",
     "tail": "wrangler tail",
+    "tail:prod": "wrangler tail --env production",
     "types": "wrangler types",
-    "test": "vitest",
-    "build": "wrangler deploy --dry-run"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "migrate": "wrangler d1 migrations apply finance-manager-db --env development",
+    "migrate:prod": "wrangler d1 migrations apply finance-manager-db-prod --env production"
   },
   "dependencies": {
-    "@finance-manager/types": "workspace:*",
+    "@finance-manager/ai": "workspace:*",
     "@finance-manager/core": "workspace:*",
-    "@finance-manager/db": "workspace:*"
+    "@finance-manager/db": "workspace:*",
+    "@finance-manager/types": "workspace:*",
+    "@hono/node-server": "^1.14.4",
+    "drizzle-orm": "^0.29.0",
+    "hono": "^3.12.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241218.0",
-    "@types/node": "^22.10.5",
-    "typescript": "^5.7.3",
-    "vitest": "^2.1.8",
-    "wrangler": "^4.20.2"
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "miniflare": "^3.0.0",
+    "typescript": "^5.2.2",
+    "vitest": "^1.0.0",
+    "wrangler": "^3.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -34,4 +48,4 @@
     "accounting",
     "api"
   ]
-} 
+}

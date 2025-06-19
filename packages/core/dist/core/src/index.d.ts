@@ -3,10 +3,27 @@
  * Corporate Finance & Accounting Core Functionality
  * Professional Double-Entry Bookkeeping Engine
  */
-import type { Currency, AccountType, NormalBalance, Transaction, JournalEntry, TransactionEntry, TransactionData, ValidationError, AccountingError } from '@finance-manager/types';
+import type { Currency, AccountType, NormalBalance, Account, Transaction, JournalEntry, TransactionEntry, TransactionData, ValidationError, AccountingError, AccountBalance, TrialBalance, BalanceSheet, IncomeStatement } from '@finance-manager/types';
 export declare const FINANCIAL_CONSTANTS: {
     readonly DECIMAL_PLACES: 2;
-    readonly DEFAULT_CURRENCY: Currency;
+    readonly DEFAULT_CURRENCY: "IDR";
+    readonly SUPPORTED_CURRENCIES: readonly ["IDR", "USD", "EUR", "GBP", "SGD", "MYR"];
+    readonly CURRENCY_SYMBOLS: {
+        readonly IDR: "Rp";
+        readonly USD: "$";
+        readonly EUR: "€";
+        readonly GBP: "£";
+        readonly SGD: "S$";
+        readonly MYR: "RM";
+    };
+    readonly CURRENCY_LOCALES: {
+        readonly IDR: "id-ID";
+        readonly USD: "en-US";
+        readonly EUR: "de-DE";
+        readonly GBP: "en-GB";
+        readonly SGD: "en-SG";
+        readonly MYR: "ms-MY";
+    };
     readonly ACCOUNT_TYPES: {
         readonly ASSET: "ASSET";
         readonly LIABILITY: "LIABILITY";
@@ -30,7 +47,68 @@ export declare class AccountingValidationError extends Error implements Accounti
 export declare class DoubleEntryError extends AccountingValidationError {
     constructor(message: string, details?: ValidationError[]);
 }
-export declare function formatCurrency(amount: number, currency?: Currency, locale?: string): string;
+export type ErrorSeverity = 'WARNING' | 'ERROR' | 'CRITICAL';
+export type ErrorCategory = 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE';
+export interface EnhancedValidationError extends ValidationError {
+    severity: ErrorSeverity;
+    category: ErrorCategory;
+    suggestions?: string[];
+    context?: Record<string, unknown>;
+    timestamp?: Date;
+}
+export declare class BalanceSheetError extends AccountingValidationError {
+    constructor(message: string, details?: ValidationError[]);
+}
+export declare class AccountRegistryError extends AccountingValidationError {
+    constructor(message: string, details?: ValidationError[]);
+}
+export declare class CurrencyConversionError extends AccountingValidationError {
+    constructor(message: string, details?: ValidationError[]);
+}
+export declare class PeriodClosureError extends AccountingValidationError {
+    constructor(message: string, details?: ValidationError[]);
+}
+export declare class FiscalYearError extends AccountingValidationError {
+    constructor(message: string, details?: ValidationError[]);
+}
+export declare class ComplianceError extends AccountingValidationError {
+    constructor(message: string, details?: ValidationError[]);
+}
+export declare class ErrorAggregator {
+    private errors;
+    private warnings;
+    addError(error: EnhancedValidationError): void;
+    addErrors(errors: EnhancedValidationError[]): void;
+    hasErrors(): boolean;
+    hasWarnings(): boolean;
+    getErrors(): EnhancedValidationError[];
+    getWarnings(): EnhancedValidationError[];
+    getAllIssues(): EnhancedValidationError[];
+    getCriticalErrors(): EnhancedValidationError[];
+    getErrorsByCategory(category: ErrorCategory): EnhancedValidationError[];
+    clear(): void;
+    generateReport(): {
+        summary: {
+            totalErrors: number;
+            totalWarnings: number;
+            criticalErrors: number;
+            byCategory: Record<ErrorCategory, number>;
+            bySeverity: Record<ErrorSeverity, number>;
+        };
+        issues: EnhancedValidationError[];
+    };
+}
+export declare namespace AccountingErrorFactory {
+    function createValidationError(field: string, message: string, code: string, severity?: ErrorSeverity, category?: ErrorCategory, suggestions?: string[], context?: Record<string, unknown>): EnhancedValidationError;
+    function createBusinessRuleError(field: string, message: string, code: string, suggestions?: string[]): EnhancedValidationError;
+    function createComplianceError(field: string, message: string, code: string, severity?: ErrorSeverity): EnhancedValidationError;
+    function createSystemError(field: string, message: string, code: string, context?: Record<string, unknown>): EnhancedValidationError;
+}
+export declare namespace ErrorRecoveryManager {
+    function getSuggestions(errorCode: string): string[];
+    function enhanceError(error: ValidationError): EnhancedValidationError;
+}
+export declare function formatCurrency(amount: number, currency?: Currency): string;
 export declare function roundToDecimalPlaces(amount: number, places?: number): number;
 export declare function getNormalBalance(accountType: AccountType): NormalBalance;
 export declare class TransactionValidator {
@@ -73,4 +151,172 @@ export declare class AccountingEngine {
     static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): ValidationError[];
 }
 export * from '@finance-manager/types';
+/**
+ * Account Balance Manager - Handles balance calculations and account management
+ */
+export declare class AccountBalanceManager {
+    private accountBalances;
+    private transactions;
+    /**
+     * Add a transaction to the balance manager
+     */
+    addTransaction(transaction: Transaction): void;
+    /**
+     * Update account balances based on a transaction
+     */
+    private updateBalancesFromTransaction;
+    /**
+     * Get balance for a specific account
+     */
+    getAccountBalance(accountId: string): AccountBalance | null;
+    /**
+     * Get all account balances
+     */
+    getAllBalances(): Map<string, AccountBalance>;
+    /**
+     * Calculate account balance for a specific date
+     */
+    calculateAccountBalance(accountId: string, accountType: AccountType, asOfDate?: Date): number;
+    /**
+     * Generate trial balance
+     */
+    generateTrialBalance(asOfDate?: Date): TrialBalance;
+    /**
+     * Generate balance sheet
+     */
+    generateBalanceSheet(asOfDate?: Date): BalanceSheet;
+    /**
+     * Generate income statement
+     */
+    generateIncomeStatement(startDate: Date, endDate: Date): IncomeStatement;
+    /**
+     * Reset all balances and transactions
+     */
+    reset(): void;
+    /**
+     * Get normal balance for account (helper method)
+     */
+    private getNormalBalanceForAccount;
+    /**
+     * Get account type for account (helper method)
+     */
+    private getAccountTypeForAccount;
+}
+/**
+ * Account Registry - Manages account definitions and metadata
+ */
+export declare class AccountRegistry {
+    private accounts;
+    /**
+     * Register an account
+     */
+    registerAccount(account: Account): void;
+    /**
+     * Get account by ID
+     */
+    getAccount(accountId: string): Account | null;
+    /**
+     * Get all accounts of a specific type
+     */
+    getAccountsByType(accountType: AccountType): Account[];
+    /**
+     * Get all accounts
+     */
+    getAllAccounts(): Account[];
+    /**
+     * Check if account exists
+     */
+    hasAccount(accountId: string): boolean;
+    /**
+     * Remove account
+     */
+    removeAccount(accountId: string): boolean;
+    /**
+     * Get account balance type
+     */
+    getAccountNormalBalance(accountId: string): NormalBalance | null;
+}
+/**
+ * Journal Entry Manager - Handles journal entry creation, validation, and posting
+ */
+export declare class JournalEntryManager {
+    private journalEntries;
+    private nextId;
+    private accountRegistry;
+    constructor(accountRegistry?: AccountRegistry);
+    /**
+     * Create journal entries from transaction data
+     */
+    createJournalEntriesFromTransaction(transactionId: number, transactionData: TransactionData, createdBy?: string): JournalEntry[];
+    /**
+     * Validate journal entries for a transaction
+     */
+    validateJournalEntries(entries: JournalEntry[]): ValidationError[];
+    /**
+     * Validate a single journal entry
+     */
+    private validateSingleJournalEntry;
+    /**
+     * Validate double-entry balance
+     */
+    private validateDoubleEntryBalance;
+    /**
+     * Validate account compatibility with registry
+     */
+    private validateAccountCompatibility;
+    /**
+     * Post journal entries (mark as posted)
+     */
+    postJournalEntries(entryIds: number[], postedBy?: string): JournalEntry[];
+    /**
+     * Get journal entries by transaction ID
+     */
+    getJournalEntriesByTransaction(transactionId: number): JournalEntry[];
+    /**
+     * Get journal entries by account ID
+     */
+    getJournalEntriesByAccount(accountId: number): JournalEntry[];
+    /**
+     * Get journal entry by ID
+     */
+    getJournalEntry(id: number): JournalEntry | null;
+    /**
+     * Get all journal entries
+     */
+    getAllJournalEntries(): JournalEntry[];
+    /**
+     * Reconcile journal entry
+     */
+    reconcileJournalEntry(entryId: number, reconciliationId: string, reconciledBy?: string): JournalEntry | null;
+    /**
+     * Unreoncile journal entry
+     */
+    unreconcileJournalEntry(entryId: number, unreconciledBy?: string): JournalEntry | null;
+    /**
+     * Delete journal entries by transaction ID
+     */
+    deleteJournalEntriesByTransaction(transactionId: number): number;
+    /**
+     * Get exchange rate (placeholder implementation)
+     */
+    private getExchangeRate;
+    /**
+     * Reset journal entry manager
+     */
+    reset(): void;
+    /**
+     * Get journal entry statistics
+     */
+    getStatistics(): {
+        totalEntries: number;
+        reconciledEntries: number;
+        unreconciledEntries: number;
+        entriesByAccount: {
+            [accountId: number]: number;
+        };
+        entriesByCurrency: {
+            [currency: string]: number;
+        };
+    };
+}
 //# sourceMappingURL=index.d.ts.map
