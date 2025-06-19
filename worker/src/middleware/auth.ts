@@ -126,7 +126,7 @@ export const optionalAuthMiddleware = async (c: Context<{ Bindings: Env }>, next
  * Role-based authorization middleware
  * Requires authMiddleware to be used first
  */
-export const requireRole = (allowedRoles: string[]) => {
+export const requireRole = (_allowedRoles: string[]) => {
   return async (c: Context<{ Bindings: Env }>, next: Next) => {
     const authContext = c as AuthContext
     
@@ -151,4 +151,4 @@ export const requireRole = (allowedRoles: string[]) => {
 export const getCurrentUser = (c: Context): { id: string; email: string; name: string | null } | null => {
   const authContext = c as AuthContext
   return authContext.user || null
-} 
+}

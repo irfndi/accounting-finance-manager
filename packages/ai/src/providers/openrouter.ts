@@ -73,7 +73,7 @@ export class OpenRouterProvider implements AIProvider {
                 done: false,
                 usage: parsed.usage
               };
-            } catch (e) {
+            } catch (_e) {
               // Skip malformed JSON
               continue;
             }
@@ -208,4 +208,4 @@ export class OpenRouterProvider implements AIProvider {
       };
     });
   }
-} 
+}

@@ -58,7 +58,7 @@ globalThis.workerTestUtils = {
     const text = await response.text();
     try {
       return JSON.parse(text);
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to parse JSON response: ${text}`);
     }
   },
@@ -141,4 +141,4 @@ globalThis.console = {
 
 // Environment variables for testing
 process.env.NODE_ENV = 'test';
-process.env.ENVIRONMENT = 'test'; 
+process.env.ENVIRONMENT = 'test';

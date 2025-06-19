@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { processOCR, validateOCRRequirements, isOCRSupported, getOCRMetrics, resetOCRMetrics } from './ocr';
-import { createOCRLogger } from './logger';
+
 // Mock Cloudflare AI
 const mockAI = {
     run: vi.fn()
@@ -11,6 +11,8 @@ vi.mock('./logger', () => ({
         processingStart: vi.fn(),
         processingSuccess: vi.fn(),
         processingFailure: vi.fn(),
+        fileValidation: vi.fn(),
+        storageOperation: vi.fn(),
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn()
@@ -49,19 +51,19 @@ describe('Enhanced OCR Error Handling', () => {
             expect(result.errorCode).toBeUndefined();
         });
         it('should reject unsupported file types', () => {
-            const result = validateOCRRequirements('text/plain', 1000000, 'test.txt');
+            const result = validateOCRRequirements('text/plain', 1000);
             expect(result.valid).toBe(false);
-            expect(result.errorCode).toBe('UNSUPPORTED_FORMAT');
+            expect(result.errorCode).toBe('OCR_UNSUPPORTED_FORMAT');
         });
         it('should reject files that are too large', () => {
-            const result = validateOCRRequirements('image/jpeg', 50000000, 'large.jpg');
+            const result = validateOCRRequirements('image/jpeg', 15 * 1024 * 1024); // 15MB
             expect(result.valid).toBe(false);
-            expect(result.errorCode).toBe('FILE_TOO_LARGE');
+            expect(result.errorCode).toBe('OCR_FILE_TOO_LARGE');
         });
         it('should reject files that are too small', () => {
-            const result = validateOCRRequirements('image/jpeg', 100, 'tiny.jpg');
+            const result = validateOCRRequirements('image/jpeg', 50); // 50 bytes
             expect(result.valid).toBe(false);
-            expect(result.errorCode).toBe('FILE_TOO_SMALL');
+            expect(result.errorCode).toBe('OCR_VALIDATION_FAILED');
         });
     });
     describe('processOCR with retry mechanism', () => {
@@ -186,17 +188,16 @@ describe('Enhanced OCR Error Handling', () => {
     });
     describe('Error Classification', () => {
         it('should classify validation errors correctly', async () => {
-            const fileData = new ArrayBuffer(100); // Too small
-            const result = await processOCR(mockAI, fileData, 'image/jpeg', {}, 'test-5', 'test5.jpg');
+            const fileData = new ArrayBuffer(50); // Too small
+            const result = await processOCR(mockAI, fileData, 'image/jpeg', {}, 'test-file-id', 'test.jpg');
             expect(result.success).toBe(false);
-            expect(result.errorCode).toBe('FILE_TOO_SMALL');
+            expect(result.errorCode).toBe('OCR_VALIDATION_FAILED');
         });
         it('should classify unsupported format errors', async () => {
             const fileData = new ArrayBuffer(1000);
-            const result = await processOCR(mockAI, fileData, 'text/plain', {}, 'test-6', 'test6.txt');
-            console.log('Test result:', JSON.stringify(result, null, 2));
+            const result = await processOCR(mockAI, fileData, 'text/plain', {}, 'test-file-id', 'test.txt');
             expect(result.success).toBe(false);
-            expect(result.errorCode).toBe('UNSUPPORTED_FORMAT');
+            expect(result.errorCode).toBe('OCR_UNSUPPORTED_FORMAT');
         });
     });
     describe('isOCRSupported', () => {

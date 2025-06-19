@@ -4,6 +4,7 @@ import transactionsRouter from './transactions'
 import reportsRouter from './reports'
 import authRouter from './auth'
 import uploadsRouter from './uploads'
+import vectorizeRouter from './vectorize'
 
 // Environment bindings interface
 type Env = {
@@ -27,7 +28,8 @@ api.get('/', (c) => {
       accounts: '/api/accounts - Chart of accounts management',
       transactions: '/api/transactions - Financial transactions',
       reports: '/api/reports - Financial reporting',
-      uploads: '/api/uploads - File upload and document management'
+      uploads: '/api/uploads - File upload and document management',
+      vectorize: '/api/vectorize - Document embeddings and semantic search'
     },
     availableReports: {
       trialBalance: '/api/reports/trial-balance',
@@ -60,6 +62,7 @@ api.route('/accounts', accountsRouter)
 api.route('/transactions', transactionsRouter)
 api.route('/reports', reportsRouter)
 api.route('/uploads', uploadsRouter)
+api.route('/vectorize', vectorizeRouter)
 
 // API health check specific to API routes
 api.get('/health', (c) => {
@@ -112,4 +115,4 @@ api.all('*', (c) => {
   }, 404)
 })
 
-export default api 
+export default api

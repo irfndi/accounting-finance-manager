@@ -86,7 +86,7 @@ export class CloudflareAIProvider implements AIProvider {
                 delta,
                 done: false
               };
-            } catch (e) {
+            } catch {
               // Skip malformed JSON
               continue;
             }
@@ -278,4 +278,4 @@ export class CloudflareAIProvider implements AIProvider {
       );
     }
   }
-} 
+}

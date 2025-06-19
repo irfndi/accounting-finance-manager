@@ -59,7 +59,6 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 }));
 
 // Mock console to avoid noise in tests
-const originalConsole = console;
 beforeEach(() => {
   // Reset all mocks before each test
   vi.clearAllMocks();
@@ -107,7 +106,7 @@ globalThis.webTestUtils = {
     });
   },
 
-  mockApiError: (error: string, status: number = 500) => {
+  mockApiError: (error: string, _status: number = 500) => {
     (global.fetch as any).mockRejectedValueOnce(new Error(error));
   },
 

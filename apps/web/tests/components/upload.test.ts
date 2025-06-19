@@ -1,13 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
 
 // Mock file upload component (assuming it exists)
-const mockUploadComponent = {
+const _mockUploadComponent = {
   onFileSelect: vi.fn(),
   onUpload: vi.fn(),
-  onProgress: vi.fn(),
-  onComplete: vi.fn(),
   onError: vi.fn()
 };
 

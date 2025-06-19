@@ -5,7 +5,7 @@
 
 import { AIService } from './ai-service.js';
 import type { AIMessage, FinancialAnalysisRequest, FinancialAnalysisResponse, OCRResult, DocumentClassification } from '../types.js';
-import { AI_USE_CASES, type AIUseCase } from '../config.js';
+import { AI_USE_CASES } from '../config.js';
 // Using any for now to avoid cross-package imports during build
 // In production, these would be properly typed via the main app
 interface Transaction {
@@ -467,4 +467,4 @@ Generate the appropriate journal entries.`
   async getHealthStatus() {
     return this.aiService.getProvidersHealth();
   }
-} 
+}

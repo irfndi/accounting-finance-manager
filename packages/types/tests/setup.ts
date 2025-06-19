@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, expect, beforeEach, afterEach } from 'vitest';
 
 // Global test setup for types package
 // This package primarily contains TypeScript type definitions

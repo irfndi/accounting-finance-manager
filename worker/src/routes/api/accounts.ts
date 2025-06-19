@@ -1,19 +1,16 @@
 import { Hono } from 'hono'
-import { createDatabase, accounts, eq } from '@finance-manager/db'
+import { createDatabase } from '@finance-manager/db'
 import { 
   DatabaseAdapter, 
   DatabaseAccountRegistry,
-  AccountRegistry,
   FINANCIAL_CONSTANTS,
   getNormalBalance,
   formatCurrency,
   AccountingValidationError,
-  createValidationError,
-  type Currency,
   type AccountType,
   type Account as CoreAccount
 } from '@finance-manager/core'
-import { authMiddleware, optionalAuthMiddleware } from '../../middleware/auth'
+import { authMiddleware } from '../../middleware/auth'
 
 // Environment bindings interface
 type Env = {
@@ -118,7 +115,7 @@ async function createAccountingServices(d1Database: D1Database, entityId: string
 // GET /accounts - List all accounts with enhanced functionality
 accountsRouter.get('/', async (c) => {
   try {
-    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
+    const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
     
     // Get query parameters for filtering
     const { type, active, parent, entityId = 'default' } = c.req.query()
@@ -386,4 +383,4 @@ accountsRouter.post('/', async (c) => {
   }
 })
 
-export default accountsRouter 
+export default accountsRouter

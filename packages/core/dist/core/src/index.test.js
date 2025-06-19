@@ -947,7 +947,7 @@ describe('JournalEntryManager', () => {
                 ]
             };
             const entries1 = journalManager.createJournalEntriesFromTransaction(1, transaction1);
-            const entries2 = journalManager.createJournalEntriesFromTransaction(2, transaction2);
+            const _entries2 = journalManager.createJournalEntriesFromTransaction(2, transaction2);
             // Reconcile one entry
             journalManager.reconcileJournalEntry(entries1[0].id, 'REC-001');
             const stats = journalManager.getStatistics();
@@ -1270,7 +1270,7 @@ describe('D1 Database Integration', () => {
         const mockResults = new Map();
         return {
             prepare: (query) => ({
-                bind: (...values) => ({
+                bind: (..._values) => ({
                     all: async () => ({
                         results: mockResults.get(query) || []
                     }),

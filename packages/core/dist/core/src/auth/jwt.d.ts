@@ -75,4 +75,16 @@ export declare function createJWTManager(config: Partial<JWTConfig>): JWTManager
  * Extract user ID from token without verification (for logging/debugging)
  */
 export declare function extractUserIdFromToken(token: string): string | null;
+/**
+ * Generate a JWT token for a user
+ */
+export declare function generateToken(user: any, expiresIn?: string): Promise<string>;
+/**
+ * Verify a JWT token and return the payload
+ */
+export declare function verifyToken(token: string): Promise<any>;
+/**
+ * Refresh a JWT token
+ */
+export declare function refreshToken(token: string): Promise<string>;
 //# sourceMappingURL=jwt.d.ts.map

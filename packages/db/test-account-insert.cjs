@@ -4,7 +4,6 @@ const { accounts } = require('./dist/schema/accounts.js');
 
 // Create in-memory database
 const sqliteDb = new Database(':memory:');
-const db = drizzle(sqliteDb);
 
 // Create the accounts table
 sqliteDb.exec(`

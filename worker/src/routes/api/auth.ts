@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { authService } from '@finance-manager/core'
 import { createEnhancedDatabase } from '@finance-manager/db'
-import type { Context } from 'hono'
+
 
 // Environment bindings interface
 type Env = {
@@ -422,7 +422,7 @@ authRouter.get('/validate', async (c) => {
       }
     })
 
-  } catch (error) {
+  } catch {
     return c.json({
       valid: false,
       message: 'Invalid or expired token'
@@ -430,4 +430,4 @@ authRouter.get('/validate', async (c) => {
   }
 })
 
-export default authRouter 
+export default authRouter

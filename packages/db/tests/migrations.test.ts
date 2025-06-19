@@ -31,7 +31,7 @@ describe('Database Migrations', () => {
     // Setup default mock responses
     (mockDb.query as any).mockResolvedValue([]);
     (mockDb.execute as any).mockResolvedValue({ affectedRows: 1, insertId: 1 });
-    (mockDb.transaction as any).mockImplementation(async (callback) => {
+    (mockDb.transaction as any).mockImplementation(async (callback: any) => {
       return await callback(mockDb);
     });
   });

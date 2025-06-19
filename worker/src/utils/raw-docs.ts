@@ -5,8 +5,8 @@
 
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import { eq, desc, and, like, or } from "drizzle-orm";
-import { rawDocs, OCRStatus, DocumentType, type RawDoc, type NewRawDoc, type UpdateRawDoc } from "@finance-manager/db";
-import { createOCRLogger, DatabaseError, withOCRErrorBoundary, type OCRLogger } from './logger';
+import { rawDocs, type RawDoc, type NewRawDoc, type UpdateRawDoc } from "@finance-manager/db";
+import { createOCRLogger, DatabaseError, withOCRErrorBoundary } from './logger';
 
 export interface CreateRawDocData {
   fileId: string;

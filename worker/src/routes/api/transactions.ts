@@ -1,19 +1,11 @@
 import { Hono } from 'hono'
-import { createDatabase, transactions, eq } from '@finance-manager/db'
 import { 
   DatabaseAdapter, 
-  DatabaseJournalEntryManager,
   DatabaseAccountRegistry,
-  TransactionValidator,
   TransactionBuilder,
-  FINANCIAL_CONSTANTS,
   formatCurrency,
   AccountingValidationError,
-  DoubleEntryError,
-  type Currency,
-  type TransactionData,
-  type TransactionStatus,
-  type Transaction as CoreTransaction
+  type Currency
 } from '@finance-manager/core'
 import { authMiddleware } from '../../middleware/auth'
 
@@ -90,7 +82,7 @@ async function createAccountingServices(d1Database: D1Database, entityId = 'defa
 // GET /transactions - List all transactions with enhanced functionality
 transactionsRouter.get('/', async (c) => {
   try {
-    const { dbAdapter } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
+    const { dbAdapter: _dbAdapter } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
     
     // Get query parameters for filtering and pagination
     const { 
@@ -295,7 +287,7 @@ transactionsRouter.post('/', async (c) => {
       }, 400)
     }
     
-    const { dbAdapter, accountRegistry, journalManager } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
+    const { dbAdapter, accountRegistry: _accountRegistry, journalManager } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
     
     // Build transaction using the transaction builder
     const transactionBuilder = new TransactionBuilder()
@@ -415,4 +407,4 @@ transactionsRouter.post('/', async (c) => {
   }
 })
 
-export default transactionsRouter 
+export default transactionsRouter

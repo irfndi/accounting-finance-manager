@@ -26,7 +26,7 @@
     "@finance-manager/db": "workspace:*",
     "@finance-manager/types": "workspace:*",
     "@hono/node-server": "^1.14.4",
-    "drizzle-orm": "^0.29.0",
+    "drizzle-orm": "^0.44.2",
     "hono": "^3.12.0"
   },
   "devDependencies": {

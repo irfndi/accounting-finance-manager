@@ -3,7 +3,7 @@
  * Handles text extraction from images and PDFs using Cloudflare AI
  */
 
-import { createOCRLogger, ValidationError, ProcessingError, withOCRErrorBoundary, type OCRLogger } from './logger';
+import { createOCRLogger, ValidationError, withOCRErrorBoundary, type OCRLogger } from './logger';
 
 export interface OCRResult {
   success: boolean;

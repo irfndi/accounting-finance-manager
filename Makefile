@@ -201,6 +201,16 @@ check: ## Run all checks (lint + test + build)
 	$(MAKE) build
 	@echo "$(GREEN)✓ All checks passed$(RESET)"
 
+ci: ## Run complete CI pipeline (lint + test + build all packages)
+	@echo "$(CYAN)Running CI pipeline...$(RESET)"
+	@echo "$(YELLOW)Step 1/3: Linting all packages...$(RESET)"
+	$(MAKE) lint
+	@echo "$(YELLOW)Step 2/3: Running all tests...$(RESET)"
+	$(MAKE) unit
+	@echo "$(YELLOW)Step 3/3: Building all packages...$(RESET)"
+	$(MAKE) build
+	@echo "$(GREEN)✓ CI pipeline completed successfully$(RESET)"
+
 fresh: ## Fresh install (clean + install)
 	@echo "$(CYAN)Fresh installation...$(RESET)"
 	$(MAKE) clean
@@ -219,4 +229,4 @@ status: ## Show project status
 	@ls -la packages/ | grep "^d" | awk '{print "  " $$9}' | grep -v "^\.\.*$$"
 	@echo ""
 	@echo "$(YELLOW)Apps:$(RESET)"
-	@ls -la apps/ | grep "^d" | awk '{print "  " $$9}' | grep -v "^\.\.*$$" 
+	@ls -la apps/ | grep "^d" | awk '{print "  " $$9}' | grep -v "^\.\.*$$"

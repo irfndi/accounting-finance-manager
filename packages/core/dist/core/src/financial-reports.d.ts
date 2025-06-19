@@ -34,18 +34,42 @@ export declare class FinancialReportsEngine {
         };
     }>;
     generateIncomeStatement(startDate: Date, endDate: Date, entityId?: string): Promise<{
+        startDate: string;
+        endDate: string;
         periodStart: string;
         periodEnd: string;
         entityId: string;
         revenue: {
             accounts: never[];
+            operating: never[];
+            nonOperating: never[];
             total: number;
         };
         expenses: {
             accounts: never[];
+            operating: never[];
+            nonOperating: never[];
             total: number;
         };
         netIncome: number;
+    }>;
+    generateCashFlowStatement(startDate: Date, endDate: Date, entityId?: string): Promise<{
+        startDate: string;
+        endDate: string;
+        entityId: string;
+        operating: {
+            activities: never[];
+            total: number;
+        };
+        investing: {
+            activities: never[];
+            total: number;
+        };
+        financing: {
+            activities: never[];
+            total: number;
+        };
+        netChangeInCash: number;
     }>;
     getFinancialMetrics(asOfDate: Date, entityId?: string): Promise<{
         currentRatio: number;

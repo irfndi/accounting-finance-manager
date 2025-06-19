@@ -33,7 +33,7 @@ const createMockAccount = (overrides = {}) => {
   const result = { ...defaults, ...overrides };
   
   // Adjust reportCategory based on type if not explicitly set
-  if (!overrides.reportCategory) {
+  if (!(overrides as any).reportCategory) {
     if (result.type === 'LIABILITY') {
       result.reportCategory = 'LIABILITIES';
     } else if (result.type === 'EQUITY') {
@@ -52,11 +52,11 @@ const mockDbAdapter = {
   select: vi.fn(() => {
     let currentData = [...mockData];
     
-    const createChain = (data) => {
-      const chain = {
-        from: vi.fn(() => createChain(data)),
-        where: vi.fn((condition) => {
-          let filteredData = [...data];
+    const createChain = (chainData: any[]): any => {
+      const chain: any = {
+        from: vi.fn((): any => createChain(chainData)),
+        where: vi.fn((condition: any): any => {
+          let filteredData = chainData;
           
           // Handle eq() function calls from drizzle-orm
           if (condition && typeof condition === 'object' && condition.queryChunks) {
@@ -68,11 +68,32 @@ const mockDbAdapter = {
               const valueChunk = chunks[3];
               
               if (columnChunk && typeof columnChunk === 'object' && columnChunk.name) {
-                const dbColumnName = columnChunk.name; // snake_case from DB
-                const jsPropertyName = dbColumnName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()); // Convert to camelCase
-                const value = valueChunk && typeof valueChunk === 'object' && 'value' in valueChunk ? valueChunk.value : valueChunk;
+                const dbColumnName = columnChunk.name;
+                // Map database column names to JavaScript property names
+                const columnMapping: Record<string, string> = {
+                  'entity_id': 'entityId',
+                  'parent_id': 'parentId',
+                  'is_active': 'isActive',
+                  'is_system': 'isSystem',
+                  'allow_transactions': 'allowTransactions',
+                  'normal_balance': 'normalBalance',
+                  'report_category': 'reportCategory',
+                  'report_order': 'reportOrder',
+                  'current_balance': 'currentBalance',
+                  'created_at': 'createdAt',
+                  'updated_at': 'updatedAt',
+                  'created_by': 'createdBy',
+                  'updated_by': 'updatedBy'
+                };
+                const jsPropertyName = columnMapping[dbColumnName] || dbColumnName;
                 
-                filteredData = data.filter(item => item[jsPropertyName] === value);
+                // Extract value from Param object or use directly
+                let value = valueChunk;
+                if (valueChunk && typeof valueChunk === 'object' && 'value' in valueChunk) {
+                  value = valueChunk.value;
+                }
+                
+                filteredData = chainData.filter((item: any) => item[jsPropertyName] === value);
               }
             }
           }
@@ -83,23 +104,26 @@ const mockDbAdapter = {
             if (operator === '=' && left && left.name) {
               const columnName = left.name;
               const value = right;
-              filteredData = data.filter(item => item[columnName] === value);
+              filteredData = chainData.filter((item: any) => item[columnName] === value);
             }
           }
           
           return createChain(filteredData);
         }),
-        limit: vi.fn((count) => createChain(data.slice(0, count))),
-        orderBy: vi.fn(() => createChain(data)),
-        get: vi.fn(() => Promise.resolve(data[0] || null))
+        limit: vi.fn((count: number): any => createChain(chainData.slice(0, count))),
+        orderBy: vi.fn((): any => createChain(chainData)),
+        get: vi.fn(() => {
+          const result = chainData[0] || null;
+          return Promise.resolve(result);
+        })
       };
       
       // Make chain thenable - return a proper Promise
-      chain.then = (resolve, reject) => {
-        return Promise.resolve(data).then(resolve, reject);
+      chain.then = (resolve: any, reject?: any) => {
+        return Promise.resolve(chainData).then(resolve, reject);
       };
-      chain.catch = (reject) => {
-        return Promise.resolve(data).catch(reject);
+      chain.catch = (reject: any) => {
+        return Promise.resolve(chainData).catch(reject);
       };
       
       return chain;
@@ -152,8 +176,13 @@ const mockDbAdapter = {
             
             if (columnChunk && typeof columnChunk === 'object' && columnChunk.name) {
               const dbColumnName = columnChunk.name; // snake_case from DB
-              const jsPropertyName = dbColumnName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()); // Convert to camelCase
-              const value = valueChunk && typeof valueChunk === 'object' && 'value' in valueChunk ? valueChunk.value : valueChunk;
+              const jsPropertyName = dbColumnName.replace(/_([a-z])/g, (_: string, letter: string) => letter.toUpperCase()); // Convert to camelCase
+              
+              // Extract value from Param object or use directly
+              let value = valueChunk;
+              if (valueChunk && typeof valueChunk === 'object' && 'value' in valueChunk) {
+                value = valueChunk.value;
+              }
               
               for (let i = 0; i < mockData.length; i++) {
                 if (mockData[i][jsPropertyName] === value) {
@@ -322,7 +351,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: now
       };
 
-      await getDb().insert(accounts).values(newAccount);
+      await getDb().insert(accounts).values(newAccount as any);
       
       const result = await getDb().select().from(accounts).where(eq(accounts.code, newAccount.code)).get();
       
@@ -337,7 +366,7 @@ describe('Accounts Schema & Operations', () => {
       const account1 = await dbTestUtils.insertTestAccount();
       const account2 = dbTestUtils.createTestAccount({ code: account1!.code });
 
-      await expect(getDb().insert(accounts).values(account2)).rejects.toThrow();
+      await expect(getDb().insert(accounts).values(account2 as any)).rejects.toThrow();
     });
 
     it('should require mandatory fields', async () => {
@@ -367,8 +396,8 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: now
       };
 
-            console.log('Inserting account in test:', JSON.stringify(account, null, 2));
-      await getDb().insert(accounts).values(account);
+            
+      await getDb().insert(accounts).values(account as any);
       
       const result = await getDb().select().from(accounts).where(eq(accounts.code, account.code));
       
@@ -396,14 +425,14 @@ describe('Accounts Schema & Operations', () => {
       const assetAccounts = await getDb().select().from(accounts).where(eq(accounts.type, 'ASSET'));
       
       expect(assetAccounts.length).toBeGreaterThan(0);
-      assetAccounts.forEach(account => {
+      assetAccounts.forEach((account: any) => {
         expect(account.type).toBe('ASSET');
       });
     });
 
     it('should retrieve active accounts only', async () => {
       // First, deactivate an account
-      await getDb().update(accounts)
+      await getDb().update(accounts as any)
         .set({ isActive: 0 })
         .where(eq(accounts.code, '1000'));
 
@@ -411,8 +440,8 @@ describe('Accounts Schema & Operations', () => {
         .from(accounts)
         .where(eq(accounts.isActive, 1));
 
-      expect(activeAccounts.every(acc => acc.isActive === 1)).toBe(true);
-      expect(activeAccounts.find(acc => acc.code === '1000')).toBeUndefined();
+      expect(activeAccounts.every((acc: any) => acc.isActive === 1)).toBe(true);
+      expect(activeAccounts.find((acc: any) => acc.code === '1000')).toBeUndefined();
     });
 
     it('should retrieve accounts by entity', async () => {
@@ -421,7 +450,7 @@ describe('Accounts Schema & Operations', () => {
         .where(eq(accounts.entityId, 'test-entity'));
 
       expect(entityAccounts.length).toBeGreaterThan(0);
-      entityAccounts.forEach(account => {
+      entityAccounts.forEach((account: any) => {
         expect(account.entityId).toBe('test-entity');
       });
     });
@@ -447,7 +476,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: now
       };
       
-      await getDb().insert(accounts).values(parentAccount);
+      await getDb().insert(accounts).values(parentAccount as any);
       
       const parent = await getDb().select().from(accounts).where(eq(accounts.code, parentAccount.code));
       
@@ -469,7 +498,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: now
       };
       
-      await getDb().insert(accounts).values(childAccount);
+      await getDb().insert(accounts).values(childAccount as any);
       
       const child = await getDb().select().from(accounts).where(eq(accounts.code, childAccount.code));
       
@@ -503,7 +532,7 @@ describe('Accounts Schema & Operations', () => {
           updatedAt: now
         };
         
-        await getDb().insert(accounts).values(childAccount);
+        await getDb().insert(accounts).values(childAccount as any);
         
         // Query child accounts
         const childAccounts = await getDb().select()
@@ -533,7 +562,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: Date.now()
       };
       
-      await getDb().update(accounts)
+      await getDb().update(accounts as any)
         .set(updatedData)
         .where(eq(accounts.id, originalAccount[0].id));
       
@@ -557,7 +586,7 @@ describe('Accounts Schema & Operations', () => {
       // Wait a moment to ensure timestamp difference
       await new Promise(resolve => setTimeout(resolve, 10));
       
-      await getDb().update(accounts)
+      await getDb().update(accounts as any)
         .set({ 
           description: 'Modified description',
           updatedAt: Date.now()
@@ -595,7 +624,7 @@ describe('Accounts Schema & Operations', () => {
           updatedAt: now
         };
         
-        await getDb().insert(accounts).values(account);
+        await getDb().insert(accounts).values(account as any);
         const result = await getDb().select().from(accounts).where(eq(accounts.code, account.code));
         expect(result[0].type).toBe(type);
       }
@@ -622,7 +651,7 @@ describe('Accounts Schema & Operations', () => {
           updatedAt: now
         };
         
-        await getDb().insert(accounts).values(account);
+        await getDb().insert(accounts).values(account as any);
         const result = await getDb().select().from(accounts).where(eq(accounts.code, account.code));
         expect(result[0].normalBalance).toBe(balance);
       }

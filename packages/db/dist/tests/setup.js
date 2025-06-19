@@ -59,7 +59,7 @@ exports.mockD1 = mockD1;
 // Create production-ready test database using better-sqlite3
 function createTestDatabase() {
     try {
-        const sqliteDb = new better_sqlite3_2.default(':memory:', { verbose: console.log });
+        const sqliteDb = new better_sqlite3_2.default(':memory:');
         const testDbAdapter = (0, better_sqlite3_1.drizzle)(sqliteDb, { schema });
         // Enable WAL mode for better concurrency
         sqliteDb.pragma('journal_mode = WAL');
@@ -135,9 +135,7 @@ function createTestDatabase() {
       updated_at INTEGER NOT NULL
     );
   `);
-        // Create Drizzle adapter with better-sqlite3
-        const testDbAdapter = (0, better_sqlite3_1.drizzle)(sqliteDb, { schema });
-        return { sqliteDb, testDbAdapter };
+        return { sqliteDb };
     }
     catch (error) {
         console.error('Failed to create test database:', error);
@@ -145,17 +143,27 @@ function createTestDatabase() {
     }
 }
 // Initialize test database and adapter
-const { sqliteDb, testDbAdapter } = createTestDatabase();
+const { sqliteDb } = createTestDatabase();
 exports.sqliteDb = sqliteDb;
+const testDbAdapter = (0, better_sqlite3_1.drizzle)(sqliteDb, { schema });
 exports.testDbAdapter = testDbAdapter;
 // Make test database adapter available globally
 globalThis.testDbAdapter = testDbAdapter;
 globalThis.sqliteDb = sqliteDb;
 // Test utilities
 const dbTestUtils = {
-    async createTestUser(email, name, role = 'user', entityId) {
+    async createTestUser(email, name, role = 'USER', entityId) {
         const id = Math.random().toString(36).substring(7);
-        await testDbAdapter.insert(schema_1.users).values({ id, email, name, role, entityId }).execute();
+        const now = new Date();
+        await testDbAdapter.insert(schema_1.users).values({
+            id,
+            email,
+            displayName: name,
+            role,
+            entityId,
+            createdAt: now,
+            updatedAt: now
+        }).execute();
         return testDbAdapter.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.id, id)).get();
     },
     createTestAccount(overrides = {}) {
@@ -181,14 +189,17 @@ const dbTestUtils = {
         };
     },
     async insertTestAccount(overrides = {}) {
-        const accountData = this.createTestAccount(overrides);
+        const now = Date.now();
+        const accountData = {
+            ...this.createTestAccount(overrides),
+            createdAt: now,
+            updatedAt: now
+        };
         await testDbAdapter.insert(schema_1.accounts).values(accountData).execute();
-        return testDbAdapter.select().from(schema_1.accounts).where((0, drizzle_orm_1.eq)(schema_1.accounts.id, accountData.id)).get();
+        return testDbAdapter.select().from(schema_1.accounts).where((0, drizzle_orm_1.eq)(schema_1.accounts.code, accountData.code)).get();
     },
     async createTestTransaction(data) {
-        const id = Math.random().toString(36).substring(7);
         const transactionData = {
-            id,
             type: data.type || 'expense',
             status: data.status || 'pending',
             date: data.date || new Date().toISOString(),
@@ -198,13 +209,46 @@ const dbTestUtils = {
             updated_at: Math.floor(Date.now() / 1000),
             ...data
         };
-        await testDbAdapter.insert(schema_1.transactions).values(transactionData).execute();
-        return testDbAdapter.select().from(schema_1.transactions).where((0, drizzle_orm_1.eq)(schema_1.transactions.id, id)).get();
+        const insertResult = await testDbAdapter.insert(schema_1.transactions).values(transactionData).returning({ id: schema_1.transactions.id }).get();
+        return testDbAdapter.select().from(schema_1.transactions).where((0, drizzle_orm_1.eq)(schema_1.transactions.id, insertResult.id)).get();
     },
     async seedTestData() {
         await this.clearAllTables();
-        await this.createTestUser('test@example.com', 'Test User');
-        await this.insertTestAccount();
+        // Create test user
+        const now = new Date();
+        const userId = Math.random().toString(36).substring(7);
+        await testDbAdapter.insert(schema_1.users).values({
+            id: userId,
+            email: 'test@example.com',
+            displayName: 'Test User',
+            role: 'USER',
+            entityId: 'test-entity',
+            isActive: true,
+            createdAt: now,
+            updatedAt: now
+        }).execute();
+        // Create test accounts
+        const accountNow = Date.now();
+        const testAccounts = [
+            {
+                code: '1000',
+                name: 'Cash',
+                type: 'ASSET',
+                normalBalance: 'DEBIT',
+                path: '1000',
+                level: 0,
+                isActive: 1,
+                isSystem: 0,
+                allowTransactions: 1,
+                currentBalance: 0,
+                entityId: 'test-entity',
+                createdAt: accountNow,
+                updatedAt: accountNow
+            }
+        ];
+        for (const account of testAccounts) {
+            await testDbAdapter.insert(schema_1.accounts).values(account).execute();
+        }
     },
     async clearAllTables() {
         try {

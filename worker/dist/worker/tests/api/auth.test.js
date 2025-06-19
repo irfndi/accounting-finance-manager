@@ -27,7 +27,7 @@ const parseJsonResponse = async (response) => {
     try {
         return JSON.parse(text);
     }
-    catch (error) {
+    catch {
         throw new Error(`Failed to parse JSON response: ${text}`);
     }
 };

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { Money, Account, Transaction, JournalEntry, TrialBalance, BalanceSheet, IncomeStatement } from '@finance-manager/types';
+import type { Money, Account, Transaction, TrialBalance, BalanceSheet, IncomeStatement } from '@finance-manager/types';
 
 describe('Financial Calculations', () => {
   describe('Money Operations', () => {
@@ -165,10 +165,10 @@ describe('Financial Calculations', () => {
         status: 'posted',
         entries: [
           {
-            accountId: '3',
-            debit: null,
-            credit: { amount: 500, currency: 'USD' },
-            description: 'Accounts payable'
+            accountId: '2',
+            debit: { amount: 500, currency: 'USD' },
+            credit: null,
+            description: 'Office supplies expense'
           },
           {
             accountId: '1',
@@ -213,9 +213,12 @@ describe('Financial Calculations', () => {
 
     it('should calculate trial balance', () => {
       const calculateTrialBalance = (accounts: Account[], transactions: Transaction[]): TrialBalance => {
+        let totalDebits = 0;
+        let totalCredits = 0;
+        
         const balances = accounts.map(account => {
-          let debitTotal = 0;
-          let creditTotal = 0;
+          let accountDebitTotal = 0;
+          let accountCreditTotal = 0;
           
           for (const transaction of transactions) {
             if (transaction.status !== 'posted') continue;
@@ -223,10 +226,12 @@ describe('Financial Calculations', () => {
             for (const entry of transaction.entries) {
               if (entry.accountId === account.id) {
                 if (entry.debit) {
-                  debitTotal += entry.debit.amount;
+                  accountDebitTotal += entry.debit.amount;
+                  totalDebits += entry.debit.amount;
                 }
                 if (entry.credit) {
-                  creditTotal += entry.credit.amount;
+                  accountCreditTotal += entry.credit.amount;
+                  totalCredits += entry.credit.amount;
                 }
               }
             }
@@ -235,17 +240,10 @@ describe('Financial Calculations', () => {
           return {
             accountId: account.id,
             accountName: account.name,
-            debit: debitTotal > creditTotal ? { amount: debitTotal - creditTotal, currency: 'USD' } : null,
-            credit: creditTotal > debitTotal ? { amount: creditTotal - debitTotal, currency: 'USD' } : null
+            debit: accountDebitTotal > accountCreditTotal ? { amount: accountDebitTotal - accountCreditTotal, currency: 'USD' } : null,
+            credit: accountCreditTotal > accountDebitTotal ? { amount: accountCreditTotal - accountDebitTotal, currency: 'USD' } : null
           };
         });
-        
-        const totalDebits = balances.reduce((sum, balance) => 
-          sum + (balance.debit?.amount || 0), 0
-        );
-        const totalCredits = balances.reduce((sum, balance) => 
-          sum + (balance.credit?.amount || 0), 0
-        );
         
         return {
           date: new Date(),

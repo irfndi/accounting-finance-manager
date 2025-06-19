@@ -4,7 +4,7 @@
  */
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import { eq, desc, and, like, or } from "drizzle-orm";
-import { rawDocs, OCRStatus, DocumentType } from "@finance-manager/db";
+import { rawDocs, OCRStatus } from "@finance-manager/db";
 import { createOCRLogger, DatabaseError, withOCRErrorBoundary } from './logger';
 /**
  * Create a new raw document record in the database

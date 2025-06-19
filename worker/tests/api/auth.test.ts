@@ -29,7 +29,7 @@ const parseJsonResponse = async (response: Response) => {
   const text = await response.text();
   try {
     return JSON.parse(text);
-  } catch (error) {
+  } catch {
     throw new Error(`Failed to parse JSON response: ${text}`);
   }
 };
@@ -418,4 +418,4 @@ describe('Authentication API', () => {
       expect(result.message).toContain('Logged out');
     });
   });
-}); 
+});

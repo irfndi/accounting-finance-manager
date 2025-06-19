@@ -6,13 +6,13 @@ describe('FinancialReportsEngine', () => {
   let mockDbAdapter: any;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     mockDbAdapter = {
       query: vi.fn(),
       select: vi.fn(),
       execute: vi.fn()
     };
     engine = new FinancialReportsEngine(mockDbAdapter);
-    vi.clearAllMocks();
   });
 
   describe('generateTrialBalance', () => {
@@ -172,4 +172,4 @@ describe('FinancialReportsEngine', () => {
       expect(result.totals.totalCredits).toBe(0);
     });
   });
-}); 
+});

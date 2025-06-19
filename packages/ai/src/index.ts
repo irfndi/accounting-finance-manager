@@ -7,3 +7,4 @@ export * from './types.js';
 
 // Main AI service factory
 export { createAIService } from './services/ai-service.js';
+export { createVectorizeService, VectorizeService } from './services/vectorize-service.js';

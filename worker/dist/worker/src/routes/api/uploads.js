@@ -5,8 +5,7 @@ import { createDatabase } from '@finance-manager/db';
 import { createRawDoc, updateRawDocOCR, updateRawDocLLM, getRawDocByFileId, generateSearchableText, parseTags } from '../../utils/raw-docs';
 import { createOCRLogger, createLogger, ValidationError, ProcessingError, StorageError } from '../../utils/logger';
 import { FinancialAIService } from '@finance-manager/ai/services/financial-ai';
-import { AIService } from '@finance-manager/ai/services/ai-service';
-import { OpenRouterProvider } from '@finance-manager/ai/providers/openrouter';
+import { createAIService, createVectorizeService } from '@finance-manager/ai';
 const uploads = new Hono();
 // Apply authentication middleware to all upload routes
 uploads.use('*', authMiddleware);
@@ -50,35 +49,14 @@ function createAIService(env) {
         return null;
     }
 }
-// Helper function to generate document embeddings
-async function generateDocumentEmbeddings(vectorize, fileId, text, metadata = {}) {
-    try {
-        if (!text || text.trim().length === 0) {
-            return { success: false, error: 'No text content to embed' };
-        }
-        // Prepare the vector data
-        const vectorData = {
-            id: fileId,
-            values: [], // Vectorize will generate embeddings from the text
-            metadata: {
-                text: text.substring(0, 1000), // Store first 1000 chars for search
-                fileId,
-                timestamp: new Date().toISOString(),
-                ...metadata
-            }
-        };
-        // Insert the vector into Vectorize
-        await vectorize.insert([vectorData]);
-        console.log(`✅ Generated embeddings for document ${fileId}`);
-        return { success: true };
-    }
-    catch (error) {
-        console.error('Failed to generate embeddings:', error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown embedding error'
-        };
-    }
+// Helper function to create vectorize service
+function createVectorizeServiceInstance(vectorize) {
+    return createVectorizeService({
+        vectorize,
+        maxTextLength: 8000,
+        chunkSize: 1000,
+        chunkOverlap: 200
+    });
 }
 // Helper function to get file extension from filename
 function getFileExtension(filename) {
@@ -278,17 +256,23 @@ uploads.post('/', async (c) => {
                                 }
                                 // Generate document embeddings for semantic search
                                 try {
-                                    const textForEmbedding = ocrResult.extractedText || '';
+                                    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+                                    const textForEmbedding = ocrResult.text || '';
                                     const embeddingMetadata = {
                                         documentType: documentClassification.type,
                                         confidence: documentClassification.confidence,
                                         fileName: file.name,
-                                        fileType: file.type,
-                                        hasStructuredData: !!structuredData
+                                        mimeType: file.type,
+                                        userId: user.id,
+                                        hasStructuredData: !!structuredData,
+                                        tags: metadata.tags
                                     };
-                                    const embeddingResult = await generateDocumentEmbeddings(c.env.DOCUMENT_EMBEDDINGS, fileId, textForEmbedding, embeddingMetadata);
+                                    const embeddingResult = await vectorizeService.embedDocument(fileId, textForEmbedding, embeddingMetadata);
                                     if (!embeddingResult.success) {
                                         console.warn('⚠️ Failed to generate document embeddings:', embeddingResult.error);
+                                    }
+                                    else {
+                                        console.log(`✅ Generated ${embeddingResult.chunksCreated} embedding chunks for document ${fileId}`);
                                     }
                                 }
                                 catch (embeddingError) {
@@ -1288,42 +1272,46 @@ uploads.post('/search', async (c) => {
         if (!user) {
             return c.json({ error: 'Unauthorized' }, 401);
         }
-        const { query, limit = 10, threshold = 0.7 } = await c.req.json();
+        const { query, limit = 10, threshold = 0.7, filter } = await c.req.json();
         if (!query || typeof query !== 'string') {
             return c.json({ error: 'Search query is required' }, 400);
         }
-        // Perform semantic search using Vectorize
-        const searchResults = await c.env.DOCUMENT_EMBEDDINGS.query(query, {
+        // Create vectorize service and perform semantic search
+        const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+        const searchResponse = await vectorizeService.searchByText(query, {
             topK: limit,
-            returnMetadata: true,
+            threshold,
             filter: {
-            // Add any additional filters here if needed
-            }
+                userId: user.id, // Only search user's documents
+                ...filter
+            },
+            returnMetadata: true
         });
-        // Filter results by similarity threshold
-        const filteredResults = searchResults.matches.filter(match => match.score >= threshold);
         // Get document details from database for matching file IDs
         const db = createDatabase(c.env.FINANCE_MANAGER_DB);
-        const fileIds = filteredResults.map(match => match.id);
         const documents = [];
-        for (const fileId of fileIds) {
+        for (const match of searchResponse.matches) {
+            // Extract file ID from match ID (handle both direct fileId and chunk IDs)
+            const fileId = match.id.includes('_chunk_') ? match.id.split('_chunk_')[0] : match.id;
             const docResult = await getRawDocByFileId(db, fileId);
             if (docResult.success && docResult.data) {
-                const match = filteredResults.find(m => m.id === fileId);
                 documents.push({
                     ...docResult.data,
-                    similarity: match?.score || 0,
-                    matchedText: match?.metadata?.text || ''
+                    similarity: match.score,
+                    matchedText: match.metadata?.text || '',
+                    chunkIndex: match.metadata?.chunkIndex,
+                    totalChunks: match.metadata?.totalChunks
                 });
             }
         }
         return c.json({
             success: true,
             data: {
-                query,
+                query: searchResponse.query,
                 results: documents,
-                totalMatches: filteredResults.length,
-                threshold
+                totalMatches: searchResponse.totalMatches,
+                threshold: searchResponse.threshold,
+                processingTime: searchResponse.processingTime
             }
         });
     }

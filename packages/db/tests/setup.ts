@@ -40,9 +40,9 @@ declare global {
 }
 
 // Create production-ready test database using better-sqlite3
-export function createTestDatabase() {
+export function createTestDatabase(): { sqliteDb: any; drizzleDb: any } {
   try {
-    const sqliteDb = new Database(':memory:', { verbose: console.log });
+    const sqliteDb = new Database(':memory:');
     const testDbAdapter = drizzle(sqliteDb, { schema });
     
     // Enable WAL mode for better concurrency
@@ -121,14 +121,14 @@ export function createTestDatabase() {
     );
   `);
   
-    return { sqliteDb };
+    return { sqliteDb, drizzleDb: testDbAdapter };
   } catch (error) {
     console.error('Failed to create test database:', error);
     throw error;
   }
 }
 // Initialize test database and adapter
-const { sqliteDb } = createTestDatabase();
+const { sqliteDb }: { sqliteDb: any } = createTestDatabase();
 const testDbAdapter = drizzle(sqliteDb, { schema });
 
 // Make test database adapter available globally

@@ -14,6 +14,7 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./src/*"],
       "@finance-manager/types": ["../types/src"],
       "@finance-manager/db": ["../db/src"]
     },
@@ -27,4 +28,4 @@
     "dist",
     "node_modules"
   ]
-} 
+}
