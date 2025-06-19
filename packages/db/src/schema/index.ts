@@ -6,15 +6,24 @@
 // Table exports
 export * from "./accounts";
 export * from "./transactions";
+export * from "./auth";
+export * from "./documents";
 
 // Re-export all tables for Drizzle relations
 import { accounts } from "./accounts";
 import { transactions, journalEntries } from "./transactions";
+import { users, sessions, magicLinks, auditLog } from "./auth";
+import { rawDocs } from "./documents";
 
 export const schema = {
   accounts,
   transactions,
   journalEntries,
+  users,
+  sessions,
+  magicLinks,
+  auditLog,
+  rawDocs,
 };
 
 // Database relations
@@ -46,4 +55,36 @@ export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
     fields: [journalEntries.accountId],
     references: [accounts.id],
   }),
-})); 
+}));
+
+// Authentication relations
+export const usersRelations = relations(users, ({ many }) => ({
+  sessions: many(sessions),
+  magicLinks: many(magicLinks),
+  auditLogs: many(auditLog),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const magicLinksRelations = relations(magicLinks, ({ one }) => ({
+  user: one(users, {
+    fields: [magicLinks.userId],
+    references: [users.id],
+  }),
+}));
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  user: one(users, {
+    fields: [auditLog.userId],
+    references: [users.id],
+  }),
+  session: one(sessions, {
+    fields: [auditLog.sessionId],
+    references: [sessions.id],
+  }),
+}));

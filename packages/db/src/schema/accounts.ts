@@ -18,14 +18,14 @@ export const accounts = sqliteTable("accounts", {
   category: text("category"), // Cash, Inventory, Equipment, etc.
   
   // Hierarchical structure
-  parentId: integer("parent_id").references(() => accounts.id),
+  parentId: integer("parent_id").references((): any => accounts.id),
   level: integer("level").notNull().default(0), // Depth in hierarchy
   path: text("path").notNull(), // Materialized path for efficient queries
   
   // Account properties
-  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-  isSystem: integer("is_system", { mode: "boolean" }).notNull().default(false), // System accounts cannot be deleted
-  allowTransactions: integer("allow_transactions", { mode: "boolean" }).notNull().default(true),
+  isActive: integer("is_active").notNull().default(1),
+  isSystem: integer("is_system").notNull().default(0), // System accounts cannot be deleted
+  allowTransactions: integer("allow_transactions").notNull().default(1),
   
   // Normal balance (for validation)
   normalBalance: text("normal_balance").notNull(), // DEBIT or CREDIT
@@ -38,11 +38,11 @@ export const accounts = sqliteTable("accounts", {
   currentBalance: real("current_balance").notNull().default(0),
   
   // Multi-entity support
-  entityId: text("entity_id"), // For multi-company accounting
+  entityId: text("entity_id").notNull(), // For multi-company accounting
   
   // Audit fields
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at").notNull().$defaultFn(() => Date.now()).$onUpdate(() => Date.now()),
   createdBy: text("created_by"),
   updatedBy: text("updated_by"),
 });
@@ -66,15 +66,21 @@ export const NormalBalance = {
 
 export type NormalBalance = typeof NormalBalance[keyof typeof NormalBalance];
 
-// Zod schemas for validation
-export const insertAccountSchema = createInsertSchema(accounts, {
+// Zod schemas for validation - simplified for now
+export const insertAccountSchema = z.object({
   code: z.string().min(1).max(20),
   name: z.string().min(1).max(100),
   type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
   normalBalance: z.enum(["DEBIT", "CREDIT"]),
 });
 
-export const selectAccountSchema = createSelectSchema(accounts);
+export const selectAccountSchema = z.object({
+  id: z.number(),
+  code: z.string(),
+  name: z.string(),
+  type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
+  normalBalance: z.enum(["DEBIT", "CREDIT"]),
+});
 
 export type InsertAccount = z.infer<typeof insertAccountSchema>;
-export type SelectAccount = z.infer<typeof selectAccountSchema>; 
+export type SelectAccount = z.infer<typeof selectAccountSchema>;

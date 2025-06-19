@@ -1,28 +1,42 @@
 {
   "name": "@finance-manager/db",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Database schema and operations for Corporate Finance Manager",
   "main": "src/index.ts",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "build": "tsc",
     "dev": "tsc --watch",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
     "push": "drizzle-kit push",
-    "check": "drizzle-kit check"
+    "check": "drizzle-kit check",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@finance-manager/types": "workspace:*",
     "drizzle-orm": "^0.44.2",
-    "drizzle-zod": "^0.8.2",
-    "zod": "^3.25.67"
+    "drizzle-zod": "^0.5.1",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241218.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "better-sqlite3": "^11.10.0",
     "drizzle-kit": "^0.31.1",
-    "typescript": "^5.7.3"
+    "typescript": "^5.2.2",
+    "vitest": "^1.0.0"
   },
   "engines": {
     "node": ">=22.0.0"

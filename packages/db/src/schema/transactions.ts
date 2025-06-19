@@ -30,7 +30,7 @@ export const transactions = sqliteTable("transactions", {
   // Transaction status
   status: text("status").notNull().default("DRAFT"), // DRAFT, POSTED, REVERSED, VOID
   isReversed: integer("is_reversed", { mode: "boolean" }).notNull().default(false),
-  reversedTransactionId: integer("reversed_transaction_id").references(() => transactions.id),
+  reversedTransactionId: integer("reversed_transaction_id").references((): any => transactions.id),
   
   // Multi-entity support
   entityId: text("entity_id"), // For multi-company accounting
@@ -61,13 +61,13 @@ export const journalEntries = sqliteTable("journal_entries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   
   // Link to parent transaction
-  transactionId: integer("transaction_id").notNull().references(() => transactions.id, { onDelete: "cascade" }),
+  transactionId: integer("transaction_id").notNull().references((): any => transactions.id, { onDelete: "cascade" }),
   
   // Entry identification
   lineNumber: integer("line_number").notNull(), // Order within transaction
   
   // Account reference
-  accountId: integer("account_id").notNull().references(() => accounts.id),
+  accountId: integer("account_id").notNull().references((): any => accounts.id),
   
   // Entry details
   description: text("description"), // Line-specific description
@@ -127,8 +127,8 @@ export const TransactionSource = {
 
 export type TransactionSource = typeof TransactionSource[keyof typeof TransactionSource];
 
-// Zod schemas for validation
-export const insertTransactionSchema = createInsertSchema(transactions, {
+// Zod schemas for validation - simplified for now
+export const insertTransactionSchema = z.object({
   transactionNumber: z.string().min(1).max(50),
   description: z.string().min(1).max(500),
   type: z.enum(["JOURNAL", "PAYMENT", "RECEIPT", "ADJUSTMENT", "TRANSFER", "ACCRUAL", "DEPRECIATION"]),
@@ -137,16 +137,31 @@ export const insertTransactionSchema = createInsertSchema(transactions, {
   totalAmount: z.number().positive(),
 });
 
-export const insertJournalEntrySchema = createInsertSchema(journalEntries, {
+export const insertJournalEntrySchema = z.object({
+  transactionId: z.number(),
+  accountId: z.number(),
   debitAmount: z.number().min(0),
   creditAmount: z.number().min(0),
   description: z.string().max(500).optional(),
 });
 
-export const selectTransactionSchema = createSelectSchema(transactions);
-export const selectJournalEntrySchema = createSelectSchema(journalEntries);
+export const selectTransactionSchema = z.object({
+  id: z.number(),
+  transactionNumber: z.string(),
+  description: z.string(),
+  type: z.enum(["JOURNAL", "PAYMENT", "RECEIPT", "ADJUSTMENT", "TRANSFER", "ACCRUAL", "DEPRECIATION"]),
+  status: z.enum(["DRAFT", "POSTED", "REVERSED", "VOID"]),
+});
+
+export const selectJournalEntrySchema = z.object({
+  id: z.number(),
+  transactionId: z.number(),
+  accountId: z.number(),
+  debitAmount: z.number(),
+  creditAmount: z.number(),
+});
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type SelectTransaction = z.infer<typeof selectTransactionSchema>;
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
-export type SelectJournalEntry = z.infer<typeof selectJournalEntrySchema>; 
+export type SelectJournalEntry = z.infer<typeof selectJournalEntrySchema>;

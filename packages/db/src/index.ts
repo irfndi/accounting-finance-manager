@@ -6,6 +6,9 @@
 // Schema exports
 export * from "./schema";
 
+// Service exports
+export * from "./services";
+
 // Database connection utility
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
