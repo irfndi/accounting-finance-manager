@@ -5,50 +5,267 @@ import { accounts } from '../../src/schema/accounts';
 // Mock database adapter with Drizzle-like interface
 let mockData: any[] = [];
 
-const createMockAccount = (overrides: any = {}) => ({
-  id: 1,
-  code: '1000',
-  name: 'Cash',
-  description: null,
-  type: 'ASSET',
-  subtype: null,
-  category: null,
-  level: 0,
-  path: '1000',
-  parentId: null,
-  isActive: 1,
-  isSystem: 0,
-  allowTransactions: 1,
-  normalBalance: 'DEBIT',
-  reportCategory: 'ASSETS',
-  reportOrder: 0,
-  currentBalance: 0,
-  entityId: 'test-entity',
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  ...overrides
-});
+const createMockAccount = (overrides = {}) => {
+  const defaults = {
+    id: 1,
+    code: '1000',
+    name: 'Test Account',
+    description: null,
+    type: 'ASSET',
+    subtype: null,
+    category: null,
+    level: 0,
+    path: '1000',
+    parentId: null,
+    isActive: 1,
+    isSystem: 0,
+    allowTransactions: 1,
+    normalBalance: 'DEBIT',
+    reportCategory: 'ASSETS',
+    reportOrder: 0,
+    currentBalance: 0,
+    entityId: 'test-entity',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  
+  // Apply overrides, ensuring they take precedence
+  const result = { ...defaults, ...overrides };
+  
+  // Adjust reportCategory based on type if not explicitly set
+  if (!overrides.reportCategory) {
+    if (result.type === 'LIABILITY') {
+      result.reportCategory = 'LIABILITIES';
+    } else if (result.type === 'EQUITY') {
+      result.reportCategory = 'EQUITY';
+    } else if (result.type === 'REVENUE') {
+      result.reportCategory = 'REVENUE';
+    } else if (result.type === 'EXPENSE') {
+      result.reportCategory = 'EXPENSES';
+    }
+  }
+  
+  return result;
+};
 
 const mockDbAdapter = {
-  select: vi.fn().mockReturnValue({
-    from: vi.fn().mockReturnValue({
-      where: vi.fn().mockResolvedValue(mockData.length > 0 ? mockData : [createMockAccount()]),
-      limit: vi.fn().mockResolvedValue(mockData.length > 0 ? mockData : [createMockAccount()]),
-      orderBy: vi.fn().mockResolvedValue(mockData.length > 0 ? mockData : [createMockAccount()])
+  select: vi.fn(() => {
+    let currentData = [...mockData];
+    
+    const createChain = (data) => {
+      const chain = {
+        from: vi.fn(() => createChain(data)),
+        where: vi.fn((condition) => {
+          let filteredData = [...data];
+          
+          // Handle eq() function calls from drizzle-orm
+          if (condition && typeof condition === 'object' && condition.queryChunks) {
+            // Parse drizzle eq() condition from queryChunks
+            const chunks = condition.queryChunks;
+            if (chunks.length === 5) {
+              // Structure: [StringChunk, ColumnObject, StringChunk, Value, StringChunk]
+              const columnChunk = chunks[1];
+              const valueChunk = chunks[3];
+              
+              if (columnChunk && typeof columnChunk === 'object' && columnChunk.name) {
+                const dbColumnName = columnChunk.name; // snake_case from DB
+                const jsPropertyName = dbColumnName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()); // Convert to camelCase
+                const value = valueChunk && typeof valueChunk === 'object' && 'value' in valueChunk ? valueChunk.value : valueChunk;
+                
+                filteredData = data.filter(item => item[jsPropertyName] === value);
+              }
+            }
+          }
+          
+          // Handle other condition formats (fallback)
+          if (condition && typeof condition === 'object' && condition.operator && condition.left && condition.right) {
+            const { operator, left, right } = condition;
+            if (operator === '=' && left && left.name) {
+              const columnName = left.name;
+              const value = right;
+              filteredData = data.filter(item => item[columnName] === value);
+            }
+          }
+          
+          return createChain(filteredData);
+        }),
+        limit: vi.fn((count) => createChain(data.slice(0, count))),
+        orderBy: vi.fn(() => createChain(data)),
+        get: vi.fn(() => Promise.resolve(data[0] || null))
+      };
+      
+      // Make chain thenable - return a proper Promise
+      chain.then = (resolve, reject) => {
+        return Promise.resolve(data).then(resolve, reject);
+      };
+      chain.catch = (reject) => {
+        return Promise.resolve(data).catch(reject);
+      };
+      
+      return chain;
+    };
+    
+    return createChain(currentData);
+  }),
+  insert: vi.fn(() => ({
+    values: vi.fn((data) => {
+      return new Promise((resolve, reject) => {
+        // Validate required fields
+        if (!data.code || !data.name || !data.type || !data.normalBalance) {
+          reject(new Error('Missing required fields'));
+          return;
+        }
+        
+        // Check for unique code constraint
+        const existingAccount = mockData.find(item => item.code === data.code);
+        if (existingAccount) {
+          reject(new Error('Account code must be unique'));
+          return;
+        }
+        
+        const newItem = {
+          ...createMockAccount(),
+          ...data,
+          id: mockData.length + 1,
+          createdAt: data.createdAt || Date.now(),
+          updatedAt: data.updatedAt || Date.now()
+        };
+        mockData.push(newItem);
+        resolve([newItem]);
+      });
     })
-  }),
-  insert: vi.fn().mockReturnValue({
-    values: vi.fn().mockResolvedValue([createMockAccount()])
-  }),
-  update: vi.fn().mockReturnValue({
-    set: vi.fn().mockReturnValue({
-      where: vi.fn().mockResolvedValue([createMockAccount()])
-    })
-  }),
-  delete: vi.fn().mockReturnValue({
-    where: vi.fn().mockResolvedValue([createMockAccount()])
-  })
-};
+  })),
+  update: vi.fn(() => ({
+    set: vi.fn((updateData) => ({
+      where: vi.fn((condition) => {
+        const updatedData = { ...updateData, updatedAt: Date.now() };
+        let updatedCount = 0;
+        
+        // Handle eq() function calls from drizzle-orm
+        if (condition && typeof condition === 'object' && condition.queryChunks) {
+          // Parse drizzle eq() condition from queryChunks
+          const chunks = condition.queryChunks;
+          if (chunks.length === 5) {
+            // Structure: [StringChunk, ColumnObject, StringChunk, Value, StringChunk]
+            const columnChunk = chunks[1];
+            const valueChunk = chunks[3];
+            
+            if (columnChunk && typeof columnChunk === 'object' && columnChunk.name) {
+              const dbColumnName = columnChunk.name; // snake_case from DB
+              const jsPropertyName = dbColumnName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()); // Convert to camelCase
+              const value = valueChunk && typeof valueChunk === 'object' && 'value' in valueChunk ? valueChunk.value : valueChunk;
+              
+              for (let i = 0; i < mockData.length; i++) {
+                if (mockData[i][jsPropertyName] === value) {
+                  mockData[i] = { ...mockData[i], ...updatedData };
+                  updatedCount++;
+                }
+              }
+            }
+          }
+        }
+        // Fallback for other condition formats
+        else if (condition && typeof condition === 'object') {
+          // Drizzle eq() returns an object with operator and operands
+          if (condition.operator === '=' && condition.left && condition.right !== undefined) {
+            const field = condition.left.name;
+            const value = condition.right;
+            
+            for (let i = 0; i < mockData.length; i++) {
+              if (mockData[i][field] === value) {
+                mockData[i] = { ...mockData[i], ...updatedData };
+                updatedCount++;
+              }
+            }
+          }
+          // Alternative structure for drizzle conditions
+          else if (condition.left && condition.right !== undefined) {
+            const field = condition.left.name;
+            const value = condition.right;
+            
+            for (let i = 0; i < mockData.length; i++) {
+              if (mockData[i][field] === value) {
+                mockData[i] = { ...mockData[i], ...updatedData };
+                updatedCount++;
+              }
+            }
+          }
+          // Check for other condition formats
+          else if (condition.column && condition.value !== undefined) {
+            const field = condition.column.name;
+            const value = condition.value;
+            
+            for (let i = 0; i < mockData.length; i++) {
+              if (mockData[i][field] === value) {
+                mockData[i] = { ...mockData[i], ...updatedData };
+                updatedCount++;
+              }
+            }
+          }
+        }
+        
+        return Promise.resolve({ changes: updatedCount });
+      })
+    }))
+  })),
+  delete: vi.fn(() => ({
+    where: vi.fn((condition) => {
+      let deletedCount = 0;
+      
+      // Handle eq() function calls from drizzle-orm
+      if (condition && typeof condition === 'object' && condition.queryChunks) {
+        // Parse drizzle eq() condition from queryChunks
+        const chunks = condition.queryChunks;
+        if (chunks.length === 5) {
+          // Structure: [StringChunk, ColumnObject, StringChunk, Value, StringChunk]
+          const columnChunk = chunks[1];
+          const valueChunk = chunks[3];
+          
+          if (columnChunk && typeof columnChunk === 'object' && columnChunk.name) {
+            const columnName = columnChunk.name;
+            const value = valueChunk;
+            
+            for (let i = mockData.length - 1; i >= 0; i--) {
+              if (mockData[i][columnName] === value) {
+                mockData.splice(i, 1);
+                deletedCount++;
+              }
+            }
+          }
+        }
+      }
+      // Fallback for other condition formats
+      else if (condition && typeof condition === 'object') {
+        // Drizzle eq() returns an object with operator and operands
+        if (condition.operator === '=' && condition.left && condition.right !== undefined) {
+          const field = condition.left.name;
+          const value = condition.right;
+          
+          for (let i = mockData.length - 1; i >= 0; i--) {
+             if (mockData[i][field] === value) {
+               mockData.splice(i, 1);
+               deletedCount++;
+             }
+           }
+         }
+        // Alternative structure for drizzle conditions
+        else if (condition.left && condition.right !== undefined) {
+          const field = condition.left.name;
+          const value = condition.right;
+          
+          for (let i = mockData.length - 1; i >= 0; i--) {
+             if (mockData[i][field] === value) {
+               mockData.splice(i, 1);
+               deletedCount++;
+             }
+           }
+         }
+       }
+       
+       return Promise.resolve({ changes: deletedCount });
+     })
+   }))
+ };
 
 // Mock test utilities
 const dbTestUtils = {
@@ -66,9 +283,9 @@ const dbTestUtils = {
   ),
   seedTestData: vi.fn().mockImplementation(() => {
     mockData = [
-      createMockAccount({ id: 1, code: '1000', name: 'Cash' }),
-      createMockAccount({ id: 2, code: '1100', name: 'Accounts Receivable', type: 'ASSET' }),
-      createMockAccount({ id: 3, code: '2000', name: 'Accounts Payable', type: 'LIABILITY', normalBalance: 'CREDIT' })
+      { id: 1, code: '1000', name: 'Cash', type: 'ASSET', normalBalance: 'DEBIT', reportCategory: 'ASSETS', path: '1000', level: 0, isActive: 1, isSystem: 0, allowTransactions: 1, currentBalance: 0, entityId: 'test-entity', createdAt: Date.now(), updatedAt: Date.now(), category: null, description: null, subtype: null, reportOrder: 0, parentId: null },
+      { id: 2, code: '1100', name: 'Accounts Receivable', type: 'ASSET', normalBalance: 'DEBIT', reportCategory: 'ASSETS', path: '1100', level: 0, isActive: 1, isSystem: 0, allowTransactions: 1, currentBalance: 0, entityId: 'test-entity', createdAt: Date.now(), updatedAt: Date.now(), category: null, description: null, subtype: null, reportOrder: 0, parentId: null },
+      { id: 3, code: '2000', name: 'Accounts Payable', type: 'LIABILITY', normalBalance: 'CREDIT', reportCategory: 'LIABILITIES', path: '2000', level: 0, isActive: 1, isSystem: 0, allowTransactions: 1, currentBalance: 0, entityId: 'test-entity', createdAt: Date.now(), updatedAt: Date.now(), category: null, description: null, subtype: null, reportOrder: 0, parentId: null }
     ];
     return Promise.resolve();
   })
