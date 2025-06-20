@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
-import { createDatabase, accounts, eq } from '@finance-manager/db';
-import { DatabaseAdapter, DatabaseAccountRegistry, AccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError, createValidationError } from '@finance-manager/core';
-import { authMiddleware, optionalAuthMiddleware } from '../../middleware/auth';
+import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '@finance-manager/core';
+import { authMiddleware } from '../../middleware/auth';
 // Create accounts router
 const accountsRouter = new Hono();
 // Apply authentication middleware to all routes
@@ -66,7 +65,7 @@ async function createAccountingServices(d1Database, entityId = 'default') {
 // GET /accounts - List all accounts with enhanced functionality
 accountsRouter.get('/', async (c) => {
     try {
-        const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
+        const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
         // Get query parameters for filtering
         const { type, active, parent, entityId = 'default' } = c.req.query();
         let allAccounts;

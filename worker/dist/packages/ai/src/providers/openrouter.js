@@ -54,7 +54,7 @@ export class OpenRouterProvider {
                                 usage: parsed.usage
                             };
                         }
-                        catch (e) {
+                        catch (_e) {
                             // Skip malformed JSON
                             continue;
                         }

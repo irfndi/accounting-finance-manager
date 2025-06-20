@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { authMiddleware, getCurrentUser } from '../../middleware/auth';
-import { processOCR, isOCRSupported, validateOCRRequirements } from '../../utils/ocr';
+import { processOCR, isOCRSupported } from '../../utils/ocr';
 import { createDatabase } from '@finance-manager/db';
 import { createRawDoc, updateRawDocOCR, updateRawDocLLM, getRawDocByFileId, generateSearchableText, parseTags } from '../../utils/raw-docs';
-import { createOCRLogger, createLogger, ValidationError, ProcessingError, StorageError } from '../../utils/logger';
+import { createOCRLogger } from '../../utils/logger';
 import { FinancialAIService } from '@finance-manager/ai/services/financial-ai';
-import { createAIService, createVectorizeService } from '@finance-manager/ai';
+import { createVectorizeService } from '@finance-manager/ai';
 const uploads = new Hono();
 // Apply authentication middleware to all upload routes
 uploads.use('*', authMiddleware);
@@ -50,9 +50,11 @@ function createAIService(env) {
     }
 }
 // Helper function to create vectorize service
-function createVectorizeServiceInstance(vectorize) {
+function createVectorizeServiceInstance(vectorize, ai) {
     return createVectorizeService({
         vectorize,
+        ai,
+        embeddingModel: '@cf/baai/bge-base-en-v1.5',
         maxTextLength: 8000,
         chunkSize: 1000,
         chunkOverlap: 200
@@ -256,7 +258,7 @@ uploads.post('/', async (c) => {
                                 }
                                 // Generate document embeddings for semantic search
                                 try {
-                                    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+                                    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
                                     const textForEmbedding = ocrResult.text || '';
                                     const embeddingMetadata = {
                                         documentType: documentClassification.type,
@@ -1294,9 +1296,9 @@ uploads.post('/search', async (c) => {
             // Extract file ID from match ID (handle both direct fileId and chunk IDs)
             const fileId = match.id.includes('_chunk_') ? match.id.split('_chunk_')[0] : match.id;
             const docResult = await getRawDocByFileId(db, fileId);
-            if (docResult.success && docResult.data) {
+            if (docResult.success && docResult.doc) {
                 documents.push({
-                    ...docResult.data,
+                    ...docResult.doc,
                     similarity: match.score,
                     matchedText: match.metadata?.text || '',
                     chunkIndex: match.metadata?.chunkIndex,

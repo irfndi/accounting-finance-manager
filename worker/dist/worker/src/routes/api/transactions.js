@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
-import { createDatabase, transactions, eq } from '@finance-manager/db';
-import { DatabaseAdapter, DatabaseJournalEntryManager, DatabaseAccountRegistry, TransactionValidator, TransactionBuilder, FINANCIAL_CONSTANTS, formatCurrency, AccountingValidationError, DoubleEntryError } from '@finance-manager/core';
+import { DatabaseAdapter, DatabaseAccountRegistry, TransactionBuilder, formatCurrency, AccountingValidationError } from '@finance-manager/core';
 import { authMiddleware } from '../../middleware/auth';
 // Create transactions router
 const transactionsRouter = new Hono();
@@ -54,7 +53,7 @@ async function createAccountingServices(d1Database, entityId = 'default') {
 // GET /transactions - List all transactions with enhanced functionality
 transactionsRouter.get('/', async (c) => {
     try {
-        const { dbAdapter } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
+        const { dbAdapter: _dbAdapter } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
         // Get query parameters for filtering and pagination
         const { limit = '50', offset = '0', entityId = 'default', dateFrom, dateTo, status, currency } = c.req.query();
         // Validate pagination parameters
@@ -226,7 +225,7 @@ transactionsRouter.post('/', async (c) => {
                 code: 'VALIDATION_ERROR'
             }, 400);
         }
-        const { dbAdapter, accountRegistry, journalManager } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
+        const { dbAdapter, accountRegistry: _accountRegistry, journalManager } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
         // Build transaction using the transaction builder
         const transactionBuilder = new TransactionBuilder()
             .setDescription(body.description)

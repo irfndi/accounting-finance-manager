@@ -4,18 +4,22 @@
  */
 
 import { Hono } from 'hono';
-import type { Env } from '../../types';
+import type { Vectorize, Ai } from '@cloudflare/workers-types';
+
 import { getCurrentUser } from '../../middleware/auth';
 import { createVectorizeService } from '@finance-manager/ai';
-import { createDatabase, getRawDocByFileId } from '../../utils/database';
+import { createDatabase, type Database } from '@finance-manager/db';
+import { getRawDocByFileId } from '../../utils/raw-docs';
 import { ValidationError } from '../../utils/logger';
 
 const vectorize = new Hono<{ Bindings: Env }>();
 
 // Helper function to create vectorize service
-function createVectorizeServiceInstance(vectorizeBinding: any) {
+function createVectorizeServiceInstance(vectorizeBinding: Vectorize, aiBinding: Ai) {
   return createVectorizeService({
     vectorize: vectorizeBinding,
+    ai: aiBinding,
+    embeddingModel: '@cf/baai/bge-base-en-v1.5',
     maxTextLength: 8000,
     chunkSize: 1000,
     chunkOverlap: 200
@@ -109,7 +113,7 @@ vectorize.post('/search', async (c) => {
     }
 
     // Create vectorize service and perform semantic search
-    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
     const searchResponse = await vectorizeService.searchByText(query, {
       topK,
       threshold,
@@ -135,9 +139,9 @@ vectorize.post('/search', async (c) => {
       }
       
       const docResult = await getRawDocByFileId(db, fileId);
-      if (docResult.success && docResult.data) {
-        const documentData = {
-          ...docResult.data,
+      if (docResult.success && docResult.doc) {
+        const documentData: any = {
+          ...docResult.doc,
           similarity: match.score,
           matchedText: match.metadata?.text || ''
         };
@@ -230,7 +234,7 @@ vectorize.post('/embed', async (c) => {
     }
 
     // Create vectorize service and generate embeddings
-    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
     const result = await vectorizeService.embedDocument(fileId, text, {
       userId: user.id,
       ...metadata
@@ -294,16 +298,16 @@ vectorize.get('/document/:fileId', async (c) => {
     const db = createDatabase(c.env.FINANCE_MANAGER_DB);
     const docResult = await getRawDocByFileId(db, fileId);
     
-    if (!docResult.success || !docResult.data) {
+    if (!docResult.success || !docResult.doc) {
       return c.json({ error: 'Document not found' }, 404);
     }
 
-    if (docResult.data.userId !== user.id) {
+    if (docResult.doc.uploadedBy !== user.id) {
       return c.json({ error: 'Access denied' }, 403);
     }
 
     // Get document embeddings
-    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
     const embeddings = await vectorizeService.getDocumentEmbeddings(fileId);
 
     return c.json({
@@ -367,16 +371,16 @@ vectorize.delete('/document/:fileId', async (c) => {
     const db = createDatabase(c.env.FINANCE_MANAGER_DB);
     const docResult = await getRawDocByFileId(db, fileId);
     
-    if (!docResult.success || !docResult.data) {
+    if (!docResult.success || !docResult.doc) {
       return c.json({ error: 'Document not found' }, 404);
     }
 
-    if (docResult.data.userId !== user.id) {
+    if (docResult.doc.uploadedBy !== user.id) {
       return c.json({ error: 'Access denied' }, 403);
     }
 
     // Delete document embeddings
-    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
     const result = await vectorizeService.deleteDocument(fileId);
 
     return c.json({
@@ -420,7 +424,7 @@ vectorize.get('/stats', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
     const stats = await vectorizeService.getStats();
 
     return c.json({

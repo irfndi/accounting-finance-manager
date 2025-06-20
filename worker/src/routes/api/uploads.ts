@@ -81,9 +81,11 @@ function createAIService(env: Env): FinancialAIService | null {
 }
 
 // Helper function to create vectorize service
-function createVectorizeServiceInstance(vectorize: Vectorize): ReturnType<typeof createVectorizeService> {
+function createVectorizeServiceInstance(vectorize: Vectorize, ai: Ai): ReturnType<typeof createVectorizeService> {
   return createVectorizeService({
     vectorize,
+    ai,
+    embeddingModel: '@cf/baai/bge-base-en-v1.5',
     maxTextLength: 8000,
     chunkSize: 1000,
     chunkOverlap: 200
@@ -314,7 +316,7 @@ uploads.post('/', async (c) => {
 
                 // Generate document embeddings for semantic search
                 try {
-                  const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+                  const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
                   const textForEmbedding = ocrResult.text || '';
                   const embeddingMetadata = {
                     documentType: documentClassification.type,
@@ -1457,9 +1459,9 @@ uploads.post('/search', async (c) => {
       const fileId = match.id.includes('_chunk_') ? match.id.split('_chunk_')[0] : match.id;
       
       const docResult = await getRawDocByFileId(db, fileId);
-      if (docResult.success && docResult.data) {
+      if (docResult.success && docResult.doc) {
         documents.push({
-          ...docResult.data,
+          ...docResult.doc,
           similarity: match.score,
           matchedText: match.metadata?.text || '',
           chunkIndex: match.metadata?.chunkIndex,

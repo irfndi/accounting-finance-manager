@@ -2,7 +2,7 @@
  * OCR Processing Utilities
  * Handles text extraction from images and PDFs using Cloudflare AI
  */
-import { createOCRLogger, ValidationError, ProcessingError, withOCRErrorBoundary } from './logger';
+import { createOCRLogger, ValidationError, withOCRErrorBoundary } from './logger';
 // Supported file types for OCR processing
 export const OCR_SUPPORTED_MIME_TYPES = [
     'image/jpeg',

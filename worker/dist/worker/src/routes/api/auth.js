@@ -354,7 +354,7 @@ authRouter.get('/validate', async (c) => {
             }
         });
     }
-    catch (error) {
+    catch {
         return c.json({
             valid: false,
             message: 'Invalid or expired token'

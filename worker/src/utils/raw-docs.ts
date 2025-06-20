@@ -3,9 +3,8 @@
  * Handles CRUD operations for the raw_docs table
  */
 
-import { DrizzleD1Database } from "drizzle-orm/d1";
-import { eq, desc, and, like, or } from "drizzle-orm";
-import { rawDocs, type RawDoc, type NewRawDoc, type UpdateRawDoc } from "@finance-manager/db";
+import { DrizzleD1Database, eq, desc, and, like, or } from "@finance-manager/db";
+import { rawDocs, type RawDoc, type NewRawDoc, type UpdateRawDoc, type Database } from "@finance-manager/db";
 import { createOCRLogger, DatabaseError, withOCRErrorBoundary } from './logger';
 
 export interface CreateRawDocData {
@@ -57,7 +56,7 @@ export interface SearchFilters {
  * Create a new raw document record in the database
  */
 export async function createRawDoc(
-  db: DrizzleD1Database,
+  db: Database,
   data: CreateRawDocData
 ): Promise<{ success: true; doc: RawDoc } | { success: false; error: string }> {
   const logger = createOCRLogger({ 
@@ -126,7 +125,7 @@ export async function createRawDoc(
  * Update OCR results for a raw document
  */
 export async function updateRawDocOCR(
-  db: DrizzleD1Database,
+  db: Database,
   fileId: string,
   ocrData: UpdateOCRData,
   updatedBy?: string
@@ -198,7 +197,7 @@ export async function updateRawDocOCR(
  * Update LLM processing results for a raw document
  */
 export async function updateRawDocLLM(
-  db: DrizzleD1Database,
+  db: Database,
   fileId: string,
   llmData: UpdateLLMData,
   updatedBy?: string
@@ -265,7 +264,7 @@ export async function updateRawDocLLM(
  * Get a raw document by file ID
  */
 export async function getRawDocByFileId(
-  db: DrizzleD1Database,
+  db: Database,
   fileId: string
 ): Promise<{ success: true; doc: RawDoc } | { success: false; error: string }> {
   const logger = createOCRLogger({ fileId });
@@ -308,7 +307,7 @@ export async function getRawDocByFileId(
  * Search raw documents with filters
  */
 export async function searchRawDocs(
-  db: DrizzleD1Database,
+  db: Database,
   filters: SearchFilters = {},
   limit: number = 50,
   offset: number = 0
@@ -431,7 +430,7 @@ export async function searchRawDocs(
  * Delete a raw document record
  */
 export async function deleteRawDoc(
-  db: DrizzleD1Database,
+  db: Database,
   fileId: string,
   deletedBy?: string
 ): Promise<{ success: true; message: string } | { success: false; error: string }> {
@@ -511,7 +510,7 @@ export function formatTags(tags: string[]): string {
  * Get OCR processing statistics
  */
 export async function getOCRStats(
-  db: DrizzleD1Database,
+  db: Database,
   userId?: string
 ): Promise<{ 
   success: true; 

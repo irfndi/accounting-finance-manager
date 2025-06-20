@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
-import { createDatabase, accounts, transactions, eq } from '@finance-manager/db';
-import { DatabaseAdapter, DatabaseAccountRegistry, AccountBalanceManager, FinancialReportsEngine, FINANCIAL_CONSTANTS, formatCurrency, AccountingValidationError } from '@finance-manager/core';
+import { DatabaseAdapter, FinancialReportsEngine, formatCurrency } from '@finance-manager/core';
 import { authMiddleware } from '../../middleware/auth';
 // Create reports router
 const reportsRouter = new Hono();

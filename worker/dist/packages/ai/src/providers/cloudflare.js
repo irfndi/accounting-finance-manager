@@ -58,7 +58,7 @@ export class CloudflareAIProvider {
                                 done: false
                             };
                         }
-                        catch (e) {
+                        catch {
                             // Skip malformed JSON
                             continue;
                         }

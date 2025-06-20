@@ -2,7 +2,6 @@
  * Financial AI Service
  * Specialized AI service for financial operations and analysis
  */
-import { AIService } from './ai-service.js';
 import { AI_USE_CASES } from '../config.js';
 export class FinancialAIService {
     aiService;

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { processOCR, validateOCRRequirements, isOCRSupported, getOCRMetrics, resetOCRMetrics } from './ocr';
-
+import { getOCRMetrics, resetOCRMetrics } from './ocr';
 // Mock Cloudflare AI
 const mockAI = {
     run: vi.fn()

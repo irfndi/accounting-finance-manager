@@ -1,4 +1,3 @@
-import { Context, Next } from 'hono';
 import { authService } from '@finance-manager/core';
 // Helper to get JWT secret from environment
 const getJWTSecret = (env) => {
@@ -92,7 +91,7 @@ export const optionalAuthMiddleware = async (c, next) => {
  * Role-based authorization middleware
  * Requires authMiddleware to be used first
  */
-export const requireRole = (allowedRoles) => {
+export const requireRole = (_allowedRoles) => {
     return async (c, next) => {
         const authContext = c;
         if (!authContext.user) {

@@ -44,7 +44,7 @@ export const authMiddleware = async (c: Context<{ Bindings: Env }>, next: Next) 
     const jwtSecret = getJWTSecret(c.env)
 
     // Verify JWT token
-    const payload = await authService.verifyJWT(token, jwtSecret)
+    const payload = await authService.jwt.verifyToken(token)
     
     // Check if session exists in KV (optional additional security)
     const sessionKey = `session:${payload.userId}`
@@ -91,7 +91,7 @@ export const optionalAuthMiddleware = async (c: Context<{ Bindings: Env }>, next
 
       try {
         // Verify JWT token
-        const payload = await authService.verifyJWT(token, jwtSecret)
+        const payload = await authService.jwt.verifyToken(token)
         
         // Check if session exists in KV
         const sessionKey = `session:${payload.userId}`

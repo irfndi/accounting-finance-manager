@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Hono } from 'hono';
-import { uploadsRouter } from '../../src/routes/api/uploads';
+import uploadsRouter from '../../src/routes/api/uploads';
 
 // Mock the dependencies
 vi.mock('../../src/middleware/auth', () => ({
@@ -90,7 +90,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; document?: any };
 
       expect(res.status).toBe(201);
       expect(data.success).toBe(true);
@@ -108,7 +108,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; data?: any };
 
       expect(res.status).toBe(400);
       expect(data.success).toBe(false);
@@ -127,7 +127,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; data?: any };
 
       expect(res.status).toBe(400);
       expect(data.success).toBe(false);
@@ -185,14 +185,14 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; results?: any[]; data?: any };
 
       expect(res.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.results).toBeDefined();
       expect(Array.isArray(data.results)).toBe(true);
-      expect(data.results[0]).toHaveProperty('score');
-      expect(data.results[0]).toHaveProperty('metadata');
+      expect(data.results![0]).toHaveProperty('score');
+      expect(data.results![0]).toHaveProperty('metadata');
     });
 
     it('should validate search query', async () => {
@@ -207,7 +207,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; data?: any };
 
       expect(res.status).toBe(400);
       expect(data.success).toBe(false);
@@ -230,7 +230,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; data?: any };
 
       expect(res.status).toBe(200);
       expect(data.success).toBe(true);
@@ -280,7 +280,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; documents?: any[]; data?: any };
 
       expect(res.status).toBe(200);
       expect(data.success).toBe(true);
@@ -293,7 +293,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; data?: any };
 
       expect(res.status).toBe(200);
       expect(data.success).toBe(true);
@@ -315,7 +315,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string; data?: any };
 
       // Should still succeed even if Vectorize fails
       expect(res.status).toBe(201);
@@ -337,7 +337,7 @@ describe('Uploads API', () => {
       });
 
       const res = await app.request(req, mockEnv);
-      const data = await res.json();
+      const data = await res.json() as { success: boolean; error?: string };
 
       expect(res.status).toBe(500);
       expect(data.success).toBe(false);

@@ -145,7 +145,7 @@ accountsRouter.get('/', async (c) => {
     const enhancedAccounts = allAccounts.map(account => ({
       ...account,
       normalBalance: getNormalBalance(account.type),
-      formattedBalance: account.balance ? formatCurrency(account.balance, account.currency) : null,
+      formattedBalance: account.currentBalance ? formatCurrency(account.currentBalance, 'USD') : null,
       accountingInfo: {
         canHaveChildren: ['ASSET', 'LIABILITY', 'EQUITY'].includes(account.type),
         expectedNormalBalance: getNormalBalance(account.type),
@@ -222,8 +222,8 @@ accountsRouter.get('/:id', async (c) => {
         code: child.code,
         name: child.name,
         type: child.type,
-        balance: child.balance,
-        formattedBalance: child.balance ? formatCurrency(child.balance, child.currency) : null
+        balance: child.currentBalance,
+        formattedBalance: child.currentBalance ? formatCurrency(child.currentBalance, 'USD') : null
       })),
       accountingInfo: {
         canHaveChildren: ['ASSET', 'LIABILITY', 'EQUITY'].includes(account.type),
@@ -333,10 +333,7 @@ accountsRouter.post('/', async (c) => {
       isSystem: body.isSystem || false,
       allowTransactions: body.allowTransactions !== false,
              normalBalance: (body.normalBalance as typeof normalBalanceTypes[number]) || getNormalBalance(body.type as AccountType),
-      balance: 0,
-      balanceDebit: 0,
-      balanceCredit: 0,
-      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+      currentBalance: 0,
       reportCategory: body.reportCategory || body.type,
       reportOrder: body.reportOrder || 0,
       entityId: 'default',
@@ -353,7 +350,7 @@ accountsRouter.post('/', async (c) => {
       account: {
         ...newAccount,
         normalBalance: getNormalBalance(newAccount.type),
-        formattedBalance: formatCurrency(newAccount.balance, newAccount.currency),
+        formattedBalance: formatCurrency(newAccount.currentBalance, 'USD'),
         accountingInfo: {
           canHaveChildren: ['ASSET', 'LIABILITY', 'EQUITY'].includes(newAccount.type),
           expectedNormalBalance: getNormalBalance(newAccount.type),
