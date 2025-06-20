@@ -1,6 +1,7 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
 
 /**
  * Chart of Accounts - Core financial accounts structure
@@ -66,21 +67,6 @@ export const NormalBalance = {
 
 export type NormalBalance = typeof NormalBalance[keyof typeof NormalBalance];
 
-// Zod schemas for validation - simplified for now
-export const insertAccountSchema = z.object({
-  code: z.string().min(1).max(20),
-  name: z.string().min(1).max(100),
-  type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
-  normalBalance: z.enum(["DEBIT", "CREDIT"]),
-});
-
-export const selectAccountSchema = z.object({
-  id: z.number(),
-  code: z.string(),
-  name: z.string(),
-  type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
-  normalBalance: z.enum(["DEBIT", "CREDIT"]),
-});
-
+// Zod schemas for validation
+export const insertAccountSchema = createInsertSchema(accounts);
 export type InsertAccount = z.infer<typeof insertAccountSchema>;
-export type SelectAccount = z.infer<typeof selectAccountSchema>;

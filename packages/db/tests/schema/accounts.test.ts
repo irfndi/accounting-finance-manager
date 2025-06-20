@@ -112,26 +112,19 @@ const mockDbAdapter = {
         }),
         limit: vi.fn((count: number): any => createChain(chainData.slice(0, count))),
         orderBy: vi.fn((): any => createChain(chainData)),
-        get: vi.fn(() => {
-          const result = chainData[0] || null;
-          return Promise.resolve(result);
-        })
+        get: vi.fn(() => Promise.resolve(chainData[0] || null))
       };
       
-      // Make chain thenable - return a proper Promise
-      chain.then = (resolve: any, reject?: any) => {
-        return Promise.resolve(chainData).then(resolve, reject);
-      };
-      chain.catch = (reject: any) => {
-        return Promise.resolve(chainData).catch(reject);
-      };
+
+      
+
       
       return chain;
     };
     
     return createChain(currentData);
   }),
-  insert: vi.fn((table) => ({
+  insert: vi.fn(() => ({
     values: vi.fn((data) => {
       return new Promise((resolve, reject) => {
         // Validate required fields
@@ -159,7 +152,7 @@ const mockDbAdapter = {
       });
     })
   })),
-  update: vi.fn((table) => ({
+  update: vi.fn(() => ({
     set: vi.fn((updateData) => ({
       where: vi.fn((condition) => {
         const updatedData = { ...updateData, updatedAt: Date.now() };

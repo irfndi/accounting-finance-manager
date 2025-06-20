@@ -9,7 +9,7 @@ import * as schema from '../src/schema';
 import Database from 'better-sqlite3';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
-import { sql, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 // Mock D1 database for testing
 const mockD1 = {

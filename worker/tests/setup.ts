@@ -130,7 +130,7 @@ globalThis.fetch = vi.fn(() =>
 );
 
 // Mock console for cleaner test output
-globalThis.console = {
+(globalThis as any).console = {
   ...console,
   log: vi.fn(),
   warn: vi.fn(),

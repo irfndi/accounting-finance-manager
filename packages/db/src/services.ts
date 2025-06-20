@@ -3,9 +3,12 @@
  * Corporate Finance Manager - Database service layer with user management
  */
 
+import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
+import type { D1Database } from "@cloudflare/workers-types";
 import type { Database } from "./index";
 import { users } from "./schema";
+import * as schema from "./schema";
 
 /**
  * User data for creation
@@ -34,7 +37,7 @@ export interface UpdateUserData {
  * Database service class with user management methods
  */
 export class DatabaseService {
-  constructor(private db: Database) {}
+  constructor(public db: Database) {}
 
   /**
    * Get user by email
@@ -128,18 +131,5 @@ export function createDatabaseService(database: Database): DatabaseService {
  */
 export function createEnhancedDatabase(d1Database: D1Database) {
   const db = drizzle(d1Database, { schema });
-  const service = new DatabaseService(db);
-  
-  // Return an object that has both the raw database and service methods
-  return Object.assign(db, {
-    getUserByEmail: service.getUserByEmail.bind(service),
-    getUserById: service.getUserById.bind(service),
-    createUser: service.createUser.bind(service),
-    updateUser: service.updateUser.bind(service),
-    deleteUser: service.deleteUser.bind(service),
-  });
+  return db;
 }
-
-// Import drizzle and schema
-import { drizzle } from "drizzle-orm/d1";
-import * as schema from "./schema"; 

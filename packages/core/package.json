@@ -6,7 +6,11 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "tsc",
@@ -32,4 +36,4 @@
     "@vitest/coverage-v8": "^1.0.0",
     "@vitest/ui": "^1.0.0"
   }
-} 
+}

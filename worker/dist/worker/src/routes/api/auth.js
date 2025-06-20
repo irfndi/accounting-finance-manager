@@ -45,11 +45,11 @@ authRouter.post('/register', async (c) => {
         // Generate JWT token
         const jwtSecret = getJWTSecret(c.env);
         const sessionDuration = getSessionDuration(c.env);
-        const token = await authService.generateJWT({
-            userId: user.id,
+        const token = await authService.jwt.generateToken({
+            id: user.id,
             email: user.email,
-            name: user.name
-        }, jwtSecret, sessionDuration);
+            role: 'USER' // Default role, should be from user data
+        });
         // Store session in KV
         const sessionKey = `session:${user.id}`;
         await c.env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({
@@ -113,11 +113,11 @@ authRouter.post('/login', async (c) => {
         // Generate JWT token
         const jwtSecret = getJWTSecret(c.env);
         const sessionDuration = getSessionDuration(c.env);
-        const token = await authService.generateJWT({
-            userId: user.id,
+        const token = await authService.jwt.generateToken({
+            id: user.id,
             email: user.email,
-            name: user.name
-        }, jwtSecret, sessionDuration);
+            role: 'USER' // Default role, should be from user data
+        });
         // Store session in KV
         const sessionKey = `session:${user.id}`;
         await c.env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({

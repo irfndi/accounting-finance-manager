@@ -1,10 +1,7 @@
 import { Hono } from 'hono'
-import { 
-  DatabaseAdapter,
-  FinancialReportsEngine,
-  formatCurrency
-} from '@finance-manager/core'
+import { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types'
 import { authMiddleware } from '../../middleware/auth'
+import { Reports, DatabaseJournalEntryManager, FINANCIAL_CONSTANTS } from '@finance-manager/core'
 
 // Environment bindings interface
 type Env = {
@@ -18,6 +15,8 @@ type Env = {
 
 // Create reports router
 const reportsRouter = new Hono<{ Bindings: Env }>()
+
+
 
 // Apply authentication middleware to all reports routes
 reportsRouter.use('*', authMiddleware)
@@ -96,7 +95,7 @@ reportsRouter.get('/balance-sheet', async (c) => {
     const balanceSheet = await reportsEngine.generateBalanceSheet(asOfDate, entityId)
     
     // Calculate additional metrics
-    const metrics = await reportsEngine.getFinancialMetrics(asOfDate, entityId)
+    const metrics = await reportsEngine.getFinancialMetrics(asOfDate)
     
     return c.json({
       success: true,
@@ -263,7 +262,7 @@ reportsRouter.get('/financial-metrics', async (c) => {
     const asOfDate = parseDate(asOfDateStr, new Date())
     
     // Generate comprehensive metrics
-    const metrics = await reportsEngine.getFinancialMetrics(asOfDate, entityId)
+    const metrics = await reportsEngine.getFinancialMetrics(asOfDate)
     const balanceSheet = await reportsEngine.generateBalanceSheet(asOfDate, entityId)
     
     // Calculate additional derived metrics
@@ -398,7 +397,7 @@ reportsRouter.get('/summary', async (c) => {
       reportsEngine.generateBalanceSheet(today, entityId),
       reportsEngine.generateIncomeStatement(currentMonthStart, currentMonthEnd, entityId),
       reportsEngine.generateIncomeStatement(previousMonthStart, previousMonthEnd, entityId),
-      reportsEngine.getFinancialMetrics(today, entityId)
+      reportsEngine.getFinancialMetrics(today)
     ])
     
     // Calculate month-over-month changes
@@ -477,7 +476,7 @@ reportsRouter.get('/export/balance-sheet', async (c) => {
     
     // Generate balance sheet data
     const balanceSheet = await reportsEngine.generateBalanceSheet(asOfDate, entityId)
-    const metrics = await reportsEngine.getFinancialMetrics(asOfDate, entityId)
+    const metrics = await reportsEngine.getFinancialMetrics(asOfDate)
     
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
     const user = c.get('user')

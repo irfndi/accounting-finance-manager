@@ -73,7 +73,8 @@ export class OpenRouterProvider implements AIProvider {
                 done: false,
                 usage: parsed.usage
               };
-            } catch (_e) {
+            } catch (error) {
+              console.error('OpenRouterProvider: Failed to parse stream data chunk.', error);
               // Skip malformed JSON
               continue;
             }

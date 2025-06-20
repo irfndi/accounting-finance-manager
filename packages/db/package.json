@@ -2,10 +2,15 @@
   "name": "@finance-manager/db",
   "version": "1.0.0",
   "description": "Database schema and operations for Corporate Finance Manager",
-  "main": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
   },
   "scripts": {
     "test": "vitest run",

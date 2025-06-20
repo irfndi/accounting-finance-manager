@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 /**
@@ -87,7 +87,7 @@ export const insertRawDocSchema = createInsertSchema(rawDocs, {
   uploadedBy: z.string().min(1)
 });
 
-export const selectRawDocSchema = createSelectSchema(rawDocs);
+
 
 export const updateRawDocSchema = insertRawDocSchema.partial().omit({ 
   id: true, 

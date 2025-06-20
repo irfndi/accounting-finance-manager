@@ -94,7 +94,7 @@ export class FinancialReportsEngine {
     };
   }
 
-  async getFinancialMetrics(_asOfDate: Date, entityId?: string) {
+  async getFinancialMetrics(_asOfDate: Date) {
     return {
       currentRatio: 0,
       quickRatio: 0,

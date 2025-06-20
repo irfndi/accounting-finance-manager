@@ -1,8 +1,9 @@
 /**
- * OCR Processing Utilities
- * Handles text extraction from images and PDFs using Cloudflare AI
+ * OCR (Optical Character Recognition) Utilities
+ * Handles text extraction from images using Cloudflare AI
  */
 
+import type { Ai } from '@cloudflare/workers-types';
 import { createOCRLogger, ValidationError, withOCRErrorBoundary, type OCRLogger } from './logger';
 
 export interface OCRResult {
@@ -280,7 +281,7 @@ let ocrMetrics: OCRMetrics = {
 function updateOCRMetrics(result: OCRResult, errorCode?: string) {
   ocrMetrics.totalAttempts++;
   
-  if (result.success) {
+  if (result.success === true) {
     ocrMetrics.successfulAttempts++;
     if (result.fallbackUsed) {
       ocrMetrics.fallbackUsageCount++;
@@ -382,22 +383,23 @@ export async function processOCR(
   fileData: ArrayBuffer,
   mimeType: string,
   options: OCRProcessingOptions = {},
-  fileId?: string,
+  fileId: string,
   fileName?: string
 ): Promise<OCRResult> {
-  const logger = createOCRLogger({ 
+  const logger = createOCRLogger({
     userId: 'system',
     fileId: fileId || 'unknown',
     fileName: fileName || 'unknown'
   });
-  
+
+  const {
+    maxTextLength = OCR_DEFAULTS.MAX_TEXT_LENGTH,
+    timeout = OCR_DEFAULTS.TIMEOUT_MS,
+    retryAttempts = OCR_DEFAULTS.MAX_RETRY_ATTEMPTS,
+    retryDelay = OCR_DEFAULTS.RETRY_DELAY_MS
+  } = options;
+
   const startTime = Date.now();
-  
-  // Set defaults from options or constants
-  const retryAttempts = options.retryAttempts ?? OCR_DEFAULTS.MAX_RETRY_ATTEMPTS;
-  const retryDelay = options.retryDelay ?? OCR_DEFAULTS.RETRY_DELAY_MS;
-  const timeout = options.timeout ?? OCR_DEFAULTS.TIMEOUT_MS;
-  const maxTextLength = options.maxTextLength ?? OCR_DEFAULTS.MAX_TEXT_LENGTH;
   
   try {
     // Validate file requirements
@@ -418,8 +420,8 @@ export async function processOCR(
           setTimeout(() => reject(new Error('OCR processing timeout')), timeout);
         });
         
-        const processingPromise = ai.run('@cf/tesseract-1.0.0', {
-          image: Array.from(new Uint8Array(fileData))
+        const processingPromise = ai.run('@cf/microsoft/trocr-base-handwritten', {
+          image: [...new Uint8Array(fileData)]
         });
         
         return Promise.race([processingPromise, timeoutPromise]);
@@ -545,7 +547,7 @@ export async function processOCR(
         );
         
         // Add original error information to fallback result
-        if (fallbackResult.success) {
+        if (fallbackResult.success === true) {
           fallbackResult.processingTime = Date.now() - startTime;
           // Update metrics for successful fallback
           updateOCRMetrics(fallbackResult);
@@ -620,7 +622,7 @@ export async function processFileOCR(
       { fileId }
     );
     
-    if (!storageResult.success) {
+    if (storageResult.success === false) {
       throw new Error(storageResult.error);
     }
     
@@ -700,7 +702,7 @@ export async function batchProcessOCR(
     }
   }
   
-  const successCount = results.filter(r => r.result.success).length;
+  const successCount = results.filter(r => r.result.success === true).length;
   const failureCount = results.length - successCount;
   
   logger.info('Batch OCR processing completed', {

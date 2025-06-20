@@ -18,5 +18,5 @@ export function createDatabase(d1Database) {
     return drizzle(d1Database, { schema });
 }
 // Re-export all Drizzle utilities to ensure consistent symbol resolution in monorepo
-export { eq, and, or, not, isNull, isNotNull, like, ilike, desc, asc, sql } from "drizzle-orm";
+export { eq, and, or, not, isNull, isNotNull, like, ilike, desc, asc, sql, count, sum, avg, min, max } from "drizzle-orm";
 export { alias, sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";

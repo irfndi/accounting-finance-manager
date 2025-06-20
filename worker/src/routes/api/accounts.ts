@@ -1,4 +1,6 @@
 import { Hono } from 'hono'
+import { Hono } from 'hono'
+import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types'
 import { createDatabase } from '@finance-manager/db'
 import { 
   DatabaseAdapter, 
@@ -23,7 +25,9 @@ type Env = {
 }
 
 // Create accounts router
-const accountsRouter = new Hono<{ Bindings: Env }>()
+const accounts = new Hono<{ Bindings: Env }>()
+
+accounts.use('/*', authMiddleware)
 
 // Apply authentication middleware to all routes
 // Use strict authentication for all account operations

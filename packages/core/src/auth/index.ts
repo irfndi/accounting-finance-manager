@@ -14,16 +14,13 @@ import * as JwtUtils from './jwt';
 import * as MagicLinkUtils from './magicLink';
 
 // Create comprehensive auth service
-export const authService = {
+export const createAuthService = (jwtSecret: string) => ({
   // Password utilities
   password: PasswordUtils,
   
   // JWT utilities
-  jwt: JwtUtils,
+  jwt: new JwtUtils.JWTManager({ secret: jwtSecret }),
   
   // Magic link utilities
   magicLink: MagicLinkUtils
-};
-
-// Export as default for easier importing
-export default authService;
+});

@@ -25,9 +25,9 @@
     "@finance-manager/core": "workspace:*",
     "@finance-manager/db": "workspace:*",
     "@finance-manager/types": "workspace:*",
-    "@hono/node-server": "^1.14.4",
-    "drizzle-orm": "^0.44.2",
-    "hono": "^3.12.0"
+    "@hono/node-server": "^1.11.1",
+    "drizzle-orm": "^0.30.10",
+    "hono": "^4.5.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241218.0",

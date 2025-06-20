@@ -1,11 +1,13 @@
 import { Hono } from 'hono'
+import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types'
 import { 
   DatabaseAdapter, 
   DatabaseAccountRegistry,
   TransactionBuilder,
   formatCurrency,
   AccountingValidationError,
-  type Currency
+  type Currency,
+  FINANCIAL_CONSTANTS
 } from '@finance-manager/core'
 import { authMiddleware } from '../../middleware/auth'
 
@@ -20,11 +22,11 @@ type Env = {
 }
 
 // Create transactions router
-const transactionsRouter = new Hono<{ Bindings: Env }>()
+const transactions = new Hono<{ Bindings: Env }>()
 
-// Apply authentication middleware to all routes
-// Use strict authentication for all transaction operations
-transactionsRouter.use('*', authMiddleware)
+transactions.use('/*', authMiddleware)
+
+
 
 // Enhanced validation using core logic
 function validateTransactionId(id: string): { valid: boolean; id?: number; error?: string } {
@@ -80,7 +82,7 @@ async function createAccountingServices(d1Database: D1Database, entityId = 'defa
 }
 
 // GET /transactions - List all transactions with enhanced functionality
-transactionsRouter.get('/', async (c) => {
+transactions.get('/', async (c) => {
   try {
     const { dbAdapter: _dbAdapter } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
     
@@ -180,7 +182,7 @@ transactionsRouter.get('/', async (c) => {
 })
 
 // GET /transactions/:id - Get transaction by ID with journal entries
-transactionsRouter.get('/:id', async (c) => {
+transactions.get('/:id', async (c) => {
   try {
     const idValidation = validateTransactionId(c.req.param('id'))
     

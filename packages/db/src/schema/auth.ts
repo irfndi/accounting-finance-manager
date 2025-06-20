@@ -1,5 +1,6 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
 
 /**
  * Users - Core user management for authentication

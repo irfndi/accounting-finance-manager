@@ -5,7 +5,8 @@ import { createDatabase } from '@finance-manager/db';
 import { createRawDoc, updateRawDocOCR, updateRawDocLLM, getRawDocByFileId, generateSearchableText, parseTags } from '../../utils/raw-docs';
 import { createOCRLogger } from '../../utils/logger';
 import { FinancialAIService } from '@finance-manager/ai/services/financial-ai';
-import { createVectorizeService } from '@finance-manager/ai';
+import { createVectorizeService, AIService } from '@finance-manager/ai';
+import { OpenRouterProvider } from '@finance-manager/ai/providers/openrouter';
 const uploads = new Hono();
 // Apply authentication middleware to all upload routes
 uploads.use('*', authMiddleware);
@@ -28,7 +29,7 @@ function generateUUID() {
     return crypto.randomUUID();
 }
 // Helper function to create AI service
-function createAIService(env) {
+function createFinancialAIService(env) {
     try {
         if (!env.OPENROUTER_API_KEY) {
             console.warn('⚠️ OpenRouter API key not found, LLM features disabled');
@@ -39,7 +40,7 @@ function createAIService(env) {
             baseURL: 'https://openrouter.ai/api/v1'
         });
         const aiService = new AIService({
-            provider,
+            providers: [provider],
             defaultModel: 'meta-llama/llama-3.1-8b-instruct:free'
         });
         return new FinancialAIService(aiService);
@@ -214,7 +215,7 @@ uploads.post('/', async (c) => {
                 });
                 // Process with LLM if OCR was successful
                 if (ocrResult.success && ocrResult.text) {
-                    const aiService = createAIService(c.env);
+                    const aiService = createFinancialAIService(c.env);
                     if (aiService) {
                         try {
                             // Classify the document

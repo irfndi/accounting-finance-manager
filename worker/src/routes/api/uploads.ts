@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { D1Database, R2Bucket, KVNamespace, Ai, Vectorize } from '@cloudflare/workers-types';
+import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types';
 import { authMiddleware, getCurrentUser } from '../../middleware/auth';
 import { processOCR, isOCRSupported, type OCRResult } from '../../utils/ocr';
 import { createDatabase } from '@finance-manager/db';
@@ -15,7 +15,8 @@ import {
 } from '../../utils/raw-docs';
 import { createOCRLogger } from '../../utils/logger';
 import { FinancialAIService } from '@finance-manager/ai/services/financial-ai';
-import { createAIService, createVectorizeService } from '@finance-manager/ai';
+import { createVectorizeService, AIService } from '@finance-manager/ai';
+import { OpenRouterProvider } from '@finance-manager/ai/providers/openrouter';
 import type { DocumentClassification } from '@finance-manager/ai/types';
 
 type Env = {
@@ -29,7 +30,9 @@ type Env = {
   OPENROUTER_API_KEY?: string;
 };
 
-const uploads = new Hono<{ Bindings: Env }>();
+const uploads = new Hono<{ Bindings: Env }>()
+
+uploads.use('/*', authMiddleware);
 
 // Apply authentication middleware to all upload routes
 uploads.use('*', authMiddleware);
@@ -56,7 +59,7 @@ function generateUUID(): string {
 }
 
 // Helper function to create AI service
-function createAIService(env: Env): FinancialAIService | null {
+function createFinancialAIService(env: Env): FinancialAIService | null {
   try {
     if (!env.OPENROUTER_API_KEY) {
       console.warn('⚠️ OpenRouter API key not found, LLM features disabled');
@@ -69,7 +72,7 @@ function createAIService(env: Env): FinancialAIService | null {
     });
 
     const aiService = new AIService({
-      provider,
+      providers: [provider],
       defaultModel: 'meta-llama/llama-3.1-8b-instruct:free'
     });
 
@@ -250,7 +253,7 @@ uploads.post('/', async (c) => {
         });
         
         console.log(`OCR processing for ${fileId}:`, {
-          success: ocrResult.success,
+          success: ocrResult.success === true,
           textLength: ocrResult.text?.length || 0,
           processingTime: ocrResult.processingTime,
           errorCode: ocrResult.errorCode,
@@ -259,8 +262,8 @@ uploads.post('/', async (c) => {
         });
 
         // Process with LLM if OCR was successful
-        if (ocrResult.success && ocrResult.text) {
-          const aiService = createAIService(c.env);
+        if (ocrResult.success === true && ocrResult.text) {
+          const aiService = createFinancialAIService(c.env);
           if (aiService) {
             try {
               // Classify the document
@@ -305,7 +308,7 @@ uploads.post('/', async (c) => {
                     user.id
                   );
                   
-                  if (llmUpdateResult.success) {
+                  if (llmUpdateResult.success === true) {
                     console.log('✅ LLM data saved to database:', { fileId });
                   } else {
                     console.warn('⚠️ Failed to save LLM data to database:', llmUpdateResult.error);
@@ -334,7 +337,7 @@ uploads.post('/', async (c) => {
                     embeddingMetadata
                   );
 
-                  if (!embeddingResult.success) {
+                  if (embeddingResult.success === false) {
                     console.warn('⚠️ Failed to generate document embeddings:', embeddingResult.error);
                   } else {
                     console.log(`✅ Generated ${embeddingResult.chunksCreated} embedding chunks for document ${fileId}`);
@@ -384,11 +387,11 @@ uploads.post('/', async (c) => {
         description: metadata.description || '',
         // Store OCR results in metadata
         ocrProcessed: ocrResult ? 'true' : 'false',
-        ocrSuccess: ocrResult?.success ? 'true' : 'false',
+        ocrSuccess: ocrResult?.success === true ? 'true' : 'false',
         ocrTextLength: ocrResult?.text?.length?.toString() || '0',
         ocrConfidence: ocrResult?.confidence?.toString() || '0',
         ocrProcessingTime: ocrResult?.processingTime?.toString() || '0',
-        ocrText: ocrResult?.success && ocrResult.text ? 
+        ocrText: ocrResult?.success === true && ocrResult.text ? 
           // Store first 1000 characters of OCR text in metadata
           ocrResult.text.substring(0, 1000) : '',
         // Store LLM processing results
@@ -427,12 +430,13 @@ uploads.post('/', async (c) => {
         uploadedBy: user.id,
         description: metadata.description,
         tags: metadata.tags,
-        entityId: user.entityId
+        entityId: user.entityId,
+        status: 'UPLOADED'
       };
 
       const createResult = await createRawDoc(db, createDocData);
       
-      if (!createResult.success) {
+      if (createResult.success === false) {
         logger.databaseOperation('create', fileId, false, createResult.error);
         throw new Error(`Failed to create document record: ${createResult.error}`);
       }
@@ -442,7 +446,7 @@ uploads.post('/', async (c) => {
       // Update with OCR results if processing was successful
       if (ocrResult) {
         const updateData: UpdateOCRData = {
-          ocrStatus: ocrResult.success ? 'COMPLETED' : 'FAILED',
+          ocrStatus: ocrResult.success === true ? 'COMPLETED' : 'FAILED',
           extractedText: ocrResult.text || null,
           textLength: ocrResult.text?.length || 0,
           ocrConfidence: ocrResult.confidence,
@@ -454,7 +458,7 @@ uploads.post('/', async (c) => {
 
         const updateResult = await updateRawDocOCR(db, fileId, updateData, user.id);
         
-        if (!updateResult.success) {
+        if (updateResult.success === false) {
           logger.databaseOperation('update_ocr', fileId, false, updateResult.error);
           // Log warning but don't fail the upload
           logger.warn('Failed to update OCR results in database', {
@@ -472,7 +476,7 @@ uploads.post('/', async (c) => {
         operation: 'UPLOAD_SUCCESS',
         metadata: {
           hasOCR: !!ocrResult,
-          ocrSuccess: ocrResult?.success,
+          ocrSuccess: ocrResult?.success === true,
           fileSize: file.size,
           mimeType: file.type
         }
@@ -503,11 +507,11 @@ uploads.post('/', async (c) => {
       ...(ocrResult && {
         ocr: {
           processed: true,
-          success: ocrResult.success,
+          success: ocrResult.success === true,
           textLength: ocrResult.text?.length || 0,
           confidence: ocrResult.confidence,
           processingTime: ocrResult.processingTime,
-          preview: ocrResult.success && ocrResult.text ? 
+          preview: ocrResult.success === true && ocrResult.text ? 
             ocrResult.text.substring(0, 200) + (ocrResult.text.length > 200 ? '...' : '') : 
             null,
           error: ocrResult.error
@@ -1107,7 +1111,7 @@ uploads.post('/:fileId/ocr', async (c) => {
 
       // Update with OCR results
       const updateData: UpdateOCRData = {
-        ocrStatus: ocrResult.success ? 'COMPLETED' : 'FAILED',
+        ocrStatus: ocrResult.success === true ? 'COMPLETED' : 'FAILED',
         extractedText: ocrResult.text || null,
         textLength: ocrResult.text?.length || 0,
         ocrConfidence: ocrResult.confidence,
@@ -1131,11 +1135,11 @@ uploads.post('/:fileId/ocr', async (c) => {
         const updatedMetadata = {
           ...existingMetadata,
           ocrProcessed: 'true',
-          ocrSuccess: ocrResult.success ? 'true' : 'false',
+          ocrSuccess: ocrResult.success === true ? 'true' : 'false',
           ocrTextLength: ocrResult.text?.length?.toString() || '0',
           ocrConfidence: ocrResult.confidence?.toString() || '0',
           ocrProcessingTime: ocrResult.processingTime?.toString() || '0',
-          ocrText: ocrResult.success && ocrResult.text ? 
+          ocrText: ocrResult.success === true && ocrResult.text ? 
             ocrResult.text.substring(0, 1000) : '',
           ocrError: ocrResult.error || '',
           ocrErrorCode: ocrResult.errorCode || '',
@@ -1161,11 +1165,11 @@ uploads.post('/:fileId/ocr', async (c) => {
         const updatedMetadata = {
           ...existingMetadata,
           ocrProcessed: 'true',
-          ocrSuccess: ocrResult.success ? 'true' : 'false',
+          ocrSuccess: ocrResult.success === true ? 'true' : 'false',
           ocrTextLength: ocrResult.text?.length?.toString() || '0',
           ocrConfidence: ocrResult.confidence?.toString() || '0',
           ocrProcessingTime: ocrResult.processingTime?.toString() || '0',
-          ocrText: ocrResult.success && ocrResult.text ? 
+          ocrText: ocrResult.success === true && ocrResult.text ? 
             ocrResult.text.substring(0, 1000) : '',
           ocrError: ocrResult.error || '',
           ocrLastProcessed: new Date().toISOString()
@@ -1186,11 +1190,11 @@ uploads.post('/:fileId/ocr', async (c) => {
         fileId,
         ocr: {
           processed: true,
-          success: ocrResult.success,
+          success: ocrResult.success === true,
           textLength: ocrResult.text?.length || 0,
           confidence: ocrResult.confidence,
           processingTime: ocrResult.processingTime,
-          preview: ocrResult.success && ocrResult.text ? 
+          preview: ocrResult.success === true && ocrResult.text ? 
             ocrResult.text.substring(0, 200) + (ocrResult.text.length > 200 ? '...' : '') : 
             null,
           error: ocrResult.error,
@@ -1366,7 +1370,7 @@ uploads.get('/stats', async (c) => {
     const db = createDatabase(c.env.FINANCE_MANAGER_DB);
     const stats = await getUploadStats(db, user.id);
 
-    if (!stats.success) {
+    if (stats.success === false) {
       return c.json({
         error: 'Failed to get upload statistics',
         details: stats.error
@@ -1459,7 +1463,7 @@ uploads.post('/search', async (c) => {
       const fileId = match.id.includes('_chunk_') ? match.id.split('_chunk_')[0] : match.id;
       
       const docResult = await getRawDocByFileId(db, fileId);
-      if (docResult.success && docResult.doc) {
+      if (docResult.success === true && docResult.doc) {
         documents.push({
           ...docResult.doc,
           similarity: match.score,

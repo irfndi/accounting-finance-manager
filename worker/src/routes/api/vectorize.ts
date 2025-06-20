@@ -1,29 +1,39 @@
 /**
  * Vectorize API Routes
- * Handles document embeddings and semantic search operations
+ * Handles document vectorization and semantic search
  */
 
-import { Hono } from 'hono';
-import type { Vectorize, Ai } from '@cloudflare/workers-types';
+import { Hono } from 'hono'
+import type { D1Database, KVNamespace, R2Bucket, Vectorize } from '@cloudflare/workers-types'
 
-import { getCurrentUser } from '../../middleware/auth';
+import { authMiddleware, getCurrentUser } from '../../middleware/auth';
 import { createVectorizeService } from '@finance-manager/ai';
 import { createDatabase, type Database } from '@finance-manager/db';
 import { getRawDocByFileId } from '../../utils/raw-docs';
 import { ValidationError } from '../../utils/logger';
 
-const vectorize = new Hono<{ Bindings: Env }>();
+type Env = {
+  FINANCE_MANAGER_DB: D1Database;
+  FINANCE_MANAGER_CACHE: KVNamespace;
+  FINANCE_MANAGER_DOCUMENTS: R2Bucket;
+  AI: Ai;
+  DOCUMENT_EMBEDDINGS: Vectorize;
+  JWT_SECRET?: string;
+  ENVIRONMENT?: string;
+  OPENROUTER_API_KEY?: string;
+};
+
+const vectorize = new Hono<{ Bindings: Env }>()
+
+vectorize.use('/*', authMiddleware);
 
 // Helper function to create vectorize service
 function createVectorizeServiceInstance(vectorizeBinding: Vectorize, aiBinding: Ai) {
-  return createVectorizeService({
-    vectorize: vectorizeBinding,
-    ai: aiBinding,
-    embeddingModel: '@cf/baai/bge-base-en-v1.5',
-    maxTextLength: 8000,
-    chunkSize: 1000,
-    chunkOverlap: 200
-  });
+  return createVectorizeService(
+    vectorizeBinding,
+    aiBinding,
+    '@cf/baai/bge-base-en-v1.5',
+  );
 }
 
 /**
@@ -139,7 +149,7 @@ vectorize.post('/search', async (c) => {
       }
       
       const docResult = await getRawDocByFileId(db, fileId);
-      if (docResult.success && docResult.doc) {
+      if (docResult.success === true && docResult.doc) {
         const documentData: any = {
           ...docResult.doc,
           similarity: match.score,
@@ -172,7 +182,7 @@ vectorize.post('/search', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Semantic search error:', error);
+    console.error('Vector search error:', error);
     
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
@@ -241,7 +251,7 @@ vectorize.post('/embed', async (c) => {
     });
 
     return c.json({
-      success: result.success,
+      success: result.success === true,
       data: {
         fileId,
         chunksCreated: result.chunksCreated,
@@ -298,7 +308,7 @@ vectorize.get('/document/:fileId', async (c) => {
     const db = createDatabase(c.env.FINANCE_MANAGER_DB);
     const docResult = await getRawDocByFileId(db, fileId);
     
-    if (!docResult.success || !docResult.doc) {
+    if (docResult.success === false || !docResult.doc) {
       return c.json({ error: 'Document not found' }, 404);
     }
 
@@ -371,7 +381,7 @@ vectorize.delete('/document/:fileId', async (c) => {
     const db = createDatabase(c.env.FINANCE_MANAGER_DB);
     const docResult = await getRawDocByFileId(db, fileId);
     
-    if (!docResult.success || !docResult.doc) {
+    if (docResult.success === false || !docResult.doc) {
       return c.json({ error: 'Document not found' }, 404);
     }
 
@@ -384,10 +394,10 @@ vectorize.delete('/document/:fileId', async (c) => {
     const result = await vectorizeService.deleteDocument(fileId);
 
     return c.json({
-      success: result.success,
+      success: result.success === true,
       data: {
         fileId,
-        deleted: result.success
+        deleted: result.success === true
       },
       error: result.error
     });

@@ -1,5 +1,6 @@
+/// <reference types="@cloudflare/workers-types" />
 import { Context, Next } from 'hono'
-import { authService } from '@finance-manager/core'
+import { verify } from 'hono/jwt'
 
 // Environment bindings interface
 type Env = {
@@ -16,14 +17,13 @@ export interface AuthContext extends Context {
   user?: {
     id: string
     email: string
-    name: string | null
+    displayName: string | null
+    firstName: string | null
+    lastName: string | null
   }
 }
 
-// Helper to get JWT secret from environment
-const getJWTSecret = (env: Env): string => {
-  return env.JWT_SECRET || 'default-development-secret-please-change-in-production'
-}
+
 
 /**
  * Authentication middleware
@@ -41,10 +41,9 @@ export const authMiddleware = async (c: Context<{ Bindings: Env }>, next: Next) 
     }
 
     const token = authHeader.substring(7)
-    const jwtSecret = getJWTSecret(c.env)
 
     // Verify JWT token
-    const payload = await authService.jwt.verifyToken(token)
+    const payload = await verify(token, c.get('jwtSecret'))
     
     // Check if session exists in KV (optional additional security)
     const sessionKey = `session:${payload.userId}`
@@ -62,7 +61,9 @@ export const authMiddleware = async (c: Context<{ Bindings: Env }>, next: Next) 
     authContext.user = {
       id: payload.userId,
       email: payload.email,
-      name: payload.name
+      displayName: payload.name,
+      firstName: null, // Or get from payload if available
+      lastName: null // Or get from payload if available
     }
 
     // Continue to next middleware/handler
@@ -87,11 +88,10 @@ export const optionalAuthMiddleware = async (c: Context<{ Bindings: Env }>, next
     
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
-      const jwtSecret = getJWTSecret(c.env)
 
       try {
         // Verify JWT token
-        const payload = await authService.jwt.verifyToken(token)
+        const payload = await verify(token, c.get('jwtSecret'))
         
         // Check if session exists in KV
         const sessionKey = `session:${payload.userId}`
@@ -103,7 +103,9 @@ export const optionalAuthMiddleware = async (c: Context<{ Bindings: Env }>, next
           authContext.user = {
             id: payload.userId,
             email: payload.email,
-            name: payload.name
+            displayName: payload.name,
+            firstName: null, // Or get from payload if available
+            lastName: null // Or get from payload if available
           }
         }
       } catch (error) {
@@ -148,7 +150,7 @@ export const requireRole = (_allowedRoles: string[]) => {
 /**
  * Helper function to get current user from context
  */
-export const getCurrentUser = (c: Context): { id: string; email: string; name: string | null } | null => {
+export const getCurrentUser = (c: Context): { id: string; email: string; displayName: string | null, firstName: string | null, lastName: string | null } | null => {
   const authContext = c as AuthContext
   return authContext.user || null
 }

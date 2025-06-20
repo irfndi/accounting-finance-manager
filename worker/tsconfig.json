@@ -6,7 +6,9 @@
     "verbatimModuleSyntax": false,
     "strict": false,
     "skipLibCheck": true,
+    "noResolve": false,
     "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2022", "WebWorker"],
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -16,12 +18,17 @@
     "paths": {
       "@/*": ["./src/*"],
       "@tests/*": ["./tests/*"],
-      "@finance-manager/types": ["../packages/types/src"],
-      "@finance-manager/db": ["../packages/db/src"],
-      "@finance-manager/core": ["../packages/core/src"],
-      "@finance-manager/ai": ["../packages/ai/src"]
+      "@finance-manager/types": ["../packages/types/dist/index"],
+      "@finance-manager/types/*": ["../packages/types/dist/*"],
+      "@finance-manager/db": ["../packages/db/dist/index"],
+      "@finance-manager/db/*": ["../packages/db/dist/*"],
+      "@finance-manager/core": ["../packages/core/dist/index"],
+      "@finance-manager/core/*": ["../packages/core/dist/*"],
+      "@finance-manager/ai": ["../packages/ai/dist/index"],
+      "@finance-manager/ai/*": ["../packages/ai/dist/*"]
     },
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types"],
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
   },
   "include": [
     "src/**/*",

@@ -31,8 +31,8 @@ export async function createRawDoc(db, data) {
                 entityId: data.entityId || null,
                 ocrStatus: 'PENDING',
                 textLength: 0,
-                createdAt: Math.floor(now.getTime() / 1000),
-                updatedAt: Math.floor(now.getTime() / 1000),
+                createdAt: now,
+                updatedAt: now,
                 createdBy: data.uploadedBy,
                 updatedBy: data.uploadedBy
             };
@@ -46,7 +46,7 @@ export async function createRawDoc(db, data) {
             return insertedDocs[0];
         }, logger, { operation: 'CREATE_RAW_DOC' });
         if (!result.success) {
-            logger.databaseOperation('create', data.fileId, false, result.error);
+            logger.databaseOperation('create', data.fileId, false, result.error || 'Unknown error');
             return { success: false, error: result.error };
         }
         logger.databaseOperation('create', data.fileId, true);
@@ -54,7 +54,7 @@ export async function createRawDoc(db, data) {
     }
     catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.databaseOperation('create', data.fileId, false, error);
+        logger.databaseOperation('create', data.fileId, false, errorMessage);
         return { success: false, error: errorMessage };
     }
 }

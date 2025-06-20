@@ -8,13 +8,7 @@ interface DatabaseConnection {
   close(): Promise<void>;
 }
 
-interface Migration {
-  id: string;
-  name: string;
-  up: (db: DatabaseConnection) => Promise<void>;
-  down: (db: DatabaseConnection) => Promise<void>;
-  timestamp: Date;
-}
+
 
 // Mock database connection
 const mockDb: DatabaseConnection = {

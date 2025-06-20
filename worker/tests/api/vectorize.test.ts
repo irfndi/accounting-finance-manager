@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Hono } from 'hono';
 
 // Mock the Vectorize integration utilities
 vi.mock('../../src/utils/vectorize', () => ({

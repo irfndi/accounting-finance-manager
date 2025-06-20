@@ -1204,40 +1204,20 @@ export class JournalEntryManager {
         };
     }
 }
-// D1 Database Integration Interfaces
-/* TODO: Fix DatabaseAdapter type mismatches - temporarily commented out
-export interface D1Database {
-  prepare(query: string): {
-    bind(...values: unknown[]): {
-      all(): Promise<{ results: unknown[] }>;
-      first(): Promise<unknown>;
-      run(): Promise<{ success: boolean; meta: { changes: number; last_row_id: number } }>;
-    };
-  };
-}
-
-export interface DatabaseConfig {
-  database: D1Database;
-  entityId?: string;
-  defaultCurrency?: Currency;
-}
-
 // D1 Database Adapter
 export class DatabaseAdapter {
-  private db: D1Database;
-  private entityId: string;
-  private defaultCurrency: Currency;
-
-  constructor(config: DatabaseConfig) {
-    this.db = config.database;
-    this.entityId = config.entityId || 'default';
-    this.defaultCurrency = config.defaultCurrency || FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
-  }
-
-  // Account Operations
-  async createAccount(account: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>): Promise<Account> {
-    const now = new Date();
-    const query = `
+    db;
+    entityId;
+    defaultCurrency;
+    constructor(config) {
+        this.db = config.database;
+        this.entityId = config.entityId || 'default';
+        this.defaultCurrency = config.defaultCurrency || FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
+    }
+    // Account Operations
+    async createAccount(account) {
+        const now = new Date();
+        const query = `
       INSERT INTO accounts (
         code, name, description, type, subtype, category,
         parent_id, level, path, is_active, is_system, allow_transactions,
@@ -1246,61 +1226,29 @@ export class DatabaseAdapter {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *
     `;
-
-    const result = await this.db.prepare(query).bind(
-      account.code,
-      account.name,
-      account.description || null,
-      account.type,
-      account.subtype || null,
-      account.category || null,
-      account.parentId || null,
-      account.level || 0,
-      account.path || account.code,
-      account.isActive ? 1 : 0,
-      account.isSystem ? 1 : 0,
-      account.allowTransactions ? 1 : 0,
-      account.normalBalance,
-      account.reportCategory || null,
-      account.reportOrder || 0,
-      account.currentBalance || 0,
-      this.entityId,
-      now.getTime(),
-      now.getTime(),
-      account.createdBy || null,
-      account.updatedBy || null
-    ).first() as Record<string, unknown>;
-
-    return this.mapDbAccountToAccount(result);
-  }
-
-  async getAccount(accountId: number): Promise<Account | null> {
-    const query = 'SELECT * FROM accounts WHERE id = ? AND entity_id = ?';
-    const result = await this.db.prepare(query).bind(accountId, this.entityId).first() as Record<string, unknown> | null;
-    
-    return result ? this.mapDbAccountToAccount(result) : null;
-  }
-
-  async getAllAccounts(): Promise<Account[]> {
-    const query = 'SELECT * FROM accounts WHERE entity_id = ? ORDER BY code';
-    const result = await this.db.prepare(query).bind(this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbAccountToAccount(row));
-  }
-
-  async getAccountsByType(accountType: AccountType): Promise<Account[]> {
-    const query = 'SELECT * FROM accounts WHERE type = ? AND entity_id = ? ORDER BY code';
-    const result = await this.db.prepare(query).bind(accountType, this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbAccountToAccount(row));
-  }
-
-  // Transaction Operations
-  async createTransaction(transactionData: TransactionData): Promise<Transaction> {
-    const now = new Date();
-    const transactionNumber = await this.generateTransactionNumber();
-    
-    const query = `
+        const result = await this.db.prepare(query).bind(account.code, account.name, account.description || null, account.type, account.subtype || null, account.category || null, account.parentId || null, account.level || 0, account.path || account.code, account.isActive ? 1 : 0, account.isSystem ? 1 : 0, account.allowTransactions ? 1 : 0, account.normalBalance, account.reportCategory || null, account.reportOrder || 0, account.currentBalance || 0, this.entityId, now.getTime(), now.getTime(), account.createdBy || null, account.updatedBy || null).first();
+        return this.mapDbAccountToAccount(result);
+    }
+    async getAccount(accountId) {
+        const query = 'SELECT * FROM accounts WHERE id = ? AND entity_id = ?';
+        const result = await this.db.prepare(query).bind(accountId, this.entityId).first();
+        return result ? this.mapDbAccountToAccount(result) : null;
+    }
+    async getAllAccounts() {
+        const query = 'SELECT * FROM accounts WHERE entity_id = ? ORDER BY code';
+        const result = await this.db.prepare(query).bind(this.entityId).all();
+        return result.results.map(row => this.mapDbAccountToAccount(row));
+    }
+    async getAccountsByType(accountType) {
+        const query = 'SELECT * FROM accounts WHERE type = ? AND entity_id = ? ORDER BY code';
+        const result = await this.db.prepare(query).bind(accountType, this.entityId).all();
+        return result.results.map(row => this.mapDbAccountToAccount(row));
+    }
+    // Transaction Operations
+    async createTransaction(transactionData) {
+        const now = new Date();
+        const transactionNumber = await this.generateTransactionNumber();
+        const query = `
       INSERT INTO transactions (
         transaction_number, reference, description, transaction_date, posting_date,
         type, source, category, total_amount, status, entity_id,
@@ -1308,59 +1256,29 @@ export class DatabaseAdapter {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *
     `;
-
-    const totalAmount = transactionData.entries.reduce((sum, entry) =>
-      sum + (entry.debitAmount || 0) + (entry.creditAmount || 0), 0
-    ) / 2; // Divide by 2 since each amount is counted twice (debit and credit)
-
-    const result = await this.db.prepare(query).bind(
-      transactionNumber,
-      transactionData.reference || null,
-      transactionData.description,
-      transactionData.transactionDate.getTime(),
-      transactionData.transactionDate.getTime(),
-      'JOURNAL',
-      'MANUAL',
-      null,
-      totalAmount,
-      'DRAFT',
-      this.entityId,
-      now.getTime(),
-      now.getTime(),
-'system' // TransactionData doesn't have createdBy property
-    ).first() as Record<string, unknown>;
-
-    return this.mapDbTransactionToTransaction(result);
-  }
-
-  async getTransaction(transactionId: number): Promise<Transaction | null> {
-    const query = 'SELECT * FROM transactions WHERE id = ? AND entity_id = ?';
-    const result = await this.db.prepare(query).bind(transactionId, this.entityId).first() as Record<string, unknown> | null;
-    
-    return result ? this.mapDbTransactionToTransaction(result) : null;
-  }
-
-  async updateTransactionStatus(transactionId: number, status: TransactionStatus, updatedBy?: string): Promise<void> {
-    const query = `
-      UPDATE transactions
+        const totalAmount = transactionData.entries.reduce((sum, entry) => sum + (entry.debitAmount || 0) + (entry.creditAmount || 0), 0) / 2; // Divide by 2 since each amount is counted twice (debit and credit)
+        const result = await this.db.prepare(query).bind(transactionNumber, transactionData.reference || null, transactionData.description, transactionData.transactionDate.getTime(), transactionData.transactionDate.getTime(), 'JOURNAL', 'MANUAL', null, totalAmount, 'DRAFT', this.entityId, now.getTime(), now.getTime(), 'system' // TransactionData doesn't have createdBy property
+        ).first();
+        return this.mapDbTransactionToTransaction(result);
+    }
+    async getTransaction(transactionId) {
+        const query = 'SELECT * FROM transactions WHERE id = ? AND entity_id = ?';
+        const result = await this.db.prepare(query).bind(transactionId, this.entityId).first();
+        return result ? this.mapDbTransactionToTransaction(result) : null;
+    }
+    async updateTransactionStatus(transactionId, status, updatedBy) {
+        const query = `
+      UPDATE transactions 
       SET status = ?, updated_at = ?, updated_by = ?
       WHERE id = ? AND entity_id = ?
     `;
-    await this.db.prepare(query).bind(
-      status,
-      new Date().getTime(),
-      updatedBy || null,
-      transactionId,
-      this.entityId
-    ).run();
-  }
-
-  // Journal Entry Operations
-  async createJournalEntries(entries: JournalEntry[]): Promise<JournalEntry[]> {
-    const createdEntries: JournalEntry[] = [];
-    
-    for (const entry of entries) {
-      const query = `
+        await this.db.prepare(query).bind(status, new Date().getTime(), updatedBy || null, transactionId, this.entityId).run();
+    }
+    // Journal Entry Operations
+    async createJournalEntries(entries) {
+        const createdEntries = [];
+        for (const entry of entries) {
+            const query = `
         INSERT INTO journal_entries (
           transaction_id, line_number, account_id, description, memo,
           debit_amount, credit_amount, currency_code, exchange_rate,
@@ -1368,271 +1286,199 @@ export class DatabaseAdapter {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *
       `;
-
-      const result = await this.db.prepare(query).bind(
-        entry.transactionId,
-        0, // line_number - not in JournalEntry interface
-        entry.accountId,
-        entry.description || null,
-        null, // memo - not in JournalEntry interface
-        entry.debitAmount || 0,
-        entry.creditAmount || 0,
-        entry.currency,
-        entry.exchangeRate || 1.0,
-        entry.isReconciled ? 1 : 0,
-        this.entityId,
-        entry.createdAt.getTime(),
-        entry.updatedAt.getTime()
-      ).first() as Record<string, unknown>;
-
-      createdEntries.push(this.mapDbJournalEntryToJournalEntry(result));
+            const result = await this.db.prepare(query).bind(entry.transactionId, 0, // line_number - not in JournalEntry interface
+            entry.accountId, entry.description || null, null, // memo - not in JournalEntry interface
+            entry.debitAmount || 0, entry.creditAmount || 0, entry.currency, entry.exchangeRate || 1.0, entry.isReconciled ? 1 : 0, this.entityId, entry.createdAt.getTime(), entry.updatedAt.getTime()).first();
+            createdEntries.push(this.mapDbJournalEntryToJournalEntry(result));
+        }
+        return createdEntries;
     }
-
-    return createdEntries;
-  }
-
-  async getJournalEntriesByTransaction(transactionId: number): Promise<JournalEntry[]> {
-    const query = `
-      SELECT * FROM journal_entries
+    async getJournalEntriesByTransaction(transactionId) {
+        const query = `
+      SELECT * FROM journal_entries 
       WHERE transaction_id = ? AND entity_id = ?
       ORDER BY line_number
     `;
-    const result = await this.db.prepare(query).bind(transactionId, this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbJournalEntryToJournalEntry(row));
-  }
-
-  async getJournalEntriesByAccount(accountId: number): Promise<JournalEntry[]> {
-    const query = `
-      SELECT * FROM journal_entries
+        const result = await this.db.prepare(query).bind(transactionId, this.entityId).all();
+        return result.results.map(row => this.mapDbJournalEntryToJournalEntry(row));
+    }
+    async getJournalEntriesByAccount(accountId) {
+        const query = `
+      SELECT * FROM journal_entries 
       WHERE account_id = ? AND entity_id = ?
       ORDER BY created_at DESC
     `;
-    const result = await this.db.prepare(query).bind(accountId, this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbJournalEntryToJournalEntry(row));
-  }
-
-  async updateAccountBalance(accountId: number, newBalance: number): Promise<void> {
-    const query = `
-      UPDATE accounts
+        const result = await this.db.prepare(query).bind(accountId, this.entityId).all();
+        return result.results.map(row => this.mapDbJournalEntryToJournalEntry(row));
+    }
+    async updateAccountBalance(accountId, newBalance) {
+        const query = `
+      UPDATE accounts 
       SET current_balance = ?, updated_at = ?
       WHERE id = ? AND entity_id = ?
     `;
-    await this.db.prepare(query).bind(
-      newBalance,
-      new Date().getTime(),
-      accountId,
-      this.entityId
-    ).run();
-  }
-
-  // Helper Methods
-  private async generateTransactionNumber(): Promise<string> {
-    const year = new Date().getFullYear();
-    const query = `
-      SELECT COUNT(*) as count
-      FROM transactions
+        await this.db.prepare(query).bind(newBalance, new Date().getTime(), accountId, this.entityId).run();
+    }
+    // Helper Methods
+    async generateTransactionNumber() {
+        const year = new Date().getFullYear();
+        const query = `
+      SELECT COUNT(*) as count 
+      FROM transactions 
       WHERE entity_id = ? AND transaction_number LIKE ?
     `;
-    const result = await this.db.prepare(query).bind(this.entityId, `${year}-%`).first() as Record<string, unknown> | null;
-    const nextNumber = (result?.count as number || 0) + 1;
-    return `${year}-${nextNumber.toString().padStart(6, '0')}`;
-  }
-
-  private mapDbAccountToAccount(row: Record<string, unknown>): Account {
-    return {
-      id: row.id as number, // Account.id is number, not string
-      code: row.code as string,
-      name: row.name as string,
-      description: row.description as string | undefined,
-      type: row.type as AccountType,
-      subtype: row.subtype as string | undefined,
-      category: row.category as string | undefined,
-      parentId: row.parent_id as number | undefined, // parentId is number, not string
-      level: row.level as number,
-      path: row.path as string,
-      isActive: Boolean(row.is_active),
-      isSystem: Boolean(row.is_system),
-      allowTransactions: Boolean(row.allow_transactions),
-      normalBalance: row.normal_balance as NormalBalance,
-      reportCategory: row.report_category as string | undefined,
-      reportOrder: row.report_order as number,
-      currentBalance: row.current_balance as number,
-      entityId: row.entity_id as string | undefined,
-      createdAt: new Date(row.created_at as number),
-      updatedAt: new Date(row.updated_at as number),
-      createdBy: row.created_by as string | undefined,
-      updatedBy: row.updated_by as string | undefined
-    };
-  }
-
-  private mapDbTransactionToTransaction(row: Record<string, unknown>): Transaction {
-    return {
-      id: (row.id as number).toString(), // Convert number to string to match Transaction interface
-      date: new Date(row.transaction_date as number).toISOString(), // Convert to ISO string
-      description: row.description as string,
-      reference: row.reference as string | undefined,
-      status: row.status as TransactionStatus,
-      entries: [], // Entries will be loaded separately
-      createdAt: new Date(row.created_at as number).toISOString(), // Convert to ISO string
-      updatedAt: new Date(row.updated_at as number).toISOString() // Convert to ISO string
-    };
-  }
-
-  private mapDbJournalEntryToJournalEntry(row: Record<string, unknown>): JournalEntry {
-    return {
-      id: row.id as number,
-      transactionId: row.transaction_id as number,
-      accountId: row.account_id as number,
-      description: row.description as string | undefined,
-      debitAmount: row.debit_amount as number,
-      creditAmount: row.credit_amount as number,
-      currency: row.currency_code as Currency,
-      exchangeRate: row.exchange_rate as number,
-      baseCurrency: row.base_currency_code as Currency | undefined,
-      baseDebitAmount: row.base_debit_amount as number | undefined,
-      baseCreditAmount: row.base_credit_amount as number | undefined,
-      entityId: row.entity_id as string | undefined,
-      departmentId: row.department_id as string | undefined,
-      projectId: row.project_id as string | undefined,
-      reconciliationId: row.reconciliation_id as string | undefined,
-      isReconciled: Boolean(row.is_reconciled),
-      reconciledAt: row.reconciled_at ? new Date(row.reconciled_at as number) : undefined,
-      reconciledBy: row.reconciled_by as string | undefined,
-      createdAt: new Date(row.created_at as number),
-      updatedAt: new Date(row.updated_at as number),
-      createdBy: row.created_by as string | undefined,
-      updatedBy: row.updated_by as string | undefined
-    };
-  }
+        const result = await this.db.prepare(query).bind(this.entityId, `${year}-%`).first();
+        const nextNumber = (result?.count || 0) + 1;
+        return `${year}-${nextNumber.toString().padStart(6, '0')}`;
+    }
+    mapDbAccountToAccount(row) {
+        return {
+            id: row.id, // Account.id is number, not string
+            code: row.code,
+            name: row.name,
+            description: row.description,
+            type: row.type,
+            subtype: row.subtype,
+            category: row.category,
+            parentId: row.parent_id, // parentId is number, not string
+            level: row.level,
+            path: row.path,
+            isActive: Boolean(row.is_active),
+            isSystem: Boolean(row.is_system),
+            allowTransactions: Boolean(row.allow_transactions),
+            normalBalance: row.normal_balance,
+            reportCategory: row.report_category,
+            reportOrder: row.report_order,
+            currentBalance: row.current_balance,
+            entityId: row.entity_id,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at),
+            createdBy: row.created_by,
+            updatedBy: row.updated_by
+        };
+    }
+    mapDbTransactionToTransaction(row) {
+        return {
+            id: row.id.toString(), // Convert number to string to match Transaction interface
+            date: new Date(row.transaction_date).toISOString(), // Convert to ISO string
+            description: row.description,
+            reference: row.reference,
+            status: row.status,
+            entries: [], // Entries will be loaded separately
+            createdAt: new Date(row.created_at).toISOString(), // Convert to ISO string
+            updatedAt: new Date(row.updated_at).toISOString() // Convert to ISO string
+        };
+    }
+    mapDbJournalEntryToJournalEntry(row) {
+        return {
+            id: row.id,
+            transactionId: row.transaction_id,
+            accountId: row.account_id,
+            description: row.description,
+            debitAmount: row.debit_amount,
+            creditAmount: row.credit_amount,
+            currency: row.currency_code,
+            exchangeRate: row.exchange_rate,
+            baseCurrency: row.base_currency_code,
+            baseDebitAmount: row.base_debit_amount,
+            baseCreditAmount: row.base_credit_amount,
+            entityId: row.entity_id,
+            departmentId: row.department_id,
+            projectId: row.project_id,
+            reconciliationId: row.reconciliation_id,
+            isReconciled: Boolean(row.is_reconciled),
+            reconciledAt: row.reconciled_at ? new Date(row.reconciled_at) : undefined,
+            reconciledBy: row.reconciled_by,
+            createdAt: new Date(row.created_at),
+            updatedAt: new Date(row.updated_at),
+            createdBy: row.created_by,
+            updatedBy: row.updated_by
+        };
+    }
 }
-
 // Database-Backed Account Registry
 export class DatabaseAccountRegistry extends AccountRegistry {
-  private dbAdapter: DatabaseAdapter;
-
-  constructor(dbAdapter: DatabaseAdapter) {
-    super();
-    this.dbAdapter = dbAdapter;
-  }
-
-  async loadAccountsFromDatabase(): Promise<void> {
-    const accounts = await this.dbAdapter.getAllAccounts();
-    for (const account of accounts) {
-      super.registerAccount(account);
+    dbAdapter;
+    constructor(dbAdapter) {
+        super();
+        this.dbAdapter = dbAdapter;
     }
-  }
-
-  async registerAccount(account: Account): Promise<Account> {
-    const createdAccount = await this.dbAdapter.createAccount(account);
-    super.registerAccount(createdAccount);
-    return createdAccount;
-  }
-
-  async getAccountFromDatabase(accountId: string): Promise<Account | null> {
-    return await this.dbAdapter.getAccount(Number.parseInt(accountId));
-  }
-
-  async getAccountsByTypeFromDatabase(accountType: AccountType): Promise<Account[]> {
-    return await this.dbAdapter.getAccountsByType(accountType);
-  }
+    async loadAccountsFromDatabase() {
+        const accounts = await this.dbAdapter.getAllAccounts();
+        for (const account of accounts) {
+            super.registerAccount(account);
+        }
+    }
+    async registerAccount(account) {
+        const createdAccount = await this.dbAdapter.createAccount(account);
+        super.registerAccount(createdAccount);
+        return createdAccount;
+    }
+    async getAccountFromDatabase(accountId) {
+        return await this.dbAdapter.getAccount(Number.parseInt(accountId));
+    }
+    async getAccountsByTypeFromDatabase(accountType) {
+        return await this.dbAdapter.getAccountsByType(accountType);
+    }
 }
-
 // Database-Backed Journal Entry Manager
 export class DatabaseJournalEntryManager extends JournalEntryManager {
-  private dbAdapter: DatabaseAdapter;
-
-  constructor(dbAdapter: DatabaseAdapter, accountRegistry?: AccountRegistry) {
-    super(accountRegistry);
-    this.dbAdapter = dbAdapter;
-  }
-
-  async createAndPersistTransaction(transactionData: TransactionData): Promise<{
-    transaction: Transaction;
-    journalEntries: JournalEntry[];
-  }> {
-    // Validate transaction data
-    const validationErrors = TransactionValidator.validateTransactionData(transactionData);
-    if (validationErrors.length > 0) {
-      throw new AccountingValidationError(
-        'Transaction validation failed',
-        'INVALID_TRANSACTION_DATA',
-        validationErrors
-      );
+    dbAdapter;
+    constructor(dbAdapter, accountRegistry) {
+        super(accountRegistry);
+        this.dbAdapter = dbAdapter;
     }
-
-    // Create transaction header
-    const transaction = await this.dbAdapter.createTransaction(transactionData);
-
-    // Create journal entries
-    const journalEntries = this.createJournalEntriesFromTransaction(
-      transaction.id,
-      transactionData,
-      transactionData.createdBy
-    );
-
-    // Validate journal entries
-    const entryValidationErrors = this.validateJournalEntries(journalEntries);
-    if (entryValidationErrors.length > 0) {
-      throw new AccountingValidationError(
-        'Journal entry validation failed',
-        'INVALID_JOURNAL_ENTRIES',
-        entryValidationErrors
-      );
+    async createAndPersistTransaction(transactionData) {
+        // Validate transaction data
+        const validationErrors = TransactionValidator.validateTransactionData(transactionData);
+        if (validationErrors.length > 0) {
+            throw new AccountingValidationError('Transaction validation failed', 'INVALID_TRANSACTION_DATA', validationErrors);
+        }
+        // Create transaction header
+        const transaction = await this.dbAdapter.createTransaction(transactionData);
+        // Create journal entries
+        const journalEntries = this.createJournalEntriesFromTransaction(parseInt(transaction.id), transactionData, 'system');
+        // Validate journal entries
+        const entryValidationErrors = this.validateJournalEntries(journalEntries);
+        if (entryValidationErrors.length > 0) {
+            throw new AccountingValidationError('Journal entry validation failed', 'INVALID_JOURNAL_ENTRIES', entryValidationErrors);
+        }
+        // Persist journal entries
+        const persistedEntries = await this.dbAdapter.createJournalEntries(journalEntries);
+        return {
+            transaction,
+            journalEntries: persistedEntries
+        };
     }
-
-    // Persist journal entries
-    const persistedEntries = await this.dbAdapter.createJournalEntries(journalEntries);
-
-    return {
-      transaction,
-      journalEntries: persistedEntries
-    };
-  }
-
-  async postTransaction(transactionId: number, postedBy?: string): Promise<void> {
-    // Update transaction status to POSTED
-    await this.dbAdapter.updateTransactionStatus(transactionId, 'POSTED', postedBy);
-
-    // Update account balances
-    const journalEntries = await this.dbAdapter.getJournalEntriesByTransaction(transactionId);
-    for (const entry of journalEntries) {
-      await this.updateAccountBalanceFromEntry(entry.accountId, entry);
+    async postTransaction(transactionId, postedBy) {
+        // Update transaction status to POSTED
+        await this.dbAdapter.updateTransactionStatus(transactionId, 'POSTED', postedBy);
+        // Update account balances
+        const journalEntries = await this.dbAdapter.getJournalEntriesByTransaction(transactionId);
+        for (const entry of journalEntries) {
+            await this.updateAccountBalanceFromEntry(entry.accountId, entry);
+        }
     }
-  }
-
-  async getTransactionJournalEntries(transactionId: number): Promise<JournalEntry[]> {
-    return await this.dbAdapter.getJournalEntriesByTransaction(transactionId);
-  }
-
-  async getAccountJournalEntries(accountId: number): Promise<JournalEntry[]> {
-    return await this.dbAdapter.getJournalEntriesByAccount(accountId);
-  }
-
-  private async updateAccountBalanceFromEntry(accountId: number, entry: JournalEntry): Promise<void> {
-    const account = await this.dbAdapter.getAccount(accountId);
-    if (!account) return;
-
-    const currentBalance = account.currentBalance || 0;
-    const balanceChange = entry.debitAmount - entry.creditAmount;
-    
-    // Adjust for normal balance
-    const adjustedChange = account.normalBalance === 'DEBIT' ? balanceChange : -balanceChange;
-    const newBalance = currentBalance + adjustedChange;
-
-    await this.dbAdapter.updateAccountBalance(accountId, newBalance);
-  }
+    async getTransactionJournalEntries(transactionId) {
+        return await this.dbAdapter.getJournalEntriesByTransaction(transactionId);
+    }
+    async getAccountJournalEntries(accountId) {
+        return await this.dbAdapter.getJournalEntriesByAccount(accountId);
+    }
+    async updateAccountBalanceFromEntry(accountId, entry) {
+        const account = await this.dbAdapter.getAccount(accountId);
+        if (!account)
+            return;
+        const currentBalance = account.currentBalance || 0;
+        const balanceChange = entry.debitAmount - entry.creditAmount;
+        // Adjust for normal balance
+        const adjustedChange = account.normalBalance === 'DEBIT' ? balanceChange : -balanceChange;
+        const newBalance = currentBalance + adjustedChange;
+        await this.dbAdapter.updateAccountBalance(accountId, newBalance);
+    }
 }
-
 // Re-export auth functionality
-export * from './auth/index.js'
-export * from './auth/types.js'
-export { default as authService } from './auth/index.js'
-
+export { authService } from './auth/index';
+export { UserRole, MagicLinkPurpose, AuditEventType, AuthError, UnauthorizedError, ForbiddenError, NotFoundError, RateLimitError, ValidationError as AuthValidationError, AUTH_ERROR_CODES } from './auth/types';
 // Re-export financial reports functionality
 export * from './financial-reports';
-
-// Note: DatabaseAdapter temporarily disabled due to type mismatches
-// TODO: Fix database adapter type mismatches with D1 and TypeScript interfaces
-*/ 

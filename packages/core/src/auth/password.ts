@@ -147,7 +147,8 @@ export async function verifyPassword(
     // Constant-time comparison
     return constantTimeEqual(computedHash, expectedHash);
   } catch (error) {
-    // Don't reveal specific error details for security
+    // Log the error for debugging, but don't reveal details to the user
+    console.error('Password verification error:', error);
     return false;
   }
 }
@@ -240,4 +241,4 @@ export function validatePassword(password: string): PasswordValidation {
     errors,
     score,
   };
-} 
+}

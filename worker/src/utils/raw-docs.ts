@@ -3,20 +3,20 @@
  * Handles CRUD operations for the raw_docs table
  */
 
-import { DrizzleD1Database, eq, desc, and, like, or } from "@finance-manager/db";
+import { eq, desc, like, or, and } from "@finance-manager/db";
+import { gte, lte } from "drizzle-orm";
 import { rawDocs, type RawDoc, type NewRawDoc, type UpdateRawDoc, type Database } from "@finance-manager/db";
 import { createOCRLogger, DatabaseError, withOCRErrorBoundary } from './logger';
 
 export interface CreateRawDocData {
   fileId: string;
-  originalName: string;
+  filename: string;
   mimeType: string;
-  fileSize: number;
-  r2Key: string;
+  size: number;
   uploadedBy: string;
-  description?: string;
   tags?: string[];
-  entityId?: string;
+  description?: string;
+  status: string;
 }
 
 export interface UpdateOCRData {
@@ -69,7 +69,7 @@ export async function createRawDoc(
     const result = await withOCRErrorBoundary(
       'Create Raw Document',
       async () => {
-        const now = new Date();
+        const now = Math.floor(new Date().getTime() / 1000);
         const tagsString = data.tags ? data.tags.join(',') : '';
 
         const newDoc: NewRawDoc = {
@@ -85,30 +85,22 @@ export async function createRawDoc(
           entityId: data.entityId || null,
           ocrStatus: 'PENDING',
           textLength: 0,
-          createdAt: Math.floor(now.getTime() / 1000),
-          updatedAt: Math.floor(now.getTime() / 1000),
+          createdAt: now,
+          updatedAt: now,
           createdBy: data.uploadedBy,
           updatedBy: data.uploadedBy
         };
 
         // Insert the document
-        const insertedDocs = await db.insert(rawDocs)
-          .values(newDoc)
-          .returning();
-
-        if (!insertedDocs || insertedDocs.length === 0) {
-          throw new DatabaseError('Failed to insert raw document', 'INSERT');
-        }
-
-        return insertedDocs[0];
+        const insertResult = await db.insert(rawDocs).values(newDoc).returning();
+        return insertResult[0];
       },
-      logger,
-      { operation: 'CREATE_RAW_DOC' }
+      logger
     );
 
-    if (!result.success) {
-      logger.databaseOperation('create', data.fileId, false, result.error);
-      return { success: false, error: result.error };
+    if (result.success === false) {
+      logger.databaseOperation('create', data.fileId, false, result.error.message);
+      return { success: false, error: result.error.message };
     }
 
     logger.databaseOperation('create', data.fileId, true);
@@ -116,7 +108,7 @@ export async function createRawDoc(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.databaseOperation('create', data.fileId, false, error);
+    logger.databaseOperation('create', data.fileId, false, errorMessage);
     return { success: false, error: errorMessage };
   }
 }
@@ -148,8 +140,13 @@ export async function updateRawDocOCR(
         }
 
         const updateData: Partial<UpdateRawDoc> = {
-          ...ocrData,
-          searchableText: searchableText || null,
+          extractedText: ocrData.extractedText,
+          textLength: ocrData.extractedText?.length || 0,
+          ocrConfidence: ocrData.ocrConfidence,
+          ocrProcessingTime: ocrData.ocrProcessingTime,
+          ocrStatus: ocrData.ocrStatus,
+          ocrErrorMessage: ocrData.ocrErrorMessage,
+          searchableText: searchableText,
           ocrProcessedAt: ocrData.ocrProcessedAt ? Math.floor(ocrData.ocrProcessedAt.getTime() / 1000) : null,
           updatedAt: Math.floor(now.getTime() / 1000),
           updatedBy: updatedBy || null
@@ -174,13 +171,12 @@ export async function updateRawDocOCR(
 
         return updatedDocs[0];
       },
-      logger,
-      { operation: 'UPDATE_OCR_DATA' }
+      logger
     );
 
-    if (!result.success) {
-      logger.databaseOperation('update_ocr', fileId, false, result.error);
-      return { success: false, error: result.error };
+    if (result.success === false) {
+      logger.databaseOperation('update', fileId, false, result.error.message);
+      return { success: false, error: result.error.message };
     }
 
     logger.databaseOperation('update_ocr', fileId, true);
@@ -188,7 +184,7 @@ export async function updateRawDocOCR(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.databaseOperation('update_ocr', fileId, false, error);
+    logger.databaseOperation('update_ocr', fileId, false, errorMessage);
     return { success: false, error: errorMessage };
   }
 }
@@ -241,12 +237,11 @@ export async function updateRawDocLLM(
 
         return updatedDocs[0];
       },
-      logger,
-      { operation: 'UPDATE_LLM_DATA' }
+      logger
     );
 
-    if (!result.success) {
-      logger.databaseOperation('update_llm', fileId, false, result.error);
+    if (result.success === false) {
+      logger.databaseOperation('update', fileId, false, result.error);
       return { success: false, error: result.error };
     }
 
@@ -255,7 +250,7 @@ export async function updateRawDocLLM(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.databaseOperation('update_llm', fileId, false, error);
+    logger.databaseOperation('update_llm', fileId, false, errorMessage);
     return { success: false, error: errorMessage };
   }
 }
@@ -284,11 +279,10 @@ export async function getRawDocByFileId(
 
         return docs[0];
       },
-      logger,
-      { operation: 'GET_BY_FILE_ID' }
+      logger
     );
 
-    if (!result.success) {
+    if (result.success === false) {
       logger.databaseOperation('get', fileId, false, result.error);
       return { success: false, error: result.error };
     }
@@ -298,7 +292,7 @@ export async function getRawDocByFileId(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.databaseOperation('get', fileId, false, error);
+    logger.databaseOperation('get', fileId, false, errorMessage);
     return { success: false, error: errorMessage };
   }
 }
@@ -350,15 +344,11 @@ export async function searchRawDocs(
         }
 
         if (filters.dateFrom) {
-          conditions.push(
-            eq(rawDocs.createdAt, Math.floor(filters.dateFrom.getTime() / 1000))
-          );
+          conditions.push(gte(rawDocs.createdAt, filters.dateFrom));
         }
 
         if (filters.dateTo) {
-          conditions.push(
-            eq(rawDocs.createdAt, Math.floor(filters.dateTo.getTime() / 1000))
-          );
+          conditions.push(lte(rawDocs.createdAt, filters.dateTo));
         }
 
         if (filters.textSearch) {
@@ -391,18 +381,10 @@ export async function searchRawDocs(
 
         return { docs, total };
       },
-      logger,
-      { 
-        operation: 'SEARCH_DOCUMENTS',
-        metadata: { 
-          filters: Object.keys(filters).length,
-          limit,
-          offset
-        }
-      }
+      logger
     );
 
-    if (!result.success) {
+    if (result.success === false) {
       logger.databaseOperation('search', 'multiple', false, result.error);
       return { success: false, error: result.error };
     }
@@ -421,7 +403,7 @@ export async function searchRawDocs(
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.databaseOperation('search', 'multiple', false, error);
+    logger.databaseOperation('search', 'multiple', false, errorMessage);
     return { success: false, error: errorMessage };
   }
 }
@@ -433,7 +415,7 @@ export async function deleteRawDoc(
   db: Database,
   fileId: string,
   deletedBy?: string
-): Promise<{ success: true; message: string } | { success: false; error: string }> {
+): Promise<{ success: true; doc: RawDoc } | { success: false; error: string }> {
   const logger = createOCRLogger({ 
     fileId,
     userId: deletedBy
@@ -453,21 +435,20 @@ export async function deleteRawDoc(
 
         return deletedDocs[0];
       },
-      logger,
-      { operation: 'DELETE_DOCUMENT' }
+      logger
     );
 
-    if (!result.success) {
+    if (result.success === false) {
       logger.databaseOperation('delete', fileId, false, result.error);
       return { success: false, error: result.error };
     }
 
     logger.databaseOperation('delete', fileId, true);
-    return { success: true, message: 'Document deleted successfully' };
+    return { success: true, doc: result.data };
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.databaseOperation('delete', fileId, false, error);
+    logger.databaseOperation('delete', fileId, false, errorMessage);
     return { success: false, error: errorMessage };
   }
 }
@@ -514,7 +495,7 @@ export async function getOCRStats(
   userId?: string
 ): Promise<{ 
   success: true; 
-  stats: {
+  data: {
     total: number;
     pending: number;
     processing: number;
@@ -534,11 +515,10 @@ export async function getOCRStats(
     const result = await withOCRErrorBoundary(
       'Get OCR Statistics',
       async () => {
-        let query = db.select().from(rawDocs);
-        
-        if (userId) {
-          query = query.where(eq(rawDocs.uploadedBy, userId));
-        }
+        const baseQuery = db.select().from(rawDocs);
+        const query = userId 
+          ? baseQuery.where(eq(rawDocs.uploadedBy, userId))
+          : baseQuery;
 
         const docs = await query;
 
@@ -574,9 +554,9 @@ export async function getOCRStats(
       { operation: 'GET_STATS' }
     );
 
-    if (!result.success) {
-      logger.databaseOperation('stats', 'multiple', false, result.error);
-      return { success: false, error: result.error };
+    if (result.success === false) {
+      logger.databaseOperation('stats', 'multiple', false, 'Failed to get OCR statistics');
+      return result;
     }
 
     logger.databaseOperation('stats', 'multiple', true);
@@ -585,7 +565,7 @@ export async function getOCRStats(
       metadata: result.data
     });
 
-    return { success: true, stats: result.data };
+    return { success: true, data: result.data };
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

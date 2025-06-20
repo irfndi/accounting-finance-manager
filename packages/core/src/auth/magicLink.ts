@@ -3,7 +3,7 @@
  * Corporate Finance Manager - Passwordless authentication with magic links
  */
 
-import { MagicLinkData, MagicLinkPurpose, AuthContext } from './types';
+import { MagicLinkData, MagicLinkPurpose } from './types';
 import { randomBytes } from '@noble/hashes/utils';
 
 /**
@@ -580,4 +580,4 @@ export function createMagicLinkRateLimiter(
   }
 ): MagicLinkRateLimiter {
   return new MagicLinkRateLimiter(kv, options);
-} 
+}

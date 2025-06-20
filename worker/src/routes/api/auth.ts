@@ -1,6 +1,10 @@
 import { Hono } from 'hono'
-import { authService } from '@finance-manager/core'
-import { createEnhancedDatabase } from '@finance-manager/db'
+import { sign, verify } from 'hono/jwt'
+import * as bcrypt from 'bcryptjs'
+
+import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types'
+import { createEnhancedDatabase, users } from '@finance-manager/db';
+import { eq } from 'drizzle-orm';
 
 
 // Environment bindings interface
@@ -16,10 +20,27 @@ type Env = {
 // Create auth router
 const authRouter = new Hono<{ Bindings: Env }>()
 
-// Helper to get JWT secret from environment
-const getJWTSecret = (env: Env): string => {
-  return env.JWT_SECRET || 'default-development-secret-please-change-in-production'
-}
+
+
+
+
+
+import { createDatabaseService } from '@finance-manager/db/services';
+
+// Middleware to initialize services
+authRouter.use('*', async (c, next) => {
+  const db = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB);
+
+  if (c.env.ENVIRONMENT === 'production' && !c.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not set in production');
+  }
+
+  c.set('db', db);
+  c.set('jwtSecret', c.env.JWT_SECRET || 'default-development-secret-please-change-in-production');
+  await next();
+});
+
+
 
 // Helper to get session duration from environment (default 7 days)
 const getSessionDuration = (env: Env): string => {
@@ -28,6 +49,8 @@ const getSessionDuration = (env: Env): string => {
 
 // Register endpoint
 authRouter.post('/register', async (c) => {
+  
+  const db = c.get('db');
   try {
     const { email, password, name } = await c.req.json()
 
@@ -37,12 +60,9 @@ authRouter.post('/register', async (c) => {
         message: 'Email and password are required'
       }, 400)
     }
-
-    // Initialize database connection
-    const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB)
     
     // Check if user already exists
-    const existingUser = await database.getUserByEmail(email)
+    const existingUser = await db.select().from(users).where(eq(users.email, email)).get();
     if (existingUser) {
       return c.json({
         error: 'User already exists',
@@ -51,34 +71,28 @@ authRouter.post('/register', async (c) => {
     }
 
     // Hash password
-    const hashedPassword = await authService.password.hashPassword(password)
+    const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create user
-    const user = await database.createUser({
+    const [user] = await db.insert(users).values({
       email,
       password: hashedPassword,
-      name: name || null,
+      displayName: name || null,
       emailVerified: false,
       createdAt: new Date(),
       updatedAt: new Date()
-    })
+    }).returning();
 
     // Generate JWT token
-    const jwtSecret = getJWTSecret(c.env)
-    const sessionDuration = getSessionDuration(c.env)
-    
-    const token = await authService.jwt.generateToken({
-      id: user.id,
-      email: user.email,
-      role: 'USER' // Default role, should be from user data
-    })
+    const sessionDuration = getSessionDuration(c.env);
+    const token = await sign({ id: user.id, email: user.email, role: 'USER' }, c.get('jwtSecret'));
 
     // Store session in KV
     const sessionKey = `session:${user.id}`
     await c.env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({
       userId: user.id,
       email: user.email,
-      name: user.name,
+      name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
       createdAt: new Date().toISOString()
     }), {
       expirationTtl: 7 * 24 * 60 * 60 // 7 days in seconds
@@ -90,7 +104,7 @@ authRouter.post('/register', async (c) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         emailVerified: user.emailVerified,
         createdAt: user.createdAt
       },
@@ -109,6 +123,8 @@ authRouter.post('/register', async (c) => {
 
 // Login endpoint
 authRouter.post('/login', async (c) => {
+  
+  const db = c.get('db');
   try {
     const { email, password } = await c.req.json()
 
@@ -118,12 +134,9 @@ authRouter.post('/login', async (c) => {
         message: 'Email and password are required'
       }, 400)
     }
-
-    // Initialize database connection
-    const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB)
     
     // Get user by email
-    const user = await database.getUserByEmail(email)
+    const user = await db.select().from(users).where(eq(users.email, email)).get();
     if (!user) {
       return c.json({
         error: 'Invalid credentials',
@@ -132,7 +145,7 @@ authRouter.post('/login', async (c) => {
     }
 
     // Verify password
-    const isValidPassword = await authService.verifyPassword(password, user.password)
+    const isValidPassword = await bcrypt.compare(password, user.password as string)
     if (!isValidPassword) {
       return c.json({
         error: 'Invalid credentials',
@@ -141,38 +154,32 @@ authRouter.post('/login', async (c) => {
     }
 
     // Generate JWT token
-    const jwtSecret = getJWTSecret(c.env)
-    const sessionDuration = getSessionDuration(c.env)
-    
-    const token = await authService.jwt.generateToken({
-      id: user.id,
-      email: user.email,
-      role: 'USER' // Default role, should be from user data
-    })
+    const sessionDuration = getSessionDuration(c.env);
+    const token = await sign({ id: user.id, email: user.email, role: 'USER' }, c.get('jwtSecret'));
 
     // Store session in KV
     const sessionKey = `session:${user.id}`
     await c.env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({
       userId: user.id,
       email: user.email,
-      name: user.name,
+      name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
       createdAt: new Date().toISOString()
     }), {
       expirationTtl: 7 * 24 * 60 * 60 // 7 days in seconds
     })
 
     // Update last login timestamp
-    await database.updateUser(user.id, {
+    await db.update(users).set({
       lastLoginAt: new Date(),
       updatedAt: new Date()
-    })
+    }).where(eq(users.id, user.id));
 
     return c.json({
       message: 'Login successful',
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         emailVerified: user.emailVerified,
         lastLoginAt: new Date()
       },
@@ -191,6 +198,7 @@ authRouter.post('/login', async (c) => {
 
 // Logout endpoint
 authRouter.post('/logout', async (c) => {
+  
   try {
     const authHeader = c.req.header('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -201,13 +209,11 @@ authRouter.post('/logout', async (c) => {
     }
 
     const token = authHeader.substring(7)
-    const jwtSecret = getJWTSecret(c.env)
-
     // Verify and decode token
-    const payload = await authService.verifyJWT(token, jwtSecret)
+    const payload = await verify(token, c.get('jwtSecret'));;;
     
     // Remove session from KV
-    const sessionKey = `session:${payload.userId}`
+    const sessionKey = `session:${payload.id}`
     await c.env.FINANCE_MANAGER_CACHE.delete(sessionKey)
 
     return c.json({
@@ -235,14 +241,14 @@ authRouter.get('/profile', async (c) => {
     }
 
     const token = authHeader.substring(7)
-    const jwtSecret = getJWTSecret(c.env)
+    
 
     // Verify and decode token
-    const payload = await authService.verifyJWT(token, jwtSecret)
+    const payload = await verify(token, c.get('jwtSecret'))
     
     // Get user from database
-    const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB)
-    const user = await database.getUserById(payload.userId)
+    const db = c.get('db');
+    const user = await db.select().from(users).where(eq(users.id, payload.id)).get();
     
     if (!user) {
       return c.json({
@@ -255,7 +261,7 @@ authRouter.get('/profile', async (c) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt
@@ -283,26 +289,26 @@ authRouter.put('/profile', async (c) => {
     }
 
     const token = authHeader.substring(7)
-    const jwtSecret = getJWTSecret(c.env)
+    
 
     // Verify and decode token
-    const payload = await authService.verifyJWT(token, jwtSecret)
+    const payload = await verify(token, c.get('jwtSecret'))
     
     const { name } = await c.req.json()
 
     // Update user in database
-    const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB)
-    const updatedUser = await database.updateUser(payload.userId, {
-      name,
+    const db = c.get('db');
+    const [updatedUser] = await db.update(users).set({
+      displayName: name,
       updatedAt: new Date()
-    })
+    }).where(eq(users.id, payload.id)).returning();
 
     return c.json({
       message: 'Profile updated successfully',
       user: {
         id: updatedUser.id,
         email: updatedUser.email,
-        name: updatedUser.name,
+        name: updatedUser.displayName || `${updatedUser.firstName || ''} ${updatedUser.lastName || ''}`.trim(),
         emailVerified: updatedUser.emailVerified,
         updatedAt: updatedUser.updatedAt
       }
@@ -329,10 +335,10 @@ authRouter.put('/password', async (c) => {
     }
 
     const token = authHeader.substring(7)
-    const jwtSecret = getJWTSecret(c.env)
+    
 
     // Verify and decode token
-    const payload = await authService.verifyJWT(token, jwtSecret)
+    const payload = await verify(token, c.get('jwtSecret'))
     
     const { currentPassword, newPassword } = await c.req.json()
 
@@ -344,8 +350,8 @@ authRouter.put('/password', async (c) => {
     }
 
     // Get user from database
-    const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB)
-    const user = await database.getUserById(payload.userId)
+    const db = c.get('db');
+    const user = await db.select().from(users).where(eq(users.id, payload.id)).get();
     
     if (!user) {
       return c.json({
@@ -355,7 +361,7 @@ authRouter.put('/password', async (c) => {
     }
 
     // Verify current password
-    const isValidPassword = await authService.verifyPassword(currentPassword, user.password)
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password as string)
     if (!isValidPassword) {
       return c.json({
         error: 'Invalid current password',
@@ -364,13 +370,13 @@ authRouter.put('/password', async (c) => {
     }
 
     // Hash new password
-    const hashedNewPassword = await authService.hashPassword(newPassword)
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10)
 
     // Update password in database
-    await database.updateUser(user.id, {
+    await db.update(users).set({
       password: hashedNewPassword,
       updatedAt: new Date()
-    })
+    }).where(eq(users.id, user.id));
 
     return c.json({
       message: 'Password updated successfully'
@@ -397,13 +403,13 @@ authRouter.get('/validate', async (c) => {
     }
 
     const token = authHeader.substring(7)
-    const jwtSecret = getJWTSecret(c.env)
+    
 
     // Verify token
-    const payload = await authService.verifyJWT(token, jwtSecret)
+    const payload = await verify(token, c.get('jwtSecret'));
     
     // Check if session exists in KV
-    const sessionKey = `session:${payload.userId}`
+    const sessionKey = `session:${payload.id}`
     const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey)
     
     if (!session) {
@@ -416,13 +422,14 @@ authRouter.get('/validate', async (c) => {
     return c.json({
       valid: true,
       user: {
-        id: payload.userId,
+        id: payload.id,
         email: payload.email,
         name: payload.name
       }
     })
 
-  } catch {
+  } catch (error) {
+    console.error('Validation error:', error);
     return c.json({
       valid: false,
       message: 'Invalid or expired token'

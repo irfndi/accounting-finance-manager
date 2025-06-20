@@ -136,10 +136,10 @@ Object.defineProperty(globalThis, 'crypto', {
 });
 
 // Mock setTimeout and setInterval for predictable timing in tests
-vi.stubGlobal('setTimeout', vi.fn((fn, delay = 0) => {
+vi.stubGlobal('setTimeout', vi.fn((fn) => {
   return fn();
 }));
 
-vi.stubGlobal('setInterval', vi.fn((fn, delay = 0) => {
+vi.stubGlobal('setInterval', vi.fn((fn) => {
   return fn();
-})); 
+}));
