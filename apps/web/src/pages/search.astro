@@ -1,0 +1,21 @@
+---
+/**
+ * Document Search Page
+ * Provides semantic search interface for uploaded documents
+ */
+
+import Layout from '../layouts/Layout.astro';
+import DocumentSearch from '../components/DocumentSearch.tsx';
+---
+
+<Layout title="Document Search - Finance Manager">
+  <main class="container mx-auto px-4 py-8">
+    <DocumentSearch client:load />
+  </main>
+</Layout>
+
+<style>
+  .container {
+    max-width: 1200px;
+  }
+</style>

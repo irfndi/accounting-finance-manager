@@ -40,7 +40,7 @@ export interface SearchResult {
   id: string;
   score: number;
   metadata?: EmbeddingMetadata;
-  values?: number[] | Float32Array;
+  values?: number[] | Float32Array | Float64Array;
 }
 
 export interface SearchResponse {
@@ -94,9 +94,22 @@ export class VectorizeService {
         const chunk = chunks[i];
         const chunkId = chunks.length > 1 ? `${fileId}_chunk_${i}` : fileId;
         
+        if (!this.ai) {
+          throw new AIServiceError('AI binding is required for embedding generation', 'AI_NOT_CONFIGURED');
+        }
+
+        // Generate embedding for this chunk
+        const embeddingResponse = await this.ai.run(this.embeddingModel as any, {
+          text: [chunk]
+        }) as { shape: number[]; data: number[][] };
+
+        if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
+          throw new AIServiceError(`Failed to generate embedding for chunk ${i}`, 'EMBEDDING_FAILED');
+        }
+
         const vectorData = {
           id: chunkId,
-          // Remove values property - Vectorize will generate embeddings from text
+          values: embeddingResponse.data[0], // Vector values are required
           metadata: {
             fileId,
             text: chunk.substring(0, 1000), // Store first 1000 chars for search preview
@@ -139,6 +152,10 @@ export class VectorizeService {
         throw new AIServiceError('Search query is required', 'INVALID_QUERY');
       }
 
+      if (!this.ai) {
+        throw new AIServiceError('AI binding is required for text-to-vector conversion', 'AI_NOT_CONFIGURED');
+      }
+
       const {
         topK = 10,
         threshold = 0.7,
@@ -147,8 +164,19 @@ export class VectorizeService {
         includeValues = false
       } = options;
 
-      // Use Vectorize's built-in text-to-vector search
-      const searchResults = await this.vectorize.query(query, {
+      // Convert text to vector using Workers AI
+      const embeddingResponse = await this.ai.run(this.embeddingModel as any, {
+        text: [query]
+      }) as { shape: number[]; data: number[][] };
+
+      if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
+        throw new AIServiceError('Failed to generate embedding for query', 'EMBEDDING_FAILED');
+      }
+
+      const queryVector = embeddingResponse.data[0];
+
+      // Query Vectorize with the generated vector
+      const searchResults = await this.vectorize.query(queryVector, {
         topK,
         returnMetadata,
         returnValues: includeValues,
@@ -162,10 +190,10 @@ export class VectorizeService {
           id: match.id,
           score: match.score,
           metadata: match.metadata as EmbeddingMetadata,
-          values: match.values
+          values: match.values as number[] | Float32Array | Float64Array | undefined
         }));
 
-      const _processingTime = Date.now() - startTime;
+      const processingTime = Date.now() - startTime;
 
       return {
         matches: filteredMatches,
@@ -222,7 +250,7 @@ export class VectorizeService {
           id: match.id,
           score: match.score,
           metadata: match.metadata as EmbeddingMetadata,
-          values: match.values
+          values: match.values as number[] | Float32Array | Float64Array | undefined
         }));
 
       const processingTime = Date.now() - startTime;
@@ -295,7 +323,7 @@ export class VectorizeService {
         id: match.id,
         score: match.score,
         metadata: match.metadata as EmbeddingMetadata,
-        values: match.values
+        values: match.values as number[] | Float32Array | Float64Array | undefined
       }));
     } catch (error) {
       console.error('Failed to get document embeddings:', error);

@@ -2,13 +2,13 @@
  * Authentication Utilities
  * Corporate Finance Manager - Secure authentication with Argon2id and JWT
  */
-export * from './password.js';
-export * from './jwt.js';
-export * from './magicLink.js';
-export * from './types.js';
-import * as PasswordUtils from './password.js';
-import * as JwtUtils from './jwt.js';
-import * as MagicLinkUtils from './magicLink.js';
+export * from './password';
+export * from './jwt';
+export * from './magicLink';
+export * from './types';
+import * as PasswordUtils from './password';
+import * as JwtUtils from './jwt';
+import * as MagicLinkUtils from './magicLink';
 export declare const authService: {
     password: typeof PasswordUtils;
     jwt: typeof JwtUtils;

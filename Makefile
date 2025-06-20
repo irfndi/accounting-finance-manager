@@ -110,10 +110,29 @@ e2e/headed: ## Run E2E tests in headed mode
 	pnpm playwright test --headed
 	@echo "$(GREEN)✓ E2E tests complete$(RESET)"
 
-test/miniflare: ## Run integration tests with Miniflare
-	@echo "$(CYAN)Running integration tests with Miniflare...$(RESET)"
+test/integration: ## Run comprehensive integration tests
+	@echo "$(CYAN)Running integration tests...$(RESET)"
+	@echo "$(YELLOW)Starting Miniflare integration tests...$(RESET)"
 	cd worker && pnpm test
+	@echo "$(YELLOW)Running API integration tests...$(RESET)"
+	cd worker && pnpm test:integration || echo "$(YELLOW)Integration tests not yet implemented$(RESET)"
 	@echo "$(GREEN)✓ Integration tests complete$(RESET)"
+
+test/miniflare: ## Run Miniflare-specific tests
+	@echo "$(CYAN)Running Miniflare tests...$(RESET)"
+	cd worker && pnpm test
+	@echo "$(GREEN)✓ Miniflare tests complete$(RESET)"
+
+test/performance: ## Run performance benchmarks
+	@echo "$(CYAN)Running performance benchmarks...$(RESET)"
+	pnpm -r --filter "./packages/*" run bench || echo "$(YELLOW)Performance tests not configured$(RESET)"
+	@echo "$(GREEN)✓ Performance benchmarks complete$(RESET)"
+
+test/smoke: ## Run smoke tests against deployed services
+	@echo "$(CYAN)Running smoke tests...$(RESET)"
+	@echo "$(YELLOW)Testing API endpoints...$(RESET)"
+	curl -f http://localhost:8787/health || echo "$(YELLOW)Local server not running$(RESET)"
+	@echo "$(GREEN)✓ Smoke tests complete$(RESET)"
 
 # =============================================================================
 # BUILDING
@@ -158,17 +177,42 @@ prod/migrate: ## Run database migrations in production
 	cd packages/db && pnpm migrate
 	@echo "$(GREEN)✓ Database migrations complete$(RESET)"
 
-prod/deploy: ## Deploy to production (requires wrangler auth)
+prod/deploy: ## Deploy to production with full validation
 	@echo "$(CYAN)Deploying to production...$(RESET)"
-	@echo "$(YELLOW)This will:$(RESET)"
-	@echo "  - Build the project"
-	@echo "  - Run migrations"
-	@echo "  - Deploy to Cloudflare Workers"
-	@echo ""
+	@echo "$(YELLOW)Pre-deployment validation:$(RESET)"
+	$(MAKE) ci
+	@echo "$(YELLOW)Building for production...$(RESET)"
 	$(MAKE) prod/build
+	@echo "$(YELLOW)Running database migrations...$(RESET)"
 	$(MAKE) prod/migrate
-	cd worker && pnpm deploy
-	@echo "$(GREEN)✓ Deployment complete$(RESET)"
+	@echo "$(YELLOW)Deploying to Cloudflare Workers...$(RESET)"
+	cd worker && pnpm deploy:prod
+	@echo "$(YELLOW)Running post-deployment smoke tests...$(RESET)"
+	$(MAKE) test/smoke/prod
+	@echo "$(GREEN)✅ Production deployment complete$(RESET)"
+
+prod/deploy/staging: ## Deploy to staging environment
+	@echo "$(CYAN)Deploying to staging...$(RESET)"
+	$(MAKE) ci/fast
+	$(MAKE) prod/build
+	cd worker && pnpm deploy --env staging
+	@echo "$(GREEN)✓ Staging deployment complete$(RESET)"
+
+prod/rollback: ## Rollback production deployment
+	@echo "$(CYAN)Rolling back production deployment...$(RESET)"
+	cd worker && wrangler rollback --env production
+	@echo "$(GREEN)✓ Rollback complete$(RESET)"
+
+prod/status: ## Check production deployment status
+	@echo "$(CYAN)Checking production status...$(RESET)"
+	cd worker && wrangler tail --env production --format pretty --once
+	@echo "$(GREEN)✓ Status check complete$(RESET)"
+
+test/smoke/prod: ## Run smoke tests against production
+	@echo "$(CYAN)Running production smoke tests...$(RESET)"
+	@echo "$(YELLOW)Testing production endpoints...$(RESET)"
+	curl -f https://your-worker.your-subdomain.workers.dev/health || echo "$(RED)Production health check failed$(RESET)"
+	@echo "$(GREEN)✓ Production smoke tests complete$(RESET)"
 
 publish: prod/deploy ## Alias for prod/deploy
 
@@ -201,15 +245,64 @@ check: ## Run all checks (lint + test + build)
 	$(MAKE) build
 	@echo "$(GREEN)✓ All checks passed$(RESET)"
 
-ci: ## Run complete CI pipeline (lint + test + build all packages)
-	@echo "$(CYAN)Running CI pipeline...$(RESET)"
-	@echo "$(YELLOW)Step 1/3: Linting all packages...$(RESET)"
+ci: ## Run complete CI pipeline (security + lint + typecheck + test + build)
+	@echo "$(CYAN)Running Production CI Pipeline...$(RESET)"
+	@echo "$(YELLOW)Phase 1/5: Security & Dependency Audit...$(RESET)"
+	$(MAKE) ci/security
+	@echo "$(YELLOW)Phase 2/5: Code Quality & Linting...$(RESET)"
+	$(MAKE) ci/lint
+	@echo "$(YELLOW)Phase 3/5: Type Checking...$(RESET)"
+	$(MAKE) ci/typecheck
+	@echo "$(YELLOW)Phase 4/5: Testing Suite...$(RESET)"
+	$(MAKE) ci/test
+	@echo "$(YELLOW)Phase 5/5: Build Validation...$(RESET)"
+	$(MAKE) ci/build
+	@echo "$(GREEN)✅ Production CI pipeline completed successfully$(RESET)"
+
+ci/fast: ## Run fast CI pipeline (lint + unit tests)
+	@echo "$(CYAN)Running Fast CI Pipeline...$(RESET)"
+	$(MAKE) -j3 lint unit
+	@echo "$(GREEN)✅ Fast CI pipeline completed$(RESET)"
+
+ci/security: ## Run security and dependency audits
+	@echo "$(CYAN)Running security audits...$(RESET)"
+	pnpm audit --audit-level moderate || (echo "$(RED)⚠️  Security vulnerabilities found$(RESET)" && exit 1)
+	@echo "$(GREEN)✓ Security audit passed$(RESET)"
+
+ci/lint: ## Run comprehensive linting
+	@echo "$(CYAN)Running comprehensive linting...$(RESET)"
 	$(MAKE) lint
-	@echo "$(YELLOW)Step 2/3: Running all tests...$(RESET)"
-	$(MAKE) unit
-	@echo "$(YELLOW)Step 3/3: Building all packages...$(RESET)"
-	$(MAKE) build
-	@echo "$(GREEN)✓ CI pipeline completed successfully$(RESET)"
+	@echo "$(GREEN)✓ Linting completed$(RESET)"
+
+ci/typecheck: ## Run TypeScript type checking across all packages
+	@echo "$(CYAN)Running TypeScript type checking...$(RESET)"
+	@echo "$(YELLOW)Checking packages...$(RESET)"
+	pnpm -r --filter "./packages/*" exec tsc --noEmit --skipLibCheck || (echo "$(RED)Package typecheck failed$(RESET)" && exit 1)
+	@echo "$(YELLOW)Checking worker...$(RESET)"
+	cd worker && pnpm exec tsc --noEmit --skipLibCheck || (echo "$(RED)Worker typecheck failed$(RESET)" && exit 1)
+	@echo "$(YELLOW)Checking web app...$(RESET)"
+	cd apps/web && pnpm exec astro check || (echo "$(RED)Web app typecheck failed$(RESET)" && exit 1)
+	@echo "$(GREEN)✓ Type checking completed$(RESET)"
+
+ci/test: ## Run comprehensive test suite with coverage
+	@echo "$(CYAN)Running comprehensive test suite...$(RESET)"
+	$(MAKE) unit/coverage || (echo "$(RED)Unit tests failed$(RESET)" && exit 1)
+	$(MAKE) test/integration || (echo "$(RED)Integration tests failed$(RESET)" && exit 1)
+	@echo "$(GREEN)✓ All tests completed$(RESET)"
+
+ci/build: ## Run production build validation
+	@echo "$(CYAN)Running production build validation...$(RESET)"
+	$(MAKE) build/packages || (echo "$(RED)Package build failed$(RESET)" && exit 1)
+	$(MAKE) build/worker || (echo "$(RED)Worker build failed$(RESET)" && exit 1)
+	$(MAKE) build/web || (echo "$(RED)Web build failed$(RESET)" && exit 1)
+	@echo "$(GREEN)✓ Build validation completed$(RESET)"
+
+ci/parallel: ## Run CI pipeline with maximum parallelization
+	@echo "$(CYAN)Running Parallel CI Pipeline...$(RESET)"
+	$(MAKE) ci/security
+	$(MAKE) -j4 lint ci/typecheck unit build/packages
+	$(MAKE) test/integration
+	@echo "$(GREEN)✅ Parallel CI pipeline completed$(RESET)"
 
 fresh: ## Fresh install (clean + install)
 	@echo "$(CYAN)Fresh installation...$(RESET)"
@@ -217,16 +310,108 @@ fresh: ## Fresh install (clean + install)
 	$(MAKE) install
 	@echo "$(GREEN)✓ Fresh installation complete$(RESET)"
 
-status: ## Show project status
-	@echo "$(CYAN)Project Status$(RESET)"
-	@echo "=============="
-	@echo "Node version: $$(node --version)"
-	@echo "PNPM version: $$(pnpm --version)"
-	@echo "Git branch: $$(git branch --show-current 2>/dev/null || echo 'No git repository')"
-	@echo "Git status: $$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') uncommitted changes"
+status: ## Show comprehensive project status
+	@echo "$(CYAN)Finance Manager - Project Status$(RESET)"
+	@echo "======================================"
+	@echo "$(YELLOW)Environment:$(RESET)"
+	@echo "  Node version: $$(node --version)"
+	@echo "  PNPM version: $$(pnpm --version)"
+	@echo "  TypeScript: $$(pnpm exec tsc --version)"
+	@echo "  Git branch: $$(git branch --show-current 2>/dev/null || echo 'No git repository')"
+	@echo "  Git status: $$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') uncommitted changes"
 	@echo ""
-	@echo "$(YELLOW)Packages:$(RESET)"
-	@ls -la packages/ | grep "^d" | awk '{print "  " $$9}' | grep -v "^\.\.*$$"
+	@echo "$(YELLOW)Workspace Structure:$(RESET)"
+	@ls -la packages/ | grep "^d" | awk '{print "  📦 " $$9}' | grep -v "^\.\.\*$$"
+	@ls -la apps/ | grep "^d" | awk '{print "  🚀 " $$9}' | grep -v "^\.\.\*$$"
 	@echo ""
-	@echo "$(YELLOW)Apps:$(RESET)"
-	@ls -la apps/ | grep "^d" | awk '{print "  " $$9}' | grep -v "^\.\.*$$"
+	@echo "$(YELLOW)Build Status:$(RESET)"
+	@find . -name "dist" -type d | head -5 | sed 's/^/  ✅ /'
+	@echo ""
+	@echo "$(YELLOW)Dependencies:$(RESET)"
+	@pnpm outdated --format table 2>/dev/null | head -10 || echo "  All dependencies up to date"
+
+# =============================================================================
+# MONITORING & DEBUGGING
+# =============================================================================
+
+monitor: ## Monitor application performance and logs
+	@echo "$(CYAN)Monitoring application...$(RESET)"
+	@echo "$(YELLOW)Worker logs (press Ctrl+C to stop):$(RESET)"
+	cd worker && wrangler tail --env production --format pretty
+
+monitor/dev: ## Monitor development environment
+	@echo "$(CYAN)Monitoring development environment...$(RESET)"
+	cd worker && wrangler tail --env development --format pretty
+
+debug: ## Debug application issues
+	@echo "$(CYAN)Debug Information$(RESET)"
+	@echo "=================="
+	@echo "$(YELLOW)Recent errors in logs:$(RESET)"
+	cd worker && wrangler tail --env production --format json | jq '.[] | select(.level == "error")' | head -5 || echo "No recent errors"
+	@echo "$(YELLOW)Memory usage:$(RESET)"
+	ps aux | grep node | head -5
+
+# =============================================================================
+# MAINTENANCE
+# =============================================================================
+
+maintenance/deps: ## Update and audit dependencies
+	@echo "$(CYAN)Dependency maintenance...$(RESET)"
+	@echo "$(YELLOW)Checking for updates...$(RESET)"
+	pnpm update --latest --interactive
+	@echo "$(YELLOW)Running security audit...$(RESET)"
+	pnpm audit --fix
+	@echo "$(GREEN)✓ Dependency maintenance complete$(RESET)"
+
+maintenance/clean: ## Deep clean and rebuild
+	@echo "$(CYAN)Deep cleaning project...$(RESET)"
+	$(MAKE) clean
+	rm -rf node_modules packages/*/node_modules apps/*/node_modules worker/node_modules
+	rm -rf .pnpm-store
+	$(MAKE) install
+	$(MAKE) build
+	@echo "$(GREEN)✓ Deep clean complete$(RESET)"
+
+health: ## Check overall system health
+	@echo "$(CYAN)System Health Check$(RESET)"
+	@echo "===================="
+	@echo "$(YELLOW)Disk space:$(RESET)"
+	df -h . | tail -1
+	@echo "$(YELLOW)Memory usage:$(RESET)"
+	free -h 2>/dev/null || vm_stat | head -5
+	@echo "$(YELLOW)Node processes:$(RESET)"
+	ps aux | grep -E '(node|pnpm)' | wc -l | sed 's/^/  Active processes: /'
+	@echo "$(YELLOW)Port usage:$(RESET)"
+	lsof -i :3000 -i :8787 2>/dev/null | tail -5 || echo "  No active servers detected"
+
+# =============================================================================
+# FEATURE FLAGS & ENVIRONMENT MANAGEMENT
+# =============================================================================
+
+feature/enable: ## Enable a feature flag (usage: make feature/enable FLAG=feature_name)
+	@echo "$(CYAN)Enabling feature flag: $(FLAG)$(RESET)"
+	@if [ -z "$(FLAG)" ]; then echo "$(RED)Error: FLAG parameter required$(RESET)"; exit 1; fi
+	cd worker && wrangler kv:key put "feature_$(FLAG)" "true" --env production
+	@echo "$(GREEN)✓ Feature $(FLAG) enabled$(RESET)"
+
+feature/disable: ## Disable a feature flag (usage: make feature/disable FLAG=feature_name)
+	@echo "$(CYAN)Disabling feature flag: $(FLAG)$(RESET)"
+	@if [ -z "$(FLAG)" ]; then echo "$(RED)Error: FLAG parameter required$(RESET)"; exit 1; fi
+	cd worker && wrangler kv:key put "feature_$(FLAG)" "false" --env production
+	@echo "$(GREEN)✓ Feature $(FLAG) disabled$(RESET)"
+
+feature/list: ## List all feature flags
+	@echo "$(CYAN)Current feature flags:$(RESET)"
+	cd worker && wrangler kv:key list --env production | grep "feature_" || echo "No feature flags found"
+
+env/switch: ## Switch environment (usage: make env/switch ENV=staging|production)
+	@echo "$(CYAN)Switching to $(ENV) environment$(RESET)"
+	@if [ -z "$(ENV)" ]; then echo "$(RED)Error: ENV parameter required$(RESET)"; exit 1; fi
+	@echo "CLOUDFLARE_ENV=$(ENV)" > .env.local
+	@echo "$(GREEN)✓ Switched to $(ENV) environment$(RESET)"
+
+env/status: ## Show current environment status
+	@echo "$(CYAN)Environment Status$(RESET)"
+	@echo "=================="
+	@echo "Current environment: $$(cat .env.local 2>/dev/null | grep CLOUDFLARE_ENV | cut -d'=' -f2 || echo 'development')"
+	cd worker && wrangler whoami

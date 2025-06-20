@@ -43,6 +43,8 @@ export interface JWTPayload {
   entityId?: string;
   /** Session ID for tracking */
   sessionId: string;
+  /** User email */
+  email?: string;
   /** Token type */
   type: 'access' | 'refresh';
 }
@@ -326,4 +328,4 @@ export const AUTH_ERROR_CODES = {
   MAGIC_LINK_INVALID: 'MAGIC_LINK_INVALID',
 } as const;
 
-export type AuthErrorCode = typeof AUTH_ERROR_CODES[keyof typeof AUTH_ERROR_CODES]; 
+export type AuthErrorCode = typeof AUTH_ERROR_CODES[keyof typeof AUTH_ERROR_CODES];

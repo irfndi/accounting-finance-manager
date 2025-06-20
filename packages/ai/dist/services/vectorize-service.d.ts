@@ -34,7 +34,7 @@ export interface SearchResult {
     id: string;
     score: number;
     metadata?: EmbeddingMetadata;
-    values?: number[] | Float32Array;
+    values?: number[] | Float32Array | Float64Array;
 }
 export interface SearchResponse {
     matches: SearchResult[];

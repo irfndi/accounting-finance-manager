@@ -1,1 +1,0 @@
-{"root":["../src/financial-reports.ts","../src/index.ts","../src/auth/index.ts","../src/auth/jwt.ts","../src/auth/magiclink.ts","../src/auth/password.ts","../src/auth/session.ts","../src/auth/types.ts","../../types/src/index.ts"],"version":"5.8.3"}

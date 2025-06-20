@@ -135,7 +135,7 @@ function createTestDatabase() {
       updated_at INTEGER NOT NULL
     );
   `);
-        return { sqliteDb };
+        return { sqliteDb, drizzleDb: testDbAdapter };
     }
     catch (error) {
         console.error('Failed to create test database:', error);

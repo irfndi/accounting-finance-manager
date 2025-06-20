@@ -44,12 +44,14 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run PNPM audit
+        timeout-minutes: 2
         run: |
           echo "🔍 Running PNPM dependency audit..."
           pnpm audit --audit-level moderate || echo "Audit completed with findings"
           echo "✅ PNPM audit completed"
 
       - name: Generate audit report
+        timeout-minutes: 2
         run: |
           echo "📊 Generating audit report..."
           pnpm audit --json > audit-report.json || true
@@ -404,4 +406,4 @@ jobs:
             exit 1
           else
             echo "✅ Security pipeline completed"
-          fi 
+          fi

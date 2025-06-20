@@ -14,7 +14,7 @@ import type {
   JournalEntry,
   TransactionEntry,
   TransactionData,
-  ValidationError,
+  ValidationError as BaseValidationError,
   AccountingError,
   AccountBalance,
   TrialBalance,
@@ -62,9 +62,9 @@ export const FINANCIAL_CONSTANTS = {
 // Custom Error Classes
 export class AccountingValidationError extends Error implements AccountingError {
   public readonly code: string;
-  public readonly details?: ValidationError[];
+  public readonly details?: BaseValidationError[];
 
-  constructor(message: string, code: string, details?: ValidationError[]) {
+  constructor(message: string, code: string, details?: BaseValidationError[]) {
     super(message);
     this.name = 'AccountingValidationError';
     this.code = code;
@@ -73,7 +73,7 @@ export class AccountingValidationError extends Error implements AccountingError 
 }
 
 export class DoubleEntryError extends AccountingValidationError {
-  constructor(message: string, details?: ValidationError[]) {
+  constructor(message: string, details?: BaseValidationError[]) {
     super(message, 'DOUBLE_ENTRY_VIOLATION', details);
     this.name = 'DoubleEntryError';
   }
@@ -83,7 +83,7 @@ export class DoubleEntryError extends AccountingValidationError {
 export type ErrorSeverity = 'WARNING' | 'ERROR' | 'CRITICAL';
 export type ErrorCategory = 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE';
 
-export interface EnhancedValidationError extends ValidationError {
+export interface EnhancedValidationError extends BaseValidationError {
   severity: ErrorSeverity;
   category: ErrorCategory;
   suggestions?: string[];
@@ -93,42 +93,42 @@ export interface EnhancedValidationError extends ValidationError {
 
 // Specialized Error Classes
 export class BalanceSheetError extends AccountingValidationError {
-  constructor(message: string, details?: ValidationError[]) {
+  constructor(message: string, details?: BaseValidationError[]) {
     super(message, 'BALANCE_SHEET_VIOLATION', details);
     this.name = 'BalanceSheetError';
   }
 }
 
 export class AccountRegistryError extends AccountingValidationError {
-  constructor(message: string, details?: ValidationError[]) {
+  constructor(message: string, details?: BaseValidationError[]) {
     super(message, 'ACCOUNT_REGISTRY_ERROR', details);
     this.name = 'AccountRegistryError';
   }
 }
 
 export class CurrencyConversionError extends AccountingValidationError {
-  constructor(message: string, details?: ValidationError[]) {
+  constructor(message: string, details?: BaseValidationError[]) {
     super(message, 'CURRENCY_CONVERSION_ERROR', details);
     this.name = 'CurrencyConversionError';
   }
 }
 
 export class PeriodClosureError extends AccountingValidationError {
-  constructor(message: string, details?: ValidationError[]) {
+  constructor(message: string, details?: BaseValidationError[]) {
     super(message, 'PERIOD_CLOSURE_VIOLATION', details);
     this.name = 'PeriodClosureError';
   }
 }
 
 export class FiscalYearError extends AccountingValidationError {
-  constructor(message: string, details?: ValidationError[]) {
+  constructor(message: string, details?: BaseValidationError[]) {
     super(message, 'FISCAL_YEAR_VIOLATION', details);
     this.name = 'FiscalYearError';
   }
 }
 
 export class ComplianceError extends AccountingValidationError {
-  constructor(message: string, details?: ValidationError[]) {
+  constructor(message: string, details?: BaseValidationError[]) {
     super(message, 'COMPLIANCE_VIOLATION', details);
     this.name = 'ComplianceError';
   }
@@ -339,7 +339,7 @@ export namespace ErrorRecoveryManager {
     ];
   }
 
-  export function enhanceError(error: ValidationError): EnhancedValidationError {
+  export function enhanceError(error: BaseValidationError): EnhancedValidationError {
     const suggestions = getSuggestions(error.code);
     
     return {
@@ -416,8 +416,8 @@ export class TransactionValidator {
   /**
    * Validates that the sum of debits equals the sum of credits
    */
-  static validateDoubleEntry(entries: TransactionEntry[]): ValidationError[] {
-    const errors: ValidationError[] = [];
+  static validateDoubleEntry(entries: TransactionEntry[]): BaseValidationError[] {
+    const errors: BaseValidationError[] = [];
     
     if (!entries || entries.length === 0) {
       errors.push({
@@ -507,8 +507,8 @@ export class TransactionValidator {
   /**
    * Validates transaction data structure
    */
-  static validateTransactionData(transactionData: TransactionData): ValidationError[] {
-    const errors: ValidationError[] = [];
+  static validateTransactionData(transactionData: TransactionData): BaseValidationError[] {
+    const errors: BaseValidationError[] = [];
 
     if (!transactionData.description?.trim()) {
       errors.push({
@@ -611,7 +611,7 @@ export class TransactionBuilder {
     return this;
   }
 
-  validate(): ValidationError[] {
+  validate(): BaseValidationError[] {
     return TransactionValidator.validateTransactionData(this.transactionData as TransactionData);
   }
 
@@ -662,8 +662,8 @@ export class AccountingEngine {
   /**
    * Validates an existing transaction
    */
-  static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): ValidationError[] {
-    const errors: ValidationError[] = [];
+  static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): BaseValidationError[] {
+    const errors: BaseValidationError[] = [];
 
     const transactionEntries = journalEntries.filter(entry => entry.transactionId.toString() === transaction.id);
     
@@ -1126,8 +1126,8 @@ export class JournalEntryManager {
   /**
    * Validate journal entries for a transaction
    */
-  validateJournalEntries(entries: JournalEntry[]): ValidationError[] {
-    const errors: ValidationError[] = [];
+  validateJournalEntries(entries: JournalEntry[]): BaseValidationError[] {
+    const errors: BaseValidationError[] = [];
 
     if (entries.length === 0) {
       errors.push({
@@ -1168,8 +1168,8 @@ export class JournalEntryManager {
   /**
    * Validate a single journal entry
    */
-  private validateSingleJournalEntry(entry: JournalEntry, index: number): ValidationError[] {
-    const errors: ValidationError[] = [];
+  private validateSingleJournalEntry(entry: JournalEntry, index: number): BaseValidationError[] {
+    const errors: BaseValidationError[] = [];
     const fieldPrefix = `entries[${index}]`;
 
     // Validate account ID
@@ -1239,8 +1239,8 @@ export class JournalEntryManager {
   /**
    * Validate double-entry balance
    */
-  private validateDoubleEntryBalance(entries: JournalEntry[]): ValidationError[] {
-    const errors: ValidationError[] = [];
+  private validateDoubleEntryBalance(entries: JournalEntry[]): BaseValidationError[] {
+    const errors: BaseValidationError[] = [];
     
     // Group by currency for balance validation
     const currencyBalances: { [currency: string]: { debits: number; credits: number } } = {};
@@ -1274,8 +1274,8 @@ export class JournalEntryManager {
   /**
    * Validate account compatibility with registry
    */
-  private validateAccountCompatibility(entries: JournalEntry[]): ValidationError[] {
-    const errors: ValidationError[] = [];
+  private validateAccountCompatibility(entries: JournalEntry[]): BaseValidationError[] {
+    const errors: BaseValidationError[] = [];
 
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
@@ -1492,7 +1492,7 @@ export class JournalEntryManager {
 }
 
 // D1 Database Integration Interfaces
-/* TODO: Fix DatabaseAdapter type mismatches - temporarily commented out
+/* TODO: Fix DatabaseAdapter type mismatches - temporarily commented out */
 export interface D1Database {
   prepare(query: string): {
     bind(...values: unknown[]): {
@@ -1854,9 +1854,9 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
 
     // Create journal entries
     const journalEntries = this.createJournalEntriesFromTransaction(
-      transaction.id,
+      parseInt(transaction.id),
       transactionData,
-      transactionData.createdBy
+'system'
     );
 
     // Validate journal entries
@@ -1913,13 +1913,37 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
 }
 
 // Re-export auth functionality
-export * from './auth/index.js'
-export * from './auth/types.js'
-export { default as authService } from './auth/index.js'
+export { authService } from './auth/index'
+export {
+  AuthUser,
+  JWTPayload,
+  SessionData,
+  MagicLinkData,
+  AuthContext,
+  LoginRequest,
+  RegistrationRequest,
+  MagicLinkVerificationRequest,
+  PasswordResetRequest,
+  PasswordChangeRequest,
+  AuthResponse,
+  SessionValidation,
+  UserRole,
+  MagicLinkPurpose,
+  AuditEventType,
+  RateLimitConfig,
+  JWTConfig,
+  EmailConfig,
+  AuthConfig,
+  AuthError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  RateLimitError,
+  ValidationError as AuthValidationError,
+  AUTH_ERROR_CODES,
+  AuthErrorCode
+} from './auth/types'
+
 
 // Re-export financial reports functionality
 export * from './financial-reports';
-
-// Note: DatabaseAdapter temporarily disabled due to type mismatches
-// TODO: Fix database adapter type mismatches with D1 and TypeScript interfaces 
-*/

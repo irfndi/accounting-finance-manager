@@ -3,7 +3,7 @@
  * Corporate Finance & Accounting Core Functionality
  * Professional Double-Entry Bookkeeping Engine
  */
-import type { Currency, AccountType, NormalBalance, Account, Transaction, JournalEntry, TransactionEntry, TransactionData, ValidationError, AccountingError, AccountBalance, TrialBalance, BalanceSheet, IncomeStatement } from '@finance-manager/types';
+import type { Currency, AccountType, NormalBalance, TransactionStatus, Account, Transaction, JournalEntry, TransactionEntry, TransactionData, ValidationError as BaseValidationError, AccountingError, AccountBalance, TrialBalance, BalanceSheet, IncomeStatement } from '@finance-manager/types';
 export declare const FINANCIAL_CONSTANTS: {
     readonly DECIMAL_PLACES: 2;
     readonly DEFAULT_CURRENCY: "IDR";
@@ -41,15 +41,15 @@ export declare const FINANCIAL_CONSTANTS: {
 };
 export declare class AccountingValidationError extends Error implements AccountingError {
     readonly code: string;
-    readonly details?: ValidationError[];
-    constructor(message: string, code: string, details?: ValidationError[]);
+    readonly details?: BaseValidationError[];
+    constructor(message: string, code: string, details?: BaseValidationError[]);
 }
 export declare class DoubleEntryError extends AccountingValidationError {
-    constructor(message: string, details?: ValidationError[]);
+    constructor(message: string, details?: BaseValidationError[]);
 }
 export type ErrorSeverity = 'WARNING' | 'ERROR' | 'CRITICAL';
 export type ErrorCategory = 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE';
-export interface EnhancedValidationError extends ValidationError {
+export interface EnhancedValidationError extends BaseValidationError {
     severity: ErrorSeverity;
     category: ErrorCategory;
     suggestions?: string[];
@@ -57,22 +57,22 @@ export interface EnhancedValidationError extends ValidationError {
     timestamp?: Date;
 }
 export declare class BalanceSheetError extends AccountingValidationError {
-    constructor(message: string, details?: ValidationError[]);
+    constructor(message: string, details?: BaseValidationError[]);
 }
 export declare class AccountRegistryError extends AccountingValidationError {
-    constructor(message: string, details?: ValidationError[]);
+    constructor(message: string, details?: BaseValidationError[]);
 }
 export declare class CurrencyConversionError extends AccountingValidationError {
-    constructor(message: string, details?: ValidationError[]);
+    constructor(message: string, details?: BaseValidationError[]);
 }
 export declare class PeriodClosureError extends AccountingValidationError {
-    constructor(message: string, details?: ValidationError[]);
+    constructor(message: string, details?: BaseValidationError[]);
 }
 export declare class FiscalYearError extends AccountingValidationError {
-    constructor(message: string, details?: ValidationError[]);
+    constructor(message: string, details?: BaseValidationError[]);
 }
 export declare class ComplianceError extends AccountingValidationError {
-    constructor(message: string, details?: ValidationError[]);
+    constructor(message: string, details?: BaseValidationError[]);
 }
 export declare class ErrorAggregator {
     private errors;
@@ -106,7 +106,7 @@ export declare namespace AccountingErrorFactory {
 }
 export declare namespace ErrorRecoveryManager {
     function getSuggestions(errorCode: string): string[];
-    function enhanceError(error: ValidationError): EnhancedValidationError;
+    function enhanceError(error: BaseValidationError): EnhancedValidationError;
 }
 export declare function formatCurrency(amount: number, currency?: Currency): string;
 export declare function roundToDecimalPlaces(amount: number, places?: number): number;
@@ -115,11 +115,11 @@ export declare class TransactionValidator {
     /**
      * Validates that the sum of debits equals the sum of credits
      */
-    static validateDoubleEntry(entries: TransactionEntry[]): ValidationError[];
+    static validateDoubleEntry(entries: TransactionEntry[]): BaseValidationError[];
     /**
      * Validates transaction data structure
      */
-    static validateTransactionData(transactionData: TransactionData): ValidationError[];
+    static validateTransactionData(transactionData: TransactionData): BaseValidationError[];
 }
 export declare class TransactionBuilder {
     private transactionData;
@@ -131,7 +131,7 @@ export declare class TransactionBuilder {
     setCurrency(currency: Currency): TransactionBuilder;
     debit(accountId: number, amount: number, description?: string): TransactionBuilder;
     credit(accountId: number, amount: number, description?: string): TransactionBuilder;
-    validate(): ValidationError[];
+    validate(): BaseValidationError[];
     build(): TransactionData;
 }
 export declare class BalanceCalculator {
@@ -148,7 +148,7 @@ export declare class AccountingEngine {
     /**
      * Validates an existing transaction
      */
-    static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): ValidationError[];
+    static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): BaseValidationError[];
 }
 export * from '@finance-manager/types';
 /**
@@ -251,7 +251,7 @@ export declare class JournalEntryManager {
     /**
      * Validate journal entries for a transaction
      */
-    validateJournalEntries(entries: JournalEntry[]): ValidationError[];
+    validateJournalEntries(entries: JournalEntry[]): BaseValidationError[];
     /**
      * Validate a single journal entry
      */
@@ -319,4 +319,70 @@ export declare class JournalEntryManager {
         };
     };
 }
+export interface D1Database {
+    prepare(query: string): {
+        bind(...values: unknown[]): {
+            all(): Promise<{
+                results: unknown[];
+            }>;
+            first(): Promise<unknown>;
+            run(): Promise<{
+                success: boolean;
+                meta: {
+                    changes: number;
+                    last_row_id: number;
+                };
+            }>;
+        };
+    };
+}
+export interface DatabaseConfig {
+    database: D1Database;
+    entityId?: string;
+    defaultCurrency?: Currency;
+}
+export declare class DatabaseAdapter {
+    private db;
+    private entityId;
+    private defaultCurrency;
+    constructor(config: DatabaseConfig);
+    createAccount(account: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>): Promise<Account>;
+    getAccount(accountId: number): Promise<Account | null>;
+    getAllAccounts(): Promise<Account[]>;
+    getAccountsByType(accountType: AccountType): Promise<Account[]>;
+    createTransaction(transactionData: TransactionData): Promise<Transaction>;
+    getTransaction(transactionId: number): Promise<Transaction | null>;
+    updateTransactionStatus(transactionId: number, status: TransactionStatus, updatedBy?: string): Promise<void>;
+    createJournalEntries(entries: JournalEntry[]): Promise<JournalEntry[]>;
+    getJournalEntriesByTransaction(transactionId: number): Promise<JournalEntry[]>;
+    getJournalEntriesByAccount(accountId: number): Promise<JournalEntry[]>;
+    updateAccountBalance(accountId: number, newBalance: number): Promise<void>;
+    private generateTransactionNumber;
+    private mapDbAccountToAccount;
+    private mapDbTransactionToTransaction;
+    private mapDbJournalEntryToJournalEntry;
+}
+export declare class DatabaseAccountRegistry extends AccountRegistry {
+    private dbAdapter;
+    constructor(dbAdapter: DatabaseAdapter);
+    loadAccountsFromDatabase(): Promise<void>;
+    registerAccount(account: Account): Promise<Account>;
+    getAccountFromDatabase(accountId: string): Promise<Account | null>;
+    getAccountsByTypeFromDatabase(accountType: AccountType): Promise<Account[]>;
+}
+export declare class DatabaseJournalEntryManager extends JournalEntryManager {
+    private dbAdapter;
+    constructor(dbAdapter: DatabaseAdapter, accountRegistry?: AccountRegistry);
+    createAndPersistTransaction(transactionData: TransactionData): Promise<{
+        transaction: Transaction;
+        journalEntries: JournalEntry[];
+    }>;
+    postTransaction(transactionId: number, postedBy?: string): Promise<void>;
+    getTransactionJournalEntries(transactionId: number): Promise<JournalEntry[]>;
+    getAccountJournalEntries(accountId: number): Promise<JournalEntry[]>;
+    private updateAccountBalanceFromEntry;
+}
+export { authService } from './auth/index';
+export { AuthUser, JWTPayload, SessionData, MagicLinkData, AuthContext, LoginRequest, RegistrationRequest, MagicLinkVerificationRequest, PasswordResetRequest, PasswordChangeRequest, AuthResponse, SessionValidation, UserRole, MagicLinkPurpose, AuditEventType, RateLimitConfig, JWTConfig, EmailConfig, AuthConfig, AuthError, UnauthorizedError, ForbiddenError, NotFoundError, RateLimitError, ValidationError as AuthValidationError, AUTH_ERROR_CODES, AuthErrorCode } from './auth/types';
+export * from './financial-reports';
 //# sourceMappingURL=index.d.ts.map

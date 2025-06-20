@@ -41,6 +41,8 @@ export interface JWTPayload {
     entityId?: string;
     /** Session ID for tracking */
     sessionId: string;
+    /** User email */
+    email?: string;
     /** Token type */
     type: 'access' | 'refresh';
 }

@@ -33,7 +33,7 @@ export class JWTManager {
         const now = Math.floor(Date.now() / 1000);
         const payload = {
             jti: crypto.randomUUID(),
-            sub: user.id || user.userId,
+            sub: user.id || user.userId || '',
             iss: this.config.issuer,
             aud: this.config.audience,
             exp: now + this.config.accessTokenExpiresIn,
@@ -42,8 +42,8 @@ export class JWTManager {
             role: user.role,
             entityId: user.entityId || 'default',
             sessionId,
+            email: user.email,
             type: 'access',
-            ...user,
         };
         return this.signToken(payload);
     }
@@ -90,9 +90,9 @@ export class JWTManager {
             await this.validatePayload(payload);
             return payload;
         }
-        catch (error) {
-            if (error instanceof UnauthorizedError) {
-                throw error;
+        catch (_error) {
+            if (_error instanceof UnauthorizedError) {
+                throw _error;
             }
             throw new UnauthorizedError('Token verification failed');
         }
@@ -252,34 +252,28 @@ export function extractUserIdFromToken(token) {
 const defaultJWTManager = new JWTManager({
     secret: process.env.JWT_SECRET || 'default-secret-for-testing'
 });
-/**
- * Generate a JWT token for a user
- */
-export async function generateToken(user, expiresIn) {
+export const generateToken = async (user, expiresIn) => {
     const sessionId = crypto.randomUUID();
-    const userWithSession = { ...user, sessionId };
+    // Handle expired token creation for testing
     if (expiresIn && expiresIn.startsWith('-')) {
-        // Create an expired token for testing
-        const now = Math.floor(Date.now() / 1000);
-        const expiredTime = now - 3600; // 1 hour ago
-        const payload = {
+        const expiredPayload = {
             jti: crypto.randomUUID(),
-            sub: user.id || user.userId,
-            iss: defaultJWTManager.config.issuer,
-            aud: defaultJWTManager.config.audience,
-            exp: expiredTime,
-            iat: expiredTime - 3600,
-            nbf: expiredTime - 3600,
+            sub: user.id || user.userId || '',
+            iss: DEFAULT_JWT_CONFIG.issuer,
+            aud: DEFAULT_JWT_CONFIG.audience,
+            exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
+            iat: Math.floor(Date.now() / 1000),
+            nbf: Math.floor(Date.now() / 1000),
             role: user.role,
             entityId: user.entityId || 'default',
             sessionId,
-            type: 'access',
-            ...user,
+            email: user.email,
+            type: 'access'
         };
-        return await defaultJWTManager.signToken(payload);
+        return await defaultJWTManager.signToken(expiredPayload);
     }
-    return await defaultJWTManager.createAccessToken(userWithSession, sessionId);
-}
+    return await defaultJWTManager.createAccessToken(user, sessionId);
+};
 /**
  * Verify a JWT token and return the payload
  */
@@ -292,7 +286,7 @@ export async function verifyToken(token) {
         sessionId: payload.sessionId,
         exp: payload.exp,
         iat: payload.iat,
-        ...payload
+        email: payload.email
     };
 }
 /**
@@ -301,9 +295,14 @@ export async function verifyToken(token) {
 export async function refreshToken(token) {
     try {
         const payload = await verifyToken(token);
-        return await generateToken(payload);
+        return await generateToken({
+            id: payload.userId,
+            role: payload.role,
+            entityId: payload.entityId,
+            email: payload.email
+        });
     }
-    catch (error) {
+    catch {
         throw new Error('Cannot refresh expired or invalid token');
     }
 }

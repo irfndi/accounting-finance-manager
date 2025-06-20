@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { Money, Account, Transaction, TrialBalance, BalanceSheet, IncomeStatement } from '@finance-manager/types';
 
 describe('Financial Calculations', () => {

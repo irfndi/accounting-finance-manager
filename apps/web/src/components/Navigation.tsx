@@ -46,6 +46,13 @@ const navigationItems: NavigationItem[] = [
     description: 'Compliance and audit logs'
   },
   {
+    id: 'document-search',
+    label: 'Document Search',
+    href: '/search',
+    icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+    description: 'Semantic document search'
+  },
+  {
     id: 'multi-entity',
     label: 'Multi-Entity',
     href: '/entities',
@@ -159,4 +166,4 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
       </div>
     </nav>
   );
-} 
+}

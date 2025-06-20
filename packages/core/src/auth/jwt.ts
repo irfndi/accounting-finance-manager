@@ -3,7 +3,7 @@
  * Corporate Finance Manager - JWT token management with HS256 signing
  */
 
-import { JWTPayload, JWTConfig, AuthUser, UnauthorizedError } from './types';
+import { JWTPayload, JWTConfig, AuthUser, UnauthorizedError, UserRole } from './types';
 
 /**
  * Default JWT configuration
@@ -35,11 +35,11 @@ export class JWTManager {
   /**
    * Create an access token for a user
    */
-  async createAccessToken(user: AuthUser, sessionId: string): Promise<string> {
+  async createAccessToken(user: Partial<AuthUser> & { id?: string; userId?: string; role: UserRole }, sessionId: string): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
     const payload: JWTPayload = {
       jti: crypto.randomUUID(),
-      sub: user.id || user.userId,
+      sub: user.id || user.userId || '',
       iss: this.config.issuer,
       aud: this.config.audience,
       exp: now + this.config.accessTokenExpiresIn,
@@ -49,7 +49,7 @@ export class JWTManager {
       entityId: user.entityId || 'default',
       sessionId,
       email: user.email,
-      type: 'access',
+      type: 'access' as const,
     };
 
     return this.signToken(payload);
@@ -106,8 +106,8 @@ export class JWTManager {
 
       return payload;
     } catch (_error) {
-      if (error instanceof UnauthorizedError) {
-        throw error;
+      if (_error instanceof UnauthorizedError) {
+        throw _error;
       }
       throw new UnauthorizedError('Token verification failed');
     }
@@ -163,7 +163,7 @@ export class JWTManager {
   /**
    * Sign a JWT token
    */
-  private async signToken(payload: JWTPayload): Promise<string> {
+  async signToken(payload: JWTPayload): Promise<string> {
     const header = {
       alg: this.config.algorithm,
       typ: 'JWT',
@@ -309,14 +309,14 @@ const defaultJWTManager = new JWTManager({
   secret: process.env.JWT_SECRET || 'default-secret-for-testing'
 });
 
-export const generateToken = async (user: { id?: string; userId?: string; role: string; entityId?: string; email?: string }, expiresIn?: string): Promise<string> => {
+export const generateToken = async (user: { id?: string; userId?: string; role: UserRole; entityId?: string; email?: string; emailVerified?: boolean; isActive?: boolean }, expiresIn?: string): Promise<string> => {
   const sessionId = crypto.randomUUID();
   
   // Handle expired token creation for testing
   if (expiresIn && expiresIn.startsWith('-')) {
     const expiredPayload = {
       jti: crypto.randomUUID(),
-      sub: user.id || user.userId,
+      sub: user.id || user.userId || '',
       iss: DEFAULT_JWT_CONFIG.issuer,
       aud: DEFAULT_JWT_CONFIG.audience,
       exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
@@ -326,7 +326,7 @@ export const generateToken = async (user: { id?: string; userId?: string; role: 
       entityId: user.entityId || 'default',
       sessionId,
       email: user.email,
-      type: 'access'
+      type: 'access' as const
     };
     return await defaultJWTManager.signToken(expiredPayload);
   }

@@ -710,14 +710,69 @@
         "id": 12,
         "title": "Vectorize Document Embeddings",
         "description": "Implement semantic search for documents using Vectorize.",
-        "details": "Generate embeddings for extracted text and store in Vectorize. Implement search API.",
-        "testStrategy": "Verify search results match semantic queries.",
+        "details": "Generate embeddings for extracted text and store in Vectorize. Implement search API for semantic document search.",
+        "testStrategy": "Verify search results match semantic queries and embedding accuracy.",
         "priority": "medium",
         "dependencies": [
           10
         ],
         "status": "in-progress",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Vectorize Database",
+            "description": "Set up Cloudflare Vectorize database for document embeddings.",
+            "details": "Create Vectorize index with appropriate dimensions for text embeddings. Configure in wrangler.toml and worker bindings.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 12
+          },
+          {
+            "id": 2,
+            "title": "Implement Text Embedding Generation",
+            "description": "Generate embeddings for extracted document text using Cloudflare AI.",
+            "details": "Use Cloudflare AI text embedding models to convert OCR-extracted text into vector embeddings. Handle text chunking for large documents.",
+            "status": "done",
+            "dependencies": ["12.1"],
+            "parentTaskId": 12
+          },
+          {
+            "id": 3,
+            "title": "Store Embeddings in Vectorize",
+            "description": "Save generated embeddings to Vectorize with metadata.",
+            "details": "Store document embeddings in Vectorize with associated metadata (document ID, file name, upload date, text preview). Implement batch insertion for efficiency.",
+            "status": "done",
+            "dependencies": ["12.2"],
+            "parentTaskId": 12
+          },
+          {
+            "id": 4,
+            "title": "Implement Semantic Search API",
+            "description": "Create API endpoints for semantic document search.",
+            "details": "Build search endpoints that convert user queries to embeddings and perform similarity search in Vectorize. Return ranked results with relevance scores.",
+            "status": "done",
+            "dependencies": ["12.3"],
+            "parentTaskId": 12
+          },
+          {
+            "id": 5,
+            "title": "Integrate with Document Upload Pipeline",
+            "description": "Automatically generate embeddings during document upload.",
+            "details": "Extend the existing OCR pipeline to automatically generate and store embeddings when documents are uploaded and processed.",
+            "status": "done",
+            "dependencies": ["12.2", "12.3"],
+            "parentTaskId": 12
+          },
+          {
+            "id": 6,
+            "title": "Add Search UI Components",
+            "description": "Create frontend components for semantic document search.",
+            "details": "Build search interface with query input, results display, and document preview. Include filters for date range, document type, and relevance threshold.",
+            "status": "done",
+            "dependencies": ["12.4"],
+            "parentTaskId": 12
+          }
+        ]
       },
       {
         "id": 13,

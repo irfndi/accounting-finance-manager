@@ -71,7 +71,7 @@ export declare class FinancialReportsEngine {
         };
         netChangeInCash: number;
     }>;
-    getFinancialMetrics(asOfDate: Date, entityId?: string): Promise<{
+    getFinancialMetrics(_asOfDate: Date, entityId?: string): Promise<{
         currentRatio: number;
         quickRatio: number;
         debtToEquityRatio: number;

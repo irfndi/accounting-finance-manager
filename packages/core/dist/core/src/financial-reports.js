@@ -8,26 +8,21 @@ export class FinancialReportsEngine {
         this.dbAdapter = dbAdapter;
     }
     async generateTrialBalance(asOfDate, entityId) {
-        try {
-            // This would normally query the database
-            // For now, simulate a database call that could fail
-            if (this.dbAdapter && this.dbAdapter.query) {
-                await this.dbAdapter.query('SELECT 1'); // Simulate database access
+        // This would normally query the database
+        // For now, simulate a database call that could fail
+        if (this.dbAdapter && this.dbAdapter.query) {
+            await this.dbAdapter.query('SELECT 1'); // Simulate database access
+        }
+        return {
+            asOfDate: asOfDate.toISOString(),
+            entityId: entityId || 'default',
+            accounts: [],
+            totals: {
+                totalDebits: 0,
+                totalCredits: 0,
+                isBalanced: true
             }
-            return {
-                asOfDate: asOfDate.toISOString(),
-                entityId: entityId || 'default',
-                accounts: [],
-                totals: {
-                    totalDebits: 0,
-                    totalCredits: 0,
-                    isBalanced: true
-                }
-            };
-        }
-        catch (error) {
-            throw error; // Re-throw database errors
-        }
+        };
     }
     async generateBalanceSheet(asOfDate, entityId) {
         return {
@@ -91,7 +86,7 @@ export class FinancialReportsEngine {
             netChangeInCash: 0
         };
     }
-    async getFinancialMetrics(asOfDate, entityId) {
+    async getFinancialMetrics(_asOfDate, entityId) {
         return {
             currentRatio: 0,
             quickRatio: 0,

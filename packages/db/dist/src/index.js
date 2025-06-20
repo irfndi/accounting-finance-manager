@@ -40,7 +40,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.alias = exports.asc = exports.desc = exports.ilike = exports.like = exports.isNotNull = exports.isNull = exports.not = exports.or = exports.and = exports.eq = void 0;
+exports.blob = exports.real = exports.integer = exports.text = exports.sqliteTable = exports.alias = exports.max = exports.min = exports.avg = exports.sum = exports.count = exports.sql = exports.asc = exports.desc = exports.ilike = exports.like = exports.isNotNull = exports.isNull = exports.not = exports.or = exports.and = exports.eq = void 0;
 exports.createDatabase = createDatabase;
 // Schema exports
 __exportStar(require("./schema"), exports);
@@ -57,7 +57,7 @@ const schema = __importStar(require("./schema"));
 function createDatabase(d1Database) {
     return (0, d1_1.drizzle)(d1Database, { schema });
 }
-// Re-export common Drizzle utilities
+// Re-export all Drizzle utilities to ensure consistent symbol resolution in monorepo
 var drizzle_orm_1 = require("drizzle-orm");
 Object.defineProperty(exports, "eq", { enumerable: true, get: function () { return drizzle_orm_1.eq; } });
 Object.defineProperty(exports, "and", { enumerable: true, get: function () { return drizzle_orm_1.and; } });
@@ -69,5 +69,16 @@ Object.defineProperty(exports, "like", { enumerable: true, get: function () { re
 Object.defineProperty(exports, "ilike", { enumerable: true, get: function () { return drizzle_orm_1.ilike; } });
 Object.defineProperty(exports, "desc", { enumerable: true, get: function () { return drizzle_orm_1.desc; } });
 Object.defineProperty(exports, "asc", { enumerable: true, get: function () { return drizzle_orm_1.asc; } });
+Object.defineProperty(exports, "sql", { enumerable: true, get: function () { return drizzle_orm_1.sql; } });
+Object.defineProperty(exports, "count", { enumerable: true, get: function () { return drizzle_orm_1.count; } });
+Object.defineProperty(exports, "sum", { enumerable: true, get: function () { return drizzle_orm_1.sum; } });
+Object.defineProperty(exports, "avg", { enumerable: true, get: function () { return drizzle_orm_1.avg; } });
+Object.defineProperty(exports, "min", { enumerable: true, get: function () { return drizzle_orm_1.min; } });
+Object.defineProperty(exports, "max", { enumerable: true, get: function () { return drizzle_orm_1.max; } });
 var sqlite_core_1 = require("drizzle-orm/sqlite-core");
 Object.defineProperty(exports, "alias", { enumerable: true, get: function () { return sqlite_core_1.alias; } });
+Object.defineProperty(exports, "sqliteTable", { enumerable: true, get: function () { return sqlite_core_1.sqliteTable; } });
+Object.defineProperty(exports, "text", { enumerable: true, get: function () { return sqlite_core_1.text; } });
+Object.defineProperty(exports, "integer", { enumerable: true, get: function () { return sqlite_core_1.integer; } });
+Object.defineProperty(exports, "real", { enumerable: true, get: function () { return sqlite_core_1.real; } });
+Object.defineProperty(exports, "blob", { enumerable: true, get: function () { return sqlite_core_1.blob; } });

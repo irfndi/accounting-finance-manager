@@ -27,6 +27,7 @@ export function createDatabase(d1Database: D1Database) {
  */
 export type Database = ReturnType<typeof createDatabase>;
 
-// Re-export common Drizzle utilities
-export { eq, and, or, not, isNull, isNotNull, like, ilike, desc, asc } from "drizzle-orm";
-export { alias } from "drizzle-orm/sqlite-core"; 
+// Re-export all Drizzle utilities to ensure consistent symbol resolution in monorepo
+export { eq, and, or, not, isNull, isNotNull, like, ilike, desc, asc, sql, count, sum, avg, min, max } from "drizzle-orm";
+export { alias, sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
+export type { DrizzleD1Database } from "drizzle-orm/d1";

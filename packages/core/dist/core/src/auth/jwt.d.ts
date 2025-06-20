@@ -2,7 +2,7 @@
  * JWT Utilities
  * Corporate Finance Manager - JWT token management with HS256 signing
  */
-import { JWTPayload, JWTConfig, AuthUser } from './types';
+import { JWTPayload, JWTConfig, AuthUser, UserRole } from './types';
 /**
  * Default JWT configuration
  */
@@ -17,7 +17,11 @@ export declare class JWTManager {
     /**
      * Create an access token for a user
      */
-    createAccessToken(user: AuthUser, sessionId: string): Promise<string>;
+    createAccessToken(user: Partial<AuthUser> & {
+        id?: string;
+        userId?: string;
+        role: UserRole;
+    }, sessionId: string): Promise<string>;
     /**
      * Create a refresh token for a user
      */
@@ -41,7 +45,7 @@ export declare class JWTManager {
     /**
      * Sign a JWT token
      */
-    private signToken;
+    signToken(payload: JWTPayload): Promise<string>;
     /**
      * Create HMAC-SHA256 signature
      */
@@ -75,10 +79,15 @@ export declare function createJWTManager(config: Partial<JWTConfig>): JWTManager
  * Extract user ID from token without verification (for logging/debugging)
  */
 export declare function extractUserIdFromToken(token: string): string | null;
-/**
- * Generate a JWT token for a user
- */
-export declare function generateToken(user: any, expiresIn?: string): Promise<string>;
+export declare const generateToken: (user: {
+    id?: string;
+    userId?: string;
+    role: UserRole;
+    entityId?: string;
+    email?: string;
+    emailVerified?: boolean;
+    isActive?: boolean;
+}, expiresIn?: string) => Promise<string>;
 /**
  * Verify a JWT token and return the payload
  */

@@ -18,7 +18,7 @@
       "@finance-manager/types": ["../types/src"],
       "@finance-manager/db": ["../db/src"]
     },
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types", "node"]
   },
   "include": [
     "src/**/*",

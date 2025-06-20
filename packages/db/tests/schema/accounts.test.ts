@@ -131,7 +131,7 @@ const mockDbAdapter = {
     
     return createChain(currentData);
   }),
-  insert: vi.fn(() => ({
+  insert: vi.fn((table) => ({
     values: vi.fn((data) => {
       return new Promise((resolve, reject) => {
         // Validate required fields
@@ -159,7 +159,7 @@ const mockDbAdapter = {
       });
     })
   })),
-  update: vi.fn(() => ({
+  update: vi.fn((table) => ({
     set: vi.fn((updateData) => ({
       where: vi.fn((condition) => {
         const updatedData = { ...updateData, updatedAt: Date.now() };

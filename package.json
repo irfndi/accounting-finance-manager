@@ -59,5 +59,10 @@
   "bugs": {
     "url": "https://github.com/irfndi/finance-manager/issues"
   },
-  "homepage": "https://github.com/irfndi/finance-manager#readme"
+  "homepage": "https://github.com/irfndi/finance-manager#readme",
+  "pnpm": {
+    "overrides": {
+      "esbuild@<=0.24.2": ">=0.25.0"
+    }
+  }
 }
