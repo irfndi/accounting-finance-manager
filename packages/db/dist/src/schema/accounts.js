@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.selectAccountSchema = exports.insertAccountSchema = exports.NormalBalance = exports.AccountType = exports.accounts = void 0;
+exports.insertAccountSchema = exports.NormalBalance = exports.AccountType = exports.accounts = void 0;
 const sqlite_core_1 = require("drizzle-orm/sqlite-core");
-const zod_1 = require("zod");
+const drizzle_zod_1 = require("drizzle-zod");
 /**
  * Chart of Accounts - Core financial accounts structure
  * Supports hierarchical account structure with parent-child relationships
@@ -52,17 +52,5 @@ exports.NormalBalance = {
     DEBIT: "DEBIT",
     CREDIT: "CREDIT",
 };
-// Zod schemas for validation - simplified for now
-exports.insertAccountSchema = zod_1.z.object({
-    code: zod_1.z.string().min(1).max(20),
-    name: zod_1.z.string().min(1).max(100),
-    type: zod_1.z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
-    normalBalance: zod_1.z.enum(["DEBIT", "CREDIT"]),
-});
-exports.selectAccountSchema = zod_1.z.object({
-    id: zod_1.z.number(),
-    code: zod_1.z.string(),
-    name: zod_1.z.string(),
-    type: zod_1.z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
-    normalBalance: zod_1.z.enum(["DEBIT", "CREDIT"]),
-});
+// Zod schemas for validation
+exports.insertAccountSchema = (0, drizzle_zod_1.createInsertSchema)(exports.accounts);

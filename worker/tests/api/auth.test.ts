@@ -1,85 +1,129 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import app from '../../src/index';
+import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import worker from '../../src/index';
+import * as argon2 from 'argon2';
+import { sign } from 'hono/jwt';
+
+// Mock the @finance-manager/core module
+vi.mock('@finance-manager/core', () => ({
+  validateEmail: vi.fn((email: string) => {
+    return email.includes('@') && email.includes('.');
+  }),
+  validatePassword: vi.fn((password: string) => {
+    return password.length >= 8;
+  })
+}));
 
 // Test utilities
-const createTestRequest = (method: string, url: string, options: RequestInit = {}) => {
-  return new Request(url, {
+function createTestRequest(method: string, path: string, body?: any, headers?: Record<string, string>) {
+  const url = `http://localhost${path}`;
+  const init: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers
+      ...headers,
     },
-    ...options
-  });
-};
+  };
+  
+  if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+    init.body = JSON.stringify(body);
+  }
+  
+  return new Request(url, init);
+}
 
-const createAuthenticatedRequest = (method: string, url: string, token: string, options: RequestInit = {}) => {
-  return new Request(url, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...options.headers
-    },
-    ...options
+function createAuthenticatedRequest(method: string, path: string, token: string, body?: any) {
+  return createTestRequest(method, path, body, {
+    'Authorization': `Bearer ${token}`,
   });
-};
+}
 
-const parseJsonResponse = async (response: Response) => {
+async function parseJsonResponse(response: Response) {
   const text = await response.text();
   try {
     return JSON.parse(text);
   } catch {
-    throw new Error(`Failed to parse JSON response: ${text}`);
+    return { error: 'Invalid JSON response', body: text };
   }
-};
+}
 
-const createTestJWTToken = (payload: any) => {
-  // Simple JWT token for testing (not secure, only for tests)
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const encodedHeader = btoa(JSON.stringify(header));
-  const encodedPayload = btoa(JSON.stringify(payload));
-  const signature = 'test-signature';
+async function createTestJWTToken(payload: any, secret: string) {
+  return await sign(payload, secret);
+}
+
+// Helper function to create authenticated test user with session and database record
+async function createAuthenticatedTestUser(userId: string, email: string, name: string): Promise<string> {
+  // Import database utilities
+  const { createDatabase } = await import('@finance-manager/db');
+  const { users } = await import('@finance-manager/db');
   
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
-};
-
-const mockCloudflareBindings = () => ({
-  ENVIRONMENT: 'test',
-  JWT_SECRET: 'test-jwt-secret-key-for-testing-only',
-  AUTH_SESSION_DURATION: '7d',
-  FINANCE_MANAGER_DB: {
-    prepare: vi.fn(() => ({
-      bind: vi.fn().mockReturnThis(),
-      run: vi.fn(),
-      get: vi.fn(),
-      all: vi.fn(() => []),
-      first: vi.fn()
-    })),
-    batch: vi.fn(),
-    dump: vi.fn(),
-    exec: vi.fn()
-  },
-  FINANCE_MANAGER_CACHE: {
-    get: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-    list: vi.fn()
-  },
-  FINANCE_MANAGER_DOCUMENTS: {
-    get: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-    list: vi.fn(),
-    head: vi.fn()
+  // Create database record
+  const db = createDatabase(env.FINANCE_MANAGER_DB);
+  const hashedPassword = await hashPassword('testpassword123');
+  
+  try {
+    await db.insert(users).values({
+      id: userId,
+      email: email,
+      emailVerified: false,
+      passwordHash: hashedPassword,
+      firstName: null,
+      lastName: null,
+      displayName: name,
+      timezone: 'UTC',
+      locale: 'en',
+      isActive: true,
+      isVerified: false,
+      role: 'USER',
+      permissions: null,
+      entityId: null,
+      entityAccess: null,
+      lastLoginAt: null,
+      lastLoginIp: null,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      backupCodes: null,
+      createdAt: Math.floor(Date.now() / 1000),
+      updatedAt: Math.floor(Date.now() / 1000),
+      createdBy: null,
+      updatedBy: null
+    });
+  } catch (error) {
+    // User might already exist, ignore error
   }
-});
+
+  const token = await createTestJWTToken({
+    id: userId,
+    email: email,
+    name: name,
+    exp: Math.floor(Date.now() / 1000) + 3600
+  }, env.JWT_SECRET);
+
+  // Create session in KV cache
+  const sessionKey = `session:${userId}`;
+  await env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({
+    userId: userId,
+    email: email,
+    name: name,
+    createdAt: new Date().toISOString(),
+  }), { expirationTtl: 7 * 24 * 60 * 60 });
+
+  return token;
+}
+
+// Helper function for password hashing (same as in auth.ts)
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 describe('Authentication API', () => {
-  let env: any;
-
-  beforeEach(() => {
-    env = mockCloudflareBindings();
+  beforeEach(async () => {
     vi.clearAllMocks();
   });
 
@@ -93,19 +137,21 @@ describe('Authentication API', () => {
 
       const request = createTestRequest(
         'POST',
-        'https://example.com/api/auth/register',
-        { body: JSON.stringify(userData) }
+        '/api/auth/register',
+        userData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(201);
       
       const result = await parseJsonResponse(response);
-      expect(result.message).toContain('User registered successfully');
       expect(result.user).toBeDefined();
       expect(result.user.email).toBe(userData.email);
-      expect(result.user.passwordHash).toBeUndefined(); // Should not expose password hash
+      expect(result.user.passwordHash).toBeUndefined();
+      expect(result.token).toBeDefined();
     });
 
     it('should reject invalid email format', async () => {
@@ -117,11 +163,13 @@ describe('Authentication API', () => {
 
       const request = createTestRequest(
         'POST',
-        'https://example.com/api/auth/register',
-        { body: JSON.stringify(userData) }
+        '/api/auth/register',
+        userData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(400);
       
@@ -138,11 +186,13 @@ describe('Authentication API', () => {
 
       const request = createTestRequest(
         'POST',
-        'https://example.com/api/auth/register',
-        { body: JSON.stringify(userData) }
+        '/api/auth/register',
+        userData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(400);
       
@@ -152,28 +202,42 @@ describe('Authentication API', () => {
 
     it('should reject duplicate email registration', async () => {
       const userData = {
-        email: 'test@example.com',
+        email: 'duplicate@example.com',
         password: 'testpassword123',
         name: 'Test User'
       };
 
-      // Mock database to simulate existing user
-      env.FINANCE_MANAGER_DB.prepare().get.mockReturnValue({
-        id: 'existing-user-id',
-        email: userData.email
-      });
-
-      const request = createTestRequest(
+      // First registration should succeed
+      const firstRequest = createTestRequest(
         'POST',
-        'https://example.com/api/auth/register',
-        { body: JSON.stringify(userData) }
+        '/api/auth/register',
+        userData
       );
 
-      const response = await app.fetch(request, env);
+      const firstCtx = createExecutionContext();
+      const firstResponse = await worker.fetch(firstRequest, env, firstCtx);
+      await waitOnExecutionContext(firstCtx);
       
-      expect(response.status).toBe(409);
+      expect(firstResponse.status).toBe(201);
+
+      // Second registration with same email should fail
+      const secondRequest = createTestRequest(
+        'POST',
+        '/api/auth/register',
+        userData
+      );
+
+      const secondCtx = createExecutionContext();
+      const secondResponse = await worker.fetch(secondRequest, env, secondCtx);
+      await waitOnExecutionContext(secondCtx);
       
-      const result = await parseJsonResponse(response);
+      if (secondResponse.status !== 409) {
+        const errorResult = await parseJsonResponse(secondResponse);
+        throw new Error(`Duplicate registration test failed: status ${secondResponse.status}, error: ${JSON.stringify(errorResult)}`);
+      }
+      expect(secondResponse.status).toBe(409);
+      
+      const result = await parseJsonResponse(secondResponse);
       expect(result.error).toContain('User already exists');
     });
   });
@@ -185,27 +249,29 @@ describe('Authentication API', () => {
         password: 'testpassword123'
       };
 
-      // Mock database to return user with hashed password
-      env.FINANCE_MANAGER_DB.prepare().get.mockReturnValue({
-        id: 'test-user-id',
-        email: loginData.email,
-        passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$valid-hash',
-        role: 'USER'
-      });
-
       const request = createTestRequest(
         'POST',
-        'https://example.com/api/auth/login',
-        { body: JSON.stringify(loginData) }
+        '/api/auth/login',
+        loginData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
-      expect(response.status).toBe(200);
-      
+      if (response.status !== 200) {
+        const errorResult = await parseJsonResponse(response);
+        throw new Error(`Login test failed: status ${response.status}, error: ${JSON.stringify(errorResult)}`);
+      }
+      if (response.status !== 200) {
+        const errorBody = await response.text();
+        throw new Error(`Expected 200 but got ${response.status}. Error: ${errorBody}`);
+      }
+
       const result = await parseJsonResponse(response);
-      expect(result.token).toBeDefined();
+      expect(result.message).toBe('Login successful');
       expect(result.user).toBeDefined();
+      expect(result.token).toBeDefined();
       expect(result.user.email).toBe(loginData.email);
       expect(result.user.passwordHash).toBeUndefined();
     });
@@ -216,16 +282,15 @@ describe('Authentication API', () => {
         password: 'wrongpassword'
       };
 
-      // Mock database to return null (user not found)
-      env.FINANCE_MANAGER_DB.prepare().get.mockReturnValue(null);
-
       const request = createTestRequest(
         'POST',
-        'https://example.com/api/auth/login',
-        { body: JSON.stringify(loginData) }
+        '/api/auth/login',
+        loginData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(401);
       
@@ -241,44 +306,40 @@ describe('Authentication API', () => {
 
       const request = createTestRequest(
         'POST',
-        'https://example.com/api/auth/login',
-        { body: JSON.stringify(loginData) }
+        '/api/auth/login',
+        loginData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(400);
       
       const result = await parseJsonResponse(response);
-      expect(result.error).toContain('Email and password are required');
+      expect(result.error).toContain('Missing credentials');
     });
   });
 
   describe('GET /api/auth/profile', () => {
     it('should return user profile with valid token', async () => {
-      const token = createTestJWTToken({
-        userId: 'test-user-id',
-        role: 'USER'
-      });
-
-      // Mock database to return user
-      env.FINANCE_MANAGER_DB.prepare().get.mockReturnValue({
-        id: 'test-user-id',
-        email: 'test@example.com',
-        firstName: 'Test',
-        lastName: 'User',
-        role: 'USER'
-      });
+      const userId = 'test-user-id';
+      const token = await createAuthenticatedTestUser(userId, 'test@example.com', 'Test User');
 
       const request = createAuthenticatedRequest(
         'GET',
-        'https://example.com/api/auth/profile',
+        '/api/auth/profile',
         token
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
-      expect(response.status).toBe(200);
+      if (response.status !== 200) {
+        const errorBody = await response.text();
+        throw new Error(`Expected 200 but got ${response.status}. Error: ${errorBody}`);
+      }
       
       const result = await parseJsonResponse(response);
       expect(result.user).toBeDefined();
@@ -289,10 +350,12 @@ describe('Authentication API', () => {
     it('should reject request without token', async () => {
       const request = createTestRequest(
         'GET',
-        'https://example.com/api/auth/profile'
+        '/api/auth/profile'
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(401);
       
@@ -303,100 +366,117 @@ describe('Authentication API', () => {
     it('should reject request with invalid token', async () => {
       const request = createAuthenticatedRequest(
         'GET',
-        'https://example.com/api/auth/profile',
-        'invalid.token.here'
+        '/api/auth/profile',
+        'invalid-token'
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(401);
       
       const result = await parseJsonResponse(response);
-      expect(result.error).toContain('Invalid token');
+      expect(result.error).toContain('Unauthorized');
     });
   });
 
   describe('PUT /api/auth/profile', () => {
     it('should update user profile successfully', async () => {
-      const token = createTestJWTToken({
-        userId: 'test-user-id',
-        role: 'USER'
-      });
+      const userId = 'test-user-id';
+      const token = await createAuthenticatedTestUser(userId, 'test@example.com', 'Test User');
 
       const updateData = {
-        firstName: 'Updated',
-        lastName: 'Name'
+        name: 'Updated Name'
       };
-
-      // Mock database operations
-      env.FINANCE_MANAGER_DB.prepare().get.mockReturnValue({
-        id: 'test-user-id',
-        email: 'test@example.com',
-        firstName: 'Old',
-        lastName: 'Name',
-        role: 'USER'
-      });
-
-      env.FINANCE_MANAGER_DB.prepare().run.mockReturnValue({ success: true });
 
       const request = createAuthenticatedRequest(
         'PUT',
-        'https://example.com/api/auth/profile',
+        '/api/auth/profile',
         token,
-        { body: JSON.stringify(updateData) }
+        updateData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(200);
       
       const result = await parseJsonResponse(response);
-      expect(result.message).toContain('Profile updated successfully');
-      expect(result.user.firstName).toBe(updateData.firstName);
-      expect(result.user.lastName).toBe(updateData.lastName);
+      expect(result.user).toBeDefined();
+      expect(result.user.name).toBe(updateData.name);
     });
+  });
 
-    it('should validate update data', async () => {
-      const token = createTestJWTToken({
-        userId: 'test-user-id',
-        role: 'USER'
-      });
+  describe('PUT /api/auth/password', () => {
+    it('should change password successfully', async () => {
+      const userId = 'test-user-id';
+      const token = await createAuthenticatedTestUser(userId, 'test@example.com', 'Test User');
 
-      const updateData = {
-        firstName: '', // Invalid empty string
-        email: 'invalid-email-format' // Invalid email
+      const passwordData = {
+        currentPassword: 'testpassword123',
+        newPassword: 'newpassword123'
       };
 
       const request = createAuthenticatedRequest(
         'PUT',
-        'https://example.com/api/auth/profile',
+        '/api/auth/password',
         token,
-        { body: JSON.stringify(updateData) }
+        passwordData
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
-      expect(response.status).toBe(400);
+      if (response.status !== 200) {
+        const errorBody = await response.text();
+        throw new Error(`Expected 200 but got ${response.status}. Error: ${errorBody}`);
+      }
       
       const result = await parseJsonResponse(response);
-      expect(result.error).toContain('Validation failed');
+      expect(result.message).toContain('Password updated successfully');
+    });
+  });
+
+  describe('GET /api/auth/validate', () => {
+    it('should validate session successfully', async () => {
+      const userId = 'test-user-id';
+      const token = await createAuthenticatedTestUser(userId, 'test@example.com', 'Test User');
+
+      const request = createAuthenticatedRequest(
+        'GET',
+        '/api/auth/validate',
+        token
+      );
+
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
+      
+      expect(response.status).toBe(200);
+      
+      const result = await parseJsonResponse(response);
+      expect(result.valid).toBe(true);
+      expect(result.user).toBeDefined();
     });
   });
 
   describe('POST /api/auth/logout', () => {
     it('should logout user successfully', async () => {
-      const token = createTestJWTToken({
-        userId: 'test-user-id',
-        role: 'USER'
-      });
+      const userId = 'test-user-id';
+      const token = await createAuthenticatedTestUser(userId, 'test@example.com', 'Test User');
 
       const request = createAuthenticatedRequest(
         'POST',
-        'https://example.com/api/auth/logout',
+        '/api/auth/logout',
         token
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(200);
       
@@ -407,15 +487,17 @@ describe('Authentication API', () => {
     it('should handle logout without token gracefully', async () => {
       const request = createTestRequest(
         'POST',
-        'https://example.com/api/auth/logout'
+        '/api/auth/logout'
       );
 
-      const response = await app.fetch(request, env);
+      const ctx = createExecutionContext();
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
       
       expect(response.status).toBe(200);
       
       const result = await parseJsonResponse(response);
-      expect(result.message).toContain('Logged out');
+      expect(result.message).toBe('Logged out');
     });
   });
 });

@@ -4,11 +4,19 @@ import uploadsRouter from '../../src/routes/api/uploads';
 
 // Mock the dependencies
 vi.mock('../../src/middleware/auth', () => ({
-  authMiddleware: vi.fn((c, next) => next())
+  authMiddleware: vi.fn((c, next) => next()),
+  getCurrentUser: vi.fn(() => ({ id: 'test-user-id', email: 'test@example.com' }))
 }));
 
 vi.mock('../../src/utils/ocr', () => ({
-  extractTextFromDocument: vi.fn().mockResolvedValue('Sample extracted text')
+  extractTextFromDocument: vi.fn().mockResolvedValue('Sample extracted text'),
+  createOCRLogger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    databaseOperation: vi.fn()
+  })),
+  generateSearchableText: vi.fn((text) => text.toLowerCase())
 }));
 
 vi.mock('@finance-manager/db', () => ({
@@ -23,7 +31,38 @@ vi.mock('@finance-manager/db', () => ({
         where: vi.fn().mockResolvedValue([{ id: 1, filename: 'test.pdf', content: 'Sample content' }])
       })
     })
-  })
+  }),
+  createRawDoc: vi.fn().mockResolvedValue({ success: true, data: { id: 'test-doc-id' } }),
+  updateRawDocOCR: vi.fn().mockResolvedValue({ success: true })
+}));
+
+// Create mock functions that can be reconfigured per test
+const mockEmbedDocument = vi.fn().mockResolvedValue({ success: true, chunksCreated: 1 });
+const mockSearchByText = vi.fn().mockResolvedValue({
+  success: true,
+  results: [{ id: 'doc-1', score: 0.95, metadata: { filename: 'test.pdf' } }],
+  totalMatches: 1,
+  threshold: 0.8,
+  processingTime: 100
+});
+
+vi.mock('@finance-manager/ai', () => ({
+  createVectorizeService: vi.fn(() => ({
+    embedDocument: mockEmbedDocument,
+    searchByText: mockSearchByText
+  })),
+  AIService: vi.fn(() => ({
+    classifyDocument: vi.fn().mockResolvedValue({
+      type: 'invoice',
+      confidence: 0.95,
+      subtype: 'standard'
+    }),
+    extractStructuredData: vi.fn().mockResolvedValue({
+      amount: 100,
+      date: '2024-01-01',
+      vendor: 'Test Vendor'
+    })
+  }))
 }));
 
 describe('Uploads API', () => {
@@ -33,6 +72,17 @@ describe('Uploads API', () => {
   beforeEach(() => {
     app = new Hono();
     app.route('/api/uploads', uploadsRouter);
+    
+    // Reset mocks
+    vi.clearAllMocks();
+    mockEmbedDocument.mockResolvedValue({ success: true, chunksCreated: 1 });
+    mockSearchByText.mockResolvedValue({
+      success: true,
+      results: [{ id: 'doc-1', score: 0.95, metadata: { filename: 'test.pdf' } }],
+      totalMatches: 1,
+      threshold: 0.8,
+      processingTime: 100
+    });
     
     mockEnv = {
       FINANCE_MANAGER_DB: {
@@ -302,7 +352,8 @@ describe('Uploads API', () => {
 
   describe('Error Handling', () => {
     it('should handle Vectorize insertion errors gracefully', async () => {
-      mockEnv.VECTORIZE_INDEX.insert.mockRejectedValueOnce(new Error('Vectorize error'));
+      // Mock the embedDocument to fail when Vectorize fails
+      mockEmbedDocument.mockResolvedValueOnce({ success: false, error: 'Vectorize error' });
       
       const formData = new FormData();
       const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
@@ -323,7 +374,8 @@ describe('Uploads API', () => {
     });
 
     it('should handle AI embedding generation errors', async () => {
-      mockEnv.AI.run.mockRejectedValueOnce(new Error('AI service error'));
+      // Mock the searchByText to throw an error
+      mockSearchByText.mockRejectedValueOnce(new Error('AI service error'));
       
       const req = new Request('http://localhost/api/uploads/search', {
         method: 'POST',

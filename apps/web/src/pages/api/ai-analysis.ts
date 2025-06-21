@@ -10,7 +10,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { type, data, options } = await request.json();
+    const { type, data } = await request.json();
 
     // Initialize AI service
     const aiService = createAIService();
@@ -87,4 +87,4 @@ export const OPTIONS: APIRoute = async () => {
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   });
-}; 
+};

@@ -11,6 +11,7 @@ export * from "./documents";
 import { accounts } from "./accounts";
 import { transactions, journalEntries } from "./transactions";
 import { users, sessions, magicLinks, auditLog } from "./auth";
+import { rawDocs } from "./documents";
 export const schema = {
     accounts,
     transactions,
@@ -19,6 +20,7 @@ export const schema = {
     sessions,
     magicLinks,
     auditLog,
+    rawDocs,
 };
 // Database relations
 import { relations } from "drizzle-orm";

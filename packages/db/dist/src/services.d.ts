@@ -2,7 +2,9 @@
  * Database Services
  * Corporate Finance Manager - Database service layer with user management
  */
+import type { D1Database } from "@cloudflare/workers-types";
 import type { Database } from "./index";
+import * as schema from "./schema";
 /**
  * User data for creation
  */
@@ -28,7 +30,7 @@ export interface UpdateUserData {
  * Database service class with user management methods
  */
 export declare class DatabaseService {
-    private db;
+    db: Database;
     constructor(db: Database);
     /**
      * Get user by email
@@ -195,147 +197,5 @@ export declare function createDatabaseService(database: Database): DatabaseServi
  */
 export declare function createEnhancedDatabase(d1Database: D1Database): import("drizzle-orm/d1").DrizzleD1Database<typeof schema> & {
     $client: D1Database;
-} & {
-    getUserByEmail: (email: string) => Promise<{
-        id: string;
-        email: string;
-        emailVerified: boolean;
-        passwordHash: string | null;
-        firstName: string | null;
-        lastName: string | null;
-        displayName: string | null;
-        timezone: string | null;
-        locale: string | null;
-        isActive: boolean;
-        isVerified: boolean;
-        role: string;
-        permissions: string | null;
-        entityId: string | null;
-        entityAccess: string | null;
-        lastLoginAt: Date | null;
-        lastLoginIp: string | null;
-        failedLoginAttempts: number;
-        lockedUntil: Date | null;
-        twoFactorEnabled: boolean;
-        twoFactorSecret: string | null;
-        backupCodes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
-    }>;
-    getUserById: (id: string) => Promise<{
-        id: string;
-        email: string;
-        emailVerified: boolean;
-        passwordHash: string | null;
-        firstName: string | null;
-        lastName: string | null;
-        displayName: string | null;
-        timezone: string | null;
-        locale: string | null;
-        isActive: boolean;
-        isVerified: boolean;
-        role: string;
-        permissions: string | null;
-        entityId: string | null;
-        entityAccess: string | null;
-        lastLoginAt: Date | null;
-        lastLoginIp: string | null;
-        failedLoginAttempts: number;
-        lockedUntil: Date | null;
-        twoFactorEnabled: boolean;
-        twoFactorSecret: string | null;
-        backupCodes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
-    }>;
-    createUser: (userData: CreateUserData) => Promise<{
-        id: string;
-        isActive: boolean;
-        entityId: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
-        email: string;
-        emailVerified: boolean;
-        passwordHash: string | null;
-        firstName: string | null;
-        lastName: string | null;
-        displayName: string | null;
-        timezone: string | null;
-        locale: string | null;
-        isVerified: boolean;
-        role: string;
-        permissions: string | null;
-        entityAccess: string | null;
-        lastLoginAt: Date | null;
-        lastLoginIp: string | null;
-        failedLoginAttempts: number;
-        lockedUntil: Date | null;
-        twoFactorEnabled: boolean;
-        twoFactorSecret: string | null;
-        backupCodes: string | null;
-    }>;
-    updateUser: (id: string, userData: UpdateUserData) => Promise<{
-        id: string;
-        isActive: boolean;
-        entityId: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
-        email: string;
-        emailVerified: boolean;
-        passwordHash: string | null;
-        firstName: string | null;
-        lastName: string | null;
-        displayName: string | null;
-        timezone: string | null;
-        locale: string | null;
-        isVerified: boolean;
-        role: string;
-        permissions: string | null;
-        entityAccess: string | null;
-        lastLoginAt: Date | null;
-        lastLoginIp: string | null;
-        failedLoginAttempts: number;
-        lockedUntil: Date | null;
-        twoFactorEnabled: boolean;
-        twoFactorSecret: string | null;
-        backupCodes: string | null;
-    }>;
-    deleteUser: (id: string) => Promise<{
-        id: string;
-        isActive: boolean;
-        entityId: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
-        email: string;
-        emailVerified: boolean;
-        passwordHash: string | null;
-        firstName: string | null;
-        lastName: string | null;
-        displayName: string | null;
-        timezone: string | null;
-        locale: string | null;
-        isVerified: boolean;
-        role: string;
-        permissions: string | null;
-        entityAccess: string | null;
-        lastLoginAt: Date | null;
-        lastLoginIp: string | null;
-        failedLoginAttempts: number;
-        lockedUntil: Date | null;
-        twoFactorEnabled: boolean;
-        twoFactorSecret: string | null;
-        backupCodes: string | null;
-    }>;
 };
-import * as schema from "./schema";
 //# sourceMappingURL=services.d.ts.map

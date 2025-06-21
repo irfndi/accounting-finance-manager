@@ -196,9 +196,9 @@ describe('Vectorize Integration', () => {
             const result = await mockEnv.VECTORIZE_INDEX.query(queryVector, { topK: 10 });
             // Filter results by similarity threshold
             const threshold = 0.7;
-            const filteredResults = result.matches.filter(match => match.score >= threshold);
+            const filteredResults = result.matches.filter((match) => match.score >= threshold);
             expect(filteredResults).toHaveLength(2);
-            expect(filteredResults.every(match => match.score >= threshold)).toBe(true);
+            expect(filteredResults.every((match) => match.score >= threshold)).toBe(true);
         });
     });
     describe('Vector Management', () => {
@@ -233,7 +233,7 @@ describe('Vectorize Integration', () => {
                 });
             }
             catch (error) {
-                expect(error.message).toBe('AI service unavailable');
+                expect(error instanceof Error ? error.message : 'Unknown error').toBe('AI service unavailable');
             }
         });
         it('should handle Vectorize insertion failures', async () => {
@@ -247,7 +247,7 @@ describe('Vectorize Integration', () => {
                 await mockEnv.VECTORIZE_INDEX.insert([vector]);
             }
             catch (error) {
-                expect(error.message).toBe('Vectorize insertion failed');
+                expect(error instanceof Error ? error.message : 'Unknown error').toBe('Vectorize insertion failed');
             }
         });
         it('should handle Vectorize query failures', async () => {
@@ -257,7 +257,7 @@ describe('Vectorize Integration', () => {
                 await mockEnv.VECTORIZE_INDEX.query(queryVector, { topK: 5 });
             }
             catch (error) {
-                expect(error.message).toBe('Vectorize query failed');
+                expect(error instanceof Error ? error.message : 'Unknown error').toBe('Vectorize query failed');
             }
         });
         it('should handle malformed metadata', async () => {

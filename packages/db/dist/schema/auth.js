@@ -1,6 +1,5 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 /**
  * Users - Core user management for authentication
  * Supports email-based authentication with magic links and optional password

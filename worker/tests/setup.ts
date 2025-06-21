@@ -1,121 +1,79 @@
-import { vi } from 'vitest';
-import { Miniflare } from 'miniflare';
-
-// Mock Cloudflare Worker environment
-const miniflare = new Miniflare({
-  modules: true,
-  script: '',
-  bindings: {
-    ENVIRONMENT: 'test',
-    JWT_SECRET: 'test-jwt-secret-key-for-testing-only',
-    AUTH_SESSION_DURATION: '7d'
-  },
-  kvNamespaces: ['FINANCE_MANAGER_CACHE'],
-  r2Buckets: ['FINANCE_MANAGER_DOCUMENTS'],
-  d1Databases: ['FINANCE_MANAGER_DB']
-});
+import { beforeEach, vi } from 'vitest'
+import { env } from 'cloudflare:test'
+import type { Env } from '../src/types'
+import { sign } from 'hono/jwt'
 
 // Global test utilities for API testing
 declare global {
-  var miniflare: Miniflare;
   var workerTestUtils: {
     createTestRequest: (method: string, url: string, options?: RequestInit) => Request;
     createAuthenticatedRequest: (method: string, url: string, token: string, options?: RequestInit) => Request;
     parseJsonResponse: (response: Response) => Promise<any>;
     createMockFormData: (files?: File[]) => FormData;
-    createTestJWTToken: (payload: any) => string;
-    mockCloudflareBindings: () => any;
+    createTestJWTToken: (payload: any, secret?: string) => Promise<string>;
   };
 }
 
-globalThis.miniflare = miniflare;
+vi.mock('@finance-manager/core', () => ({
+  // Add mocks for any functions/objects you use from @finance-manager/core
+}));
+
+const createTestRequest = (method: string, url: string, options: RequestInit = {}) => {
+  return new Request(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers
+    },
+    ...options
+  });
+};
+
+const createAuthenticatedRequest = (method: string, url: string, token: string, options: RequestInit = {}) => {
+  return new Request(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...options.headers
+    },
+    ...options
+  });
+};
+
+const parseJsonResponse = async (response: Response) => {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Failed to parse JSON response: ${text}`);
+  }
+};
+
+const createMockFormData = (files: File[] = []) => {
+  const formData = new FormData();
+  
+  files.forEach((file, index) => {
+    formData.append(`file${index}`, file);
+  });
+  
+  formData.append('description', 'Test file upload');
+  formData.append('category', 'receipt');
+  
+  return formData;
+};
+
+const createTestJWTToken = async (payload: any, secret?: string) => {
+  const jwtSecret = secret || 'test-jwt-secret-key-for-testing-only';
+  return await sign(payload, jwtSecret);
+};
 
 globalThis.workerTestUtils = {
-  createTestRequest: (method: string, url: string, options: RequestInit = {}) => {
-    return new Request(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
-    });
-  },
-
-  createAuthenticatedRequest: (method: string, url: string, token: string, options: RequestInit = {}) => {
-    return new Request(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-      },
-      ...options
-    });
-  },
-
-  parseJsonResponse: async (response: Response) => {
-    const text = await response.text();
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error(`Failed to parse JSON response: ${text}`);
-    }
-  },
-
-  createMockFormData: (files: File[] = []) => {
-    const formData = new FormData();
-    
-    files.forEach((file, index) => {
-      formData.append(`file${index}`, file);
-    });
-    
-    formData.append('description', 'Test file upload');
-    formData.append('category', 'receipt');
-    
-    return formData;
-  },
-
-  createTestJWTToken: (payload: any) => {
-    // Simple JWT token for testing (not secure, only for tests)
-    const header = { alg: 'HS256', typ: 'JWT' };
-    const encodedHeader = btoa(JSON.stringify(header));
-    const encodedPayload = btoa(JSON.stringify(payload));
-    const signature = 'test-signature';
-    
-    return `${encodedHeader}.${encodedPayload}.${signature}`;
-  },
-
-  mockCloudflareBindings: () => ({
-    ENVIRONMENT: 'test',
-    JWT_SECRET: 'test-jwt-secret-key-for-testing-only',
-    AUTH_SESSION_DURATION: '7d',
-    FINANCE_MANAGER_DB: {
-      prepare: vi.fn(() => ({
-        bind: vi.fn().mockReturnThis(),
-        run: vi.fn(),
-        get: vi.fn(),
-        all: vi.fn(() => []),
-        first: vi.fn()
-      })),
-      batch: vi.fn(),
-      dump: vi.fn(),
-      exec: vi.fn()
-    },
-    FINANCE_MANAGER_CACHE: {
-      get: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn(),
-      list: vi.fn()
-    },
-    FINANCE_MANAGER_DOCUMENTS: {
-      get: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn(),
-      list: vi.fn(),
-      head: vi.fn()
-    }
-  })
+  createTestRequest,
+  createAuthenticatedRequest,
+  parseJsonResponse,
+  createMockFormData,
+  createTestJWTToken
 };
 
 // Mock fetch for external API calls

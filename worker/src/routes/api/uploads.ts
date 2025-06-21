@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types';
 import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+import type { AppContext } from '../../types';
 import { processOCR, isOCRSupported, type OCRResult } from '../../utils/ocr';
 import { createDatabase } from '@finance-manager/db';
 import { 
@@ -10,27 +10,19 @@ import {
   getRawDocByFileId, 
   generateSearchableText,
   parseTags,
+  getUploadStats,
   type CreateRawDocData,
   type UpdateOCRData
 } from '../../utils/raw-docs';
 import { createOCRLogger } from '../../utils/logger';
-import { FinancialAIService } from '@finance-manager/ai/services/financial-ai';
+import { FinancialAIService } from '@finance-manager/ai';
 import { createVectorizeService, AIService } from '@finance-manager/ai';
-import { OpenRouterProvider } from '@finance-manager/ai/providers/openrouter';
-import type { DocumentClassification } from '@finance-manager/ai/types';
+import { OpenRouterProvider } from '@finance-manager/ai';
+import type { DocumentClassification } from '@finance-manager/ai';
 
-type Env = {
-  FINANCE_MANAGER_DB: D1Database;
-  FINANCE_MANAGER_CACHE: KVNamespace;
-  FINANCE_MANAGER_DOCUMENTS: R2Bucket;
-  AI: Ai;
-  DOCUMENT_EMBEDDINGS: Vectorize;
-  JWT_SECRET?: string;
-  ENVIRONMENT?: string;
-  OPENROUTER_API_KEY?: string;
-};
 
-const uploads = new Hono<{ Bindings: Env }>()
+
+const uploads = new Hono<AppContext>()
 
 uploads.use('/*', authMiddleware);
 
@@ -59,7 +51,8 @@ function generateUUID(): string {
 }
 
 // Helper function to create AI service
-function createFinancialAIService(env: Env): FinancialAIService | null {
+function createFinancialAIService(c: AppContext): FinancialAIService | null {
+  const env = c.Bindings;
   try {
     if (!env.OPENROUTER_API_KEY) {
       console.warn('⚠️ OpenRouter API key not found, LLM features disabled');
@@ -68,12 +61,12 @@ function createFinancialAIService(env: Env): FinancialAIService | null {
 
     const provider = new OpenRouterProvider({
       apiKey: env.OPENROUTER_API_KEY,
-      baseURL: 'https://openrouter.ai/api/v1'
+      baseUrl: 'https://openrouter.ai/api/v1',
+      modelId: 'anthropic/claude-3.5-sonnet'
     });
 
     const aiService = new AIService({
-      providers: [provider],
-      defaultModel: 'meta-llama/llama-3.1-8b-instruct:free'
+      primaryProvider: provider
     });
 
     return new FinancialAIService(aiService);
@@ -84,7 +77,8 @@ function createFinancialAIService(env: Env): FinancialAIService | null {
 }
 
 // Helper function to create vectorize service
-function createVectorizeServiceInstance(vectorize: Vectorize, ai: Ai): ReturnType<typeof createVectorizeService> {
+function createVectorizeServiceInstance(c: any): ReturnType<typeof createVectorizeService> {
+  const { DOCUMENT_EMBEDDINGS: vectorize, AI: ai } = c.env;
   return createVectorizeService({
     vectorize,
     ai,
@@ -111,7 +105,7 @@ function isValidFileSize(file: File): boolean {
 }
 
 // Helper function to create file metadata
-function createFileMetadata(file: File, fileId: string, userId: string) {
+function createFileMetadata(file: File, fileId: string, userId: string, entityId?: string) {
   return {
     id: fileId,
     originalName: file.name,
@@ -250,7 +244,7 @@ uploads.post('/', async (c) => {
         ocrResult = await processOCR(c.env.AI, fileBuffer, file.type, {
           maxTextLength: 50000, // Limit text to 50KB
           includeConfidence: true
-        });
+        }, fileId);
         
         console.log(`OCR processing for ${fileId}:`, {
           success: ocrResult.success === true,
@@ -263,7 +257,7 @@ uploads.post('/', async (c) => {
 
         // Process with LLM if OCR was successful
         if (ocrResult.success === true && ocrResult.text) {
-          const aiService = createFinancialAIService(c.env);
+          const aiService = createFinancialAIService({ Bindings: c.env, Variables: c.var } as AppContext);
           if (aiService) {
             try {
               // Classify the document
@@ -273,19 +267,20 @@ uploads.post('/', async (c) => {
               });
 
               console.log(`Document classification for ${fileId}:`, {
-                type: documentClassification.type,
-                confidence: documentClassification.confidence,
-                subtype: documentClassification.subtype
+                type: documentClassification?.type,
+                confidence: documentClassification?.confidence,
+                subtype: documentClassification?.subtype
               });
 
               // Extract structured data based on classification
-              if (documentClassification.confidence > 0.6) {
+              if (documentClassification && documentClassification.confidence > 0.6) {
                 structuredData = await aiService.extractDocumentData(
                   {
                     text: ocrResult.text,
                     confidence: ocrResult.confidence || 0
                   },
-                  documentClassification.type === 'other' ? undefined : documentClassification.type
+                  documentClassification?.type === 'other' ? undefined : 
+                  (documentClassification?.type as 'receipt' | 'invoice' | 'bank_statement' | undefined)
                 );
 
                 console.log(`Data extraction for ${fileId}:`, {
@@ -300,9 +295,9 @@ uploads.post('/', async (c) => {
                     db,
                     fileId,
                     {
-                      documentType: documentClassification.type,
+                      documentType: documentClassification?.type || 'unknown',
                       structuredData: structuredData ? JSON.stringify(structuredData) : undefined,
-                      llmConfidence: documentClassification.confidence,
+                      llmConfidence: documentClassification?.confidence || 0,
                       llmProcessedAt: new Date()
                     },
                     user.id
@@ -319,11 +314,11 @@ uploads.post('/', async (c) => {
 
                 // Generate document embeddings for semantic search
                 try {
-                  const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS, c.env.AI);
+                  const vectorizeService = createVectorizeServiceInstance(c);
                   const textForEmbedding = ocrResult.text || '';
                   const embeddingMetadata = {
-                    documentType: documentClassification.type,
-                    confidence: documentClassification.confidence,
+                    documentType: documentClassification?.type || 'unknown',
+                    confidence: documentClassification?.confidence || 0,
                     fileName: file.name,
                     mimeType: file.type,
                     userId: user.id,
@@ -348,13 +343,15 @@ uploads.post('/', async (c) => {
                 }
               }
             } catch (aiError) {
-              console.error('LLM processing failed:', aiError);
+              const errorMessage = aiError instanceof Error ? aiError.message : 'Unknown error during LLM processing';
+              console.error('LLM processing failed:', errorMessage);
               // Continue with upload even if LLM processing fails
             }
           }
         }
       } catch (error) {
-        console.error('OCR processing failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error during OCR processing';
+        console.error('OCR processing failed:', errorMessage);
         // Continue with upload even if OCR fails
         ocrResult = {
           success: false,
@@ -365,16 +362,11 @@ uploads.post('/', async (c) => {
       }
     }
 
-    // Create file stream for R2 upload (recreate from buffer if OCR was processed)
-    const fileStream = fileBuffer ? new ReadableStream({
-      start(controller) {
-        controller.enqueue(new Uint8Array(fileBuffer!));
-        controller.close();
-      }
-    }) : file.stream();
+    // Create file data for R2 upload (use buffer if OCR was processed, otherwise convert stream)
+    const fileData = fileBuffer ? fileBuffer : await file.arrayBuffer();
 
     // Upload to R2
-    const uploadResult = await c.env.FINANCE_MANAGER_DOCUMENTS.put(storedFileName, fileStream, {
+    const uploadResult = await c.env.FINANCE_MANAGER_DOCUMENTS.put(storedFileName, fileData, {
       httpMetadata: {
         contentType: file.type,
         contentDisposition: `attachment; filename="${file.name}"`
@@ -423,14 +415,15 @@ uploads.post('/', async (c) => {
       // Create raw document record
       const createDocData: CreateRawDocData = {
         fileId: fileId,
+        filename: file.name,
         originalName: file.name,
         mimeType: file.type,
+        size: file.size,
         fileSize: file.size,
         r2Key: storedFileName,
         uploadedBy: user.id,
         description: metadata.description,
         tags: metadata.tags,
-        entityId: user.entityId,
         status: 'UPLOADED'
       };
 
@@ -447,13 +440,13 @@ uploads.post('/', async (c) => {
       if (ocrResult) {
         const updateData: UpdateOCRData = {
           ocrStatus: ocrResult.success === true ? 'COMPLETED' : 'FAILED',
-          extractedText: ocrResult.text || null,
+          extractedText: ocrResult.text || undefined,
           textLength: ocrResult.text?.length || 0,
           ocrConfidence: ocrResult.confidence,
           ocrProcessingTime: ocrResult.processingTime,
-          ocrErrorMessage: ocrResult.error || null,
+          ocrErrorMessage: ocrResult.error || undefined,
           ocrProcessedAt: new Date(),
-          searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : null
+          searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : undefined
         };
 
         const updateResult = await updateRawDocOCR(db, fileId, updateData, user.id);
@@ -483,7 +476,7 @@ uploads.post('/', async (c) => {
       });
       
     } catch (dbError) {
-      logger.error('Failed to store document in database', dbError, {
+      logger.error('Failed to store document in database', dbError as Error, {
         fileId,
         operation: 'DATABASE_FAILURE'
       });
@@ -536,7 +529,8 @@ uploads.post('/', async (c) => {
     }, 201);
 
   } catch (error) {
-    console.error('Upload error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error during upload';
+    console.error('Upload error:', errorMessage);
     return c.json({
       success: false,
       error: 'Internal server error during upload'
@@ -628,7 +622,7 @@ uploads.get('/:fileId', async (c) => {
       headers.set('Content-Disposition', `inline; filename="${originalName}"`);
     }
 
-    return new Response(object.body, {
+    return new Response(object.body as ReadableStream, {
       headers
     });
 
@@ -702,7 +696,7 @@ uploads.delete('/:fileId', async (c) => {
 
     // Check if user owns the file (or is admin)
     const uploadedBy = object.customMetadata?.uploadedBy;
-    if (uploadedBy !== user.id && user.role !== 'ADMIN') {
+    if (uploadedBy !== user.id) {
       return c.json({
         success: false,
         error: 'Not authorized to delete this file'
@@ -816,7 +810,7 @@ uploads.get('/', async (c) => {
         }
 
         // Filter by user (non-admin users can only see their own files)
-        if (user.role !== 'ADMIN' && metadata.uploadedBy !== user.id) {
+        if (metadata.uploadedBy !== user.id) {
           return null;
         }
 
@@ -831,7 +825,6 @@ uploads.get('/', async (c) => {
       success: true,
       data: {
         files: validFiles,
-        cursor: result.cursor,
         hasMore: result.truncated,
         total: validFiles.length
       }
@@ -905,7 +898,7 @@ uploads.get('/:fileId/metadata', async (c) => {
 
     // Check access permissions
     const uploadedBy = object.customMetadata?.uploadedBy;
-    if (uploadedBy !== user.id && user.role !== 'ADMIN') {
+    if (uploadedBy !== user.id) {
       return c.json({
         success: false,
         error: 'Not authorized to access this file'
@@ -1041,7 +1034,7 @@ uploads.post('/:fileId/ocr', async (c) => {
 
     // Check if user owns the file (or is admin)
     const uploadedBy = object.customMetadata?.uploadedBy;
-    if (uploadedBy !== user.id && user.role !== 'ADMIN') {
+    if (uploadedBy !== user.id) {
       return c.json({
         success: false,
         error: 'Not authorized to process this file'
@@ -1083,7 +1076,7 @@ uploads.post('/:fileId/ocr', async (c) => {
 
     // Process OCR
     const fileData = await object.arrayBuffer();
-    const ocrResult = await processOCR(c.env.AI, fileData, mimeType, options);
+    const ocrResult = await processOCR(c.env.AI, fileData, mimeType, options, fileId);
 
     // Store/update OCR results in database
     try {
@@ -1096,33 +1089,35 @@ uploads.post('/:fileId/ocr', async (c) => {
         // Create document record if it doesn't exist
         const createDocData: CreateRawDocData = {
           fileId: fileId,
+          filename: object.customMetadata?.originalName || fileObject.key,
           originalName: object.customMetadata?.originalName || fileObject.key,
           mimeType: object.httpMetadata?.contentType || 'application/octet-stream',
+          size: fileObject.size,
           fileSize: fileObject.size,
           r2Key: fileObject.key,
           uploadedBy: user.id,
           description: object.customMetadata?.description,
           tags: object.customMetadata?.tags ? parseTags(object.customMetadata.tags) : [],
-          entityId: user.entityId
+          status: 'UPLOADED'
         };
 
-        rawDoc = await createRawDoc(db, createDocData, user.id);
+        rawDoc = await createRawDoc(db, createDocData);
       }
 
       // Update with OCR results
       const updateData: UpdateOCRData = {
         ocrStatus: ocrResult.success === true ? 'COMPLETED' : 'FAILED',
-        extractedText: ocrResult.text || null,
+        extractedText: ocrResult.text || undefined,
         textLength: ocrResult.text?.length || 0,
         ocrConfidence: ocrResult.confidence,
         ocrProcessingTime: ocrResult.processingTime,
-        ocrErrorMessage: ocrResult.error || null,
+        ocrErrorMessage: ocrResult.error || undefined,
         ocrErrorCode: ocrResult.errorCode,
         ocrFallbackUsed: ocrResult.fallbackUsed,
         ocrRetryable: ocrResult.retryable,
         ocrMaxRetries: ocrResult.maxRetries,
         ocrProcessedAt: new Date(),
-        searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : null
+        searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : undefined
       };
 
       await updateRawDocOCR(db, fileId, updateData, user.id);
@@ -1277,7 +1272,7 @@ uploads.get('/:fileId/ocr', async (c) => {
 
     // Check access permissions
     const uploadedBy = object.customMetadata?.uploadedBy;
-    if (uploadedBy !== user.id && user.role !== 'ADMIN') {
+    if (uploadedBy !== user.id) {
       return c.json({
         success: false,
         error: 'Not authorized to access this file'
@@ -1298,7 +1293,7 @@ uploads.get('/:fileId/ocr', async (c) => {
     const ocrSuccess = object.customMetadata?.ocrSuccess === 'true';
     
     // Prepare OCR response
-    const ocrData = {
+    const ocrData: any = {
       processed: true,
       success: ocrSuccess,
       textLength: parseInt(object.customMetadata?.ocrTextLength || '0'),
@@ -1443,7 +1438,7 @@ uploads.post('/search', async (c) => {
     }
 
     // Create vectorize service and perform semantic search
-    const vectorizeService = createVectorizeServiceInstance(c.env.DOCUMENT_EMBEDDINGS);
+    const vectorizeService = createVectorizeServiceInstance(c);
     const searchResponse = await vectorizeService.searchByText(query, {
       topK: limit,
       threshold,
@@ -1487,7 +1482,8 @@ uploads.post('/search', async (c) => {
   } catch (error) {
     console.error('Semantic search error:', error);
     return c.json({
-      error: 'Failed to perform semantic search',
+      success: false,
+      error: 'Failed to generate embeddings',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }

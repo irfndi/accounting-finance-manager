@@ -2,8 +2,7 @@
  * Raw Documents Database Utilities
  * Handles CRUD operations for the raw_docs table
  */
-import { eq, desc, like, or, and } from "@finance-manager/db";
-import { gte, lte } from "drizzle-orm";
+import { eq, desc, like, or, and, gte, lte, count } from "drizzle-orm";
 import { rawDocs } from "@finance-manager/db";
 import { createOCRLogger, DatabaseError, withOCRErrorBoundary } from './logger';
 /**
@@ -17,7 +16,7 @@ export async function createRawDoc(db, data) {
     });
     try {
         const result = await withOCRErrorBoundary('Create Raw Document', async () => {
-            const now = Math.floor(new Date().getTime() / 1000);
+            const now = new Date();
             const tagsString = data.tags ? data.tags.join(',') : '';
             const newDoc = {
                 fileId: data.fileId,
@@ -78,8 +77,8 @@ export async function updateRawDocOCR(db, fileId, ocrData, updatedBy) {
                 ocrStatus: ocrData.ocrStatus,
                 ocrErrorMessage: ocrData.ocrErrorMessage,
                 searchableText: searchableText,
-                ocrProcessedAt: ocrData.ocrProcessedAt ? Math.floor(ocrData.ocrProcessedAt.getTime() / 1000) : null,
-                updatedAt: Math.floor(now.getTime() / 1000),
+                ocrProcessedAt: ocrData.ocrProcessedAt || null,
+                updatedAt: now,
                 updatedBy: updatedBy || null
             };
             // Remove undefined values
@@ -126,8 +125,8 @@ export async function updateRawDocLLM(db, fileId, llmData, updatedBy) {
                 documentType: llmData.documentType || null,
                 structuredData: llmData.structuredData || null,
                 llmConfidence: llmData.llmConfidence || null,
-                llmProcessedAt: llmData.llmProcessedAt ? Math.floor(llmData.llmProcessedAt.getTime() / 1000) : null,
-                updatedAt: Math.floor(now.getTime() / 1000),
+                llmProcessedAt: llmData.llmProcessedAt || null,
+                updatedAt: now,
                 updatedBy: updatedBy || null
             };
             // Remove undefined values
@@ -236,12 +235,11 @@ export async function searchRawDocs(db, filters = {}, limit = 50, offset = 0) {
                 query = query.where(and(...conditions));
             }
             // Get total count
-            const countQuery = db.select().from(rawDocs);
-            if (conditions.length > 0) {
-                countQuery.where(and(...conditions));
-            }
+            const countQuery = conditions.length > 0
+                ? db.select({ count: count() }).from(rawDocs).where(and(...conditions))
+                : db.select({ count: count() }).from(rawDocs);
             const totalResult = await countQuery;
-            const total = totalResult.length;
+            const total = totalResult[0]?.count || 0;
             // Apply ordering, limit, and offset
             const docs = await query
                 .orderBy(desc(rawDocs.createdAt))
@@ -380,7 +378,53 @@ export async function getOCRStats(db, userId) {
     }
     catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.databaseOperation('stats', 'multiple', false, error);
+        logger.databaseOperation('stats', 'multiple', false, error instanceof Error ? error : new Error(String(error)));
+        return { success: false, error: errorMessage };
+    }
+}
+/**
+ * Get upload statistics
+ */
+export async function getUploadStats(db, userId) {
+    const logger = createOCRLogger({
+        userId,
+        operation: 'GET_UPLOAD_STATS'
+    });
+    try {
+        const result = await withOCRErrorBoundary('Get Upload Statistics', async () => {
+            const baseQuery = db.select().from(rawDocs);
+            const query = userId
+                ? baseQuery.where(eq(rawDocs.uploadedBy, userId))
+                : baseQuery;
+            const docs = await query;
+            const stats = {
+                total: docs.length,
+                pending: docs.filter(d => d.ocrStatus === 'PENDING').length,
+                processing: docs.filter(d => d.ocrStatus === 'PROCESSING').length,
+                completed: docs.filter(d => d.ocrStatus === 'COMPLETED').length,
+                failed: docs.filter(d => d.ocrStatus === 'FAILED').length,
+                totalSize: docs.reduce((sum, doc) => sum + (doc.fileSize || 0), 0),
+                avgFileSize: 0
+            };
+            if (docs.length > 0) {
+                stats.avgFileSize = stats.totalSize / docs.length;
+            }
+            return stats;
+        }, logger, { operation: 'GET_UPLOAD_STATS' });
+        if (result.success === false) {
+            logger.databaseOperation('stats', 'multiple', false, 'Failed to get upload statistics');
+            return result;
+        }
+        logger.databaseOperation('stats', 'multiple', true);
+        logger.info('Upload statistics retrieved', {
+            operation: 'UPLOAD_STATS_SUCCESS',
+            metadata: result.data
+        });
+        return { success: true, data: result.data };
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.databaseOperation('stats', 'multiple', false, error instanceof Error ? error : new Error(String(error)));
         return { success: false, error: errorMessage };
     }
 }

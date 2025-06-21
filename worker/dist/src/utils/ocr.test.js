@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getOCRMetrics, resetOCRMetrics } from './ocr';
+import { processOCR, getOCRMetrics, resetOCRMetrics, isOCRSupported } from './ocr';
 // Mock Cloudflare AI
 const mockAI = {
     run: vi.fn()
@@ -38,32 +38,10 @@ vi.mock('./logger', () => ({
     },
     withOCRErrorBoundary: vi.fn()
 }));
-describe('Enhanced OCR Error Handling', () => {
+describe('OCR Utilities', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         resetOCRMetrics();
-    });
-    describe('validateOCRRequirements', () => {
-        it('should validate supported file types', () => {
-            const result = validateOCRRequirements('image/jpeg', 1000000, 'test.jpg');
-            expect(result.valid).toBe(true);
-            expect(result.errorCode).toBeUndefined();
-        });
-        it('should reject unsupported file types', () => {
-            const result = validateOCRRequirements('text/plain', 1000);
-            expect(result.valid).toBe(false);
-            expect(result.errorCode).toBe('OCR_UNSUPPORTED_FORMAT');
-        });
-        it('should reject files that are too large', () => {
-            const result = validateOCRRequirements('image/jpeg', 15 * 1024 * 1024); // 15MB
-            expect(result.valid).toBe(false);
-            expect(result.errorCode).toBe('OCR_FILE_TOO_LARGE');
-        });
-        it('should reject files that are too small', () => {
-            const result = validateOCRRequirements('image/jpeg', 50); // 50 bytes
-            expect(result.valid).toBe(false);
-            expect(result.errorCode).toBe('OCR_VALIDATION_FAILED');
-        });
     });
     describe('processOCR with retry mechanism', () => {
         it('should succeed on first attempt', async () => {

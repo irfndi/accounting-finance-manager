@@ -16,9 +16,6 @@ function createVectorizeServiceInstance(vectorizeBinding, aiBinding) {
         vectorize: vectorizeBinding,
         ai: aiBinding,
         embeddingModel: '@cf/baai/bge-base-en-v1.5',
-        maxTextLength: 8000,
-        chunkSize: 1000,
-        chunkOverlap: 200
     });
 }
 /**
@@ -150,13 +147,14 @@ vectorize.post('/search', async (c) => {
         });
     }
     catch (error) {
-        console.error('Semantic search error:', error);
+        console.error('Vector search error:', error);
         if (error instanceof ValidationError) {
             return c.json({ error: error.message }, 400);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to perform semantic search',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
         }, 500);
     }
 });
@@ -225,9 +223,10 @@ vectorize.post('/embed', async (c) => {
         if (error instanceof ValidationError) {
             return c.json({ error: error.message }, 400);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to generate embeddings',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
         }, 500);
     }
 });
@@ -290,9 +289,10 @@ vectorize.get('/document/:fileId', async (c) => {
         if (error instanceof ValidationError) {
             return c.json({ error: error.message }, 400);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to get document embeddings',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
         }, 500);
     }
 });
@@ -351,9 +351,10 @@ vectorize.delete('/document/:fileId', async (c) => {
         if (error instanceof ValidationError) {
             return c.json({ error: error.message }, 400);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to delete document embeddings',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
         }, 500);
     }
 });
@@ -384,9 +385,10 @@ vectorize.get('/stats', async (c) => {
     }
     catch (error) {
         console.error('Get vectorize stats error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to get vectorize statistics',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
         }, 500);
     }
 });

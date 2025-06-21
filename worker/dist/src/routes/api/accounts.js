@@ -6,7 +6,7 @@ const accounts = new Hono();
 accounts.use('/*', authMiddleware);
 // Apply authentication middleware to all routes
 // Use strict authentication for all account operations
-accountsRouter.use('*', authMiddleware);
+accounts.use('*', authMiddleware);
 // Validation schemas
 const accountTypes = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
 const normalBalanceTypes = ['DEBIT', 'CREDIT'];
@@ -64,7 +64,7 @@ async function createAccountingServices(d1Database, entityId = 'default') {
     return { dbAdapter, accountRegistry };
 }
 // GET /accounts - List all accounts with enhanced functionality
-accountsRouter.get('/', async (c) => {
+accounts.get('/', async (c) => {
     try {
         const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
         // Get query parameters for filtering
@@ -111,7 +111,8 @@ accountsRouter.get('/', async (c) => {
         });
     }
     catch (error) {
-        console.error('Error fetching accounts:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error fetching accounts:', errorMessage);
         if (error instanceof AccountingValidationError) {
             return c.json({
                 error: error.message,
@@ -122,13 +123,13 @@ accountsRouter.get('/', async (c) => {
         }
         return c.json({
             error: 'Failed to fetch accounts',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: errorMessage,
             code: 'ACCOUNTS_FETCH_ERROR'
         }, 500);
     }
 });
 // GET /accounts/:id - Get account by ID with enhanced information
-accountsRouter.get('/:id', async (c) => {
+accounts.get('/:id', async (c) => {
     try {
         const accountId = Number.parseInt(c.req.param('id'), 10);
         if (Number.isNaN(accountId) || accountId <= 0) {
@@ -153,7 +154,7 @@ accountsRouter.get('/:id', async (c) => {
         const enhancedAccount = {
             ...account,
             normalBalance: getNormalBalance(account.type),
-            formattedBalance: account.balance ? formatCurrency(account.balance, account.currency) : null,
+            formattedBalance: account.currentBalance ? formatCurrency(account.currentBalance, 'USD') : null,
             children: childAccounts.map(child => ({
                 id: child.id,
                 code: child.code,
@@ -176,7 +177,8 @@ accountsRouter.get('/:id', async (c) => {
         });
     }
     catch (error) {
-        console.error('Error fetching account:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error fetching account:', errorMessage);
         if (error instanceof AccountingValidationError) {
             return c.json({
                 error: error.message,
@@ -187,13 +189,13 @@ accountsRouter.get('/:id', async (c) => {
         }
         return c.json({
             error: 'Failed to fetch account',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: errorMessage,
             code: 'ACCOUNT_FETCH_ERROR'
         }, 500);
     }
 });
 // POST /accounts - Create new account with enhanced validation
-accountsRouter.post('/', async (c) => {
+accounts.post('/', async (c) => {
     try {
         const body = await c.req.json();
         // Enhanced validation using core logic
@@ -284,7 +286,8 @@ accountsRouter.post('/', async (c) => {
         }, 201);
     }
     catch (error) {
-        console.error('Error creating account:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error creating account:', errorMessage);
         if (error instanceof AccountingValidationError) {
             return c.json({
                 error: error.message,
@@ -295,9 +298,9 @@ accountsRouter.post('/', async (c) => {
         }
         return c.json({
             error: 'Failed to create account',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: errorMessage,
             code: 'ACCOUNT_CREATE_ERROR'
         }, 500);
     }
 });
-export default accountsRouter;
+export default accounts;

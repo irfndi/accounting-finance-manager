@@ -26,17 +26,18 @@
     "@finance-manager/db": "workspace:*",
     "@finance-manager/types": "workspace:*",
     "@hono/node-server": "^1.11.1",
-    "drizzle-orm": "^0.30.10",
+    "drizzle-orm": "^0.44.2",
     "hono": "^4.5.1"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.43",
     "@cloudflare/workers-types": "^4.20241218.0",
-    "@vitest/coverage-v8": "^1.0.0",
-    "@vitest/ui": "^1.0.0",
-    "miniflare": "^3.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/ui": "^2.1.9",
+    "miniflare": "^4.20250617.3",
     "typescript": "^5.2.2",
-    "vitest": "^1.0.0",
-    "wrangler": "^3.0.0"
+    "vitest": "^2.1.9",
+    "wrangler": "^4.20.5"
   },
   "engines": {
     "node": ">=18.0.0"

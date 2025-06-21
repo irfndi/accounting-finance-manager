@@ -8,7 +8,6 @@ import { accounts, users, transactions, journalEntries, rawDocs } from '../src/s
 import * as schema from '../src/schema';
 import Database from 'better-sqlite3';
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 import { eq } from 'drizzle-orm';
 
 // Mock D1 database for testing
@@ -79,12 +78,30 @@ export function createTestDatabase(): { sqliteDb: any; drizzleDb: any } {
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'user',
-      entity_id TEXT NOT NULL,
+      email_verified INTEGER NOT NULL DEFAULT 0,
+      password_hash TEXT,
+      first_name TEXT,
+      last_name TEXT,
+      display_name TEXT,
+      timezone TEXT DEFAULT 'UTC',
+      locale TEXT DEFAULT 'en',
       is_active INTEGER NOT NULL DEFAULT 1,
+      is_verified INTEGER NOT NULL DEFAULT 0,
+      role TEXT NOT NULL DEFAULT 'USER',
+      permissions TEXT,
+      entity_id TEXT,
+      entity_access TEXT,
+      last_login_at INTEGER,
+      last_login_ip TEXT,
+      failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+      locked_until INTEGER,
+      two_factor_enabled INTEGER NOT NULL DEFAULT 0,
+      two_factor_secret TEXT,
+      backup_codes TEXT,
       created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
+      updated_at INTEGER NOT NULL,
+      created_by TEXT,
+      updated_by TEXT
     );
 
     CREATE TABLE IF NOT EXISTS transactions (
@@ -118,6 +135,61 @@ export function createTestDatabase(): { sqliteDb: any; drizzleDb: any } {
       entity_id TEXT NOT NULL,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      device_info TEXT,
+      ip_address TEXT,
+      location TEXT,
+      issued_at INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL,
+      last_active_at INTEGER NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      revoked_at INTEGER,
+      revoked_by TEXT,
+      revoked_reason TEXT,
+      kv_key TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS magic_links (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      token_hash TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      metadata TEXT,
+      expires_at INTEGER NOT NULL,
+      used_at INTEGER,
+      click_count INTEGER NOT NULL DEFAULT 0,
+      last_click_at INTEGER,
+      last_click_ip TEXT,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      created_by TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      session_id TEXT REFERENCES sessions(id) ON DELETE SET NULL,
+      event_type TEXT NOT NULL,
+      event_category TEXT NOT NULL,
+      description TEXT NOT NULL,
+      ip_address TEXT,
+      user_agent TEXT,
+      location TEXT,
+      metadata TEXT,
+      success INTEGER NOT NULL,
+      error_code TEXT,
+      error_message TEXT,
+      entity_id TEXT,
+      created_at INTEGER NOT NULL
     );
   `);
   

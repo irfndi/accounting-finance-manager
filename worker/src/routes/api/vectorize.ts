@@ -4,11 +4,11 @@
  */
 
 import { Hono } from 'hono'
-import type { D1Database, KVNamespace, R2Bucket, Vectorize } from '@cloudflare/workers-types'
+import type { D1Database, KVNamespace, R2Bucket, Vectorize, Ai } from '@cloudflare/workers-types'
 
 import { authMiddleware, getCurrentUser } from '../../middleware/auth';
 import { createVectorizeService } from '@finance-manager/ai';
-import { createDatabase, type Database } from '@finance-manager/db';
+import { createDatabase } from '@finance-manager/db';
 import { getRawDocByFileId } from '../../utils/raw-docs';
 import { ValidationError } from '../../utils/logger';
 
@@ -29,11 +29,11 @@ vectorize.use('/*', authMiddleware);
 
 // Helper function to create vectorize service
 function createVectorizeServiceInstance(vectorizeBinding: Vectorize, aiBinding: Ai) {
-  return createVectorizeService(
-    vectorizeBinding,
-    aiBinding,
-    '@cf/baai/bge-base-en-v1.5',
-  );
+  return createVectorizeService({
+    vectorize: vectorizeBinding,
+    ai: aiBinding,
+    embeddingModel: '@cf/baai/bge-base-en-v1.5',
+  });
 }
 
 /**
@@ -188,9 +188,10 @@ vectorize.post('/search', async (c) => {
       return c.json({ error: error.message }, 400);
     }
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return c.json({
       error: 'Failed to perform semantic search',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage
     }, 500);
   }
 });
@@ -266,9 +267,10 @@ vectorize.post('/embed', async (c) => {
       return c.json({ error: error.message }, 400);
     }
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return c.json({
       error: 'Failed to generate embeddings',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage
     }, 500);
   }
 });
@@ -339,9 +341,10 @@ vectorize.get('/document/:fileId', async (c) => {
       return c.json({ error: error.message }, 400);
     }
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return c.json({
       error: 'Failed to get document embeddings',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage
     }, 500);
   }
 });
@@ -408,9 +411,10 @@ vectorize.delete('/document/:fileId', async (c) => {
       return c.json({ error: error.message }, 400);
     }
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return c.json({
       error: 'Failed to delete document embeddings',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage
     }, 500);
   }
 });
@@ -444,9 +448,10 @@ vectorize.get('/stats', async (c) => {
   } catch (error) {
     console.error('Get vectorize stats error:', error);
     
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return c.json({
       error: 'Failed to get vectorize statistics',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage
     }, 500);
   }
 });

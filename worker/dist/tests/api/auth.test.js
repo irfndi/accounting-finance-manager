@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import app from '../../src/index';
+// Mock the dependencies
+vi.mock('@finance-manager/core', () => ({
+// Add mocks for any functions/objects you use from @finance-manager/core
+}));
+vi.mock('@finance-manager/db', () => ({
+// Add mocks for any functions/objects you use from @finance-manager/db
+}));
 // Test utilities
 const createTestRequest = (method, url, options = {}) => {
     return new Request(url, {

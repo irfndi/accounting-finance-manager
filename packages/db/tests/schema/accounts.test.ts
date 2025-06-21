@@ -112,7 +112,9 @@ const mockDbAdapter = {
         }),
         limit: vi.fn((count: number): any => createChain(chainData.slice(0, count))),
         orderBy: vi.fn((): any => createChain(chainData)),
-        get: vi.fn(() => Promise.resolve(chainData[0] || null))
+        get: vi.fn(() => Promise.resolve(chainData[0] || null)),
+        then: vi.fn((callback: any) => Promise.resolve(chainData).then(callback)),
+        catch: vi.fn((callback: any) => Promise.resolve(chainData).catch(callback))
       };
       
 
@@ -344,7 +346,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: now
       };
 
-      await getDb().insert(accounts).values(newAccount as any);
+      await getDb().insert().values(newAccount as any);
       
       const result = await getDb().select().from(accounts).where(eq(accounts.code, newAccount.code)).get();
       
@@ -359,7 +361,7 @@ describe('Accounts Schema & Operations', () => {
       const account1 = await dbTestUtils.insertTestAccount();
       const account2 = dbTestUtils.createTestAccount({ code: account1!.code });
 
-      await expect(getDb().insert(accounts).values(account2 as any)).rejects.toThrow();
+      await expect(getDb().insert().values(account2 as any)).rejects.toThrow();
     });
 
     it('should require mandatory fields', async () => {
@@ -368,7 +370,7 @@ describe('Accounts Schema & Operations', () => {
         // Missing required fields: code, type, normalBalance
       };
 
-      await expect(getDb().insert(accounts).values(incompleteAccount as any)).rejects.toThrow();
+      await expect(getDb().insert().values(incompleteAccount as any)).rejects.toThrow();
     });
 
     it('should set default values correctly', async () => {
@@ -390,7 +392,7 @@ describe('Accounts Schema & Operations', () => {
       };
 
             
-      await getDb().insert(accounts).values(account as any);
+      await getDb().insert().values(account as any);
       
       const result = await getDb().select().from(accounts).where(eq(accounts.code, account.code));
       
@@ -425,7 +427,7 @@ describe('Accounts Schema & Operations', () => {
 
     it('should retrieve active accounts only', async () => {
       // First, deactivate an account
-      await getDb().update(accounts as any)
+      await getDb().update()
         .set({ isActive: 0 })
         .where(eq(accounts.code, '1000'));
 
@@ -469,7 +471,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: now
       };
       
-      await getDb().insert(accounts).values(parentAccount as any);
+      await getDb().insert().values(parentAccount as any);
       
       const parent = await getDb().select().from(accounts).where(eq(accounts.code, parentAccount.code));
       
@@ -491,7 +493,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: now
       };
       
-      await getDb().insert(accounts).values(childAccount as any);
+      await getDb().insert().values(childAccount as any);
       
       const child = await getDb().select().from(accounts).where(eq(accounts.code, childAccount.code));
       
@@ -525,7 +527,7 @@ describe('Accounts Schema & Operations', () => {
           updatedAt: now
         };
         
-        await getDb().insert(accounts).values(childAccount as any);
+        await getDb().insert().values(childAccount as any);
         
         // Query child accounts
         const childAccounts = await getDb().select()
@@ -555,7 +557,7 @@ describe('Accounts Schema & Operations', () => {
         updatedAt: Date.now()
       };
       
-      await getDb().update(accounts as any)
+      await getDb().update()
         .set(updatedData)
         .where(eq(accounts.id, originalAccount[0].id));
       
@@ -579,7 +581,7 @@ describe('Accounts Schema & Operations', () => {
       // Wait a moment to ensure timestamp difference
       await new Promise(resolve => setTimeout(resolve, 10));
       
-      await getDb().update(accounts as any)
+      await getDb().update()
         .set({ 
           description: 'Modified description',
           updatedAt: Date.now()
@@ -617,7 +619,7 @@ describe('Accounts Schema & Operations', () => {
           updatedAt: now
         };
         
-        await getDb().insert(accounts).values(account as any);
+        await getDb().insert().values(account as any);
         const result = await getDb().select().from(accounts).where(eq(accounts.code, account.code));
         expect(result[0].type).toBe(type);
       }
@@ -644,7 +646,7 @@ describe('Accounts Schema & Operations', () => {
           updatedAt: now
         };
         
-        await getDb().insert(accounts).values(account as any);
+        await getDb().insert().values(account as any);
         const result = await getDb().select().from(accounts).where(eq(accounts.code, account.code));
         expect(result[0].normalBalance).toBe(balance);
       }

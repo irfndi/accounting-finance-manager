@@ -1,1 +1,0 @@
-{"root":["../src/index.ts","../src/services.ts","../src/schema/accounts.ts","../src/schema/auth.ts","../src/schema/documents.ts","../src/schema/index.ts","../src/schema/transactions.ts","../tests/migrations.test.ts","../tests/setup.ts","../tests/vitest.config.ts","../tests/schema/accounts.test.ts"],"errors":true,"version":"5.8.3"}

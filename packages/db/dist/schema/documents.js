@@ -1,5 +1,5 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
+import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 /**
  * Raw Documents - Stores extracted text from uploaded documents for OCR processing
@@ -72,7 +72,6 @@ export const insertRawDocSchema = createInsertSchema(rawDocs, {
     ocrConfidence: z.number().min(0).max(1).optional(),
     uploadedBy: z.string().min(1)
 });
-export const selectRawDocSchema = createSelectSchema(rawDocs);
 export const updateRawDocSchema = insertRawDocSchema.partial().omit({
     id: true,
     fileId: true,

@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { Hono } from 'hono'
 import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types'
 import { createDatabase } from '@finance-manager/db'
 import { 
@@ -8,10 +7,9 @@ import {
   FINANCIAL_CONSTANTS,
   getNormalBalance,
   formatCurrency,
-  AccountingValidationError,
-  type AccountType,
-  type Account as CoreAccount
+  AccountingValidationError
 } from '@finance-manager/core'
+import type { AccountType, NormalBalance, Account as CoreAccount } from '@finance-manager/types'
 import { authMiddleware } from '../../middleware/auth'
 
 // Environment bindings interface
@@ -20,7 +18,7 @@ type Env = {
   FINANCE_MANAGER_CACHE: KVNamespace
   FINANCE_MANAGER_DOCUMENTS: R2Bucket
   ENVIRONMENT?: string
-  JWT_SECRET?: string
+  JWT_SECRET: string
   AUTH_SESSION_DURATION?: string
 }
 
@@ -31,12 +29,10 @@ accounts.use('/*', authMiddleware)
 
 // Apply authentication middleware to all routes
 // Use strict authentication for all account operations
-accountsRouter.use('*', authMiddleware)
+accounts.use('*', authMiddleware)
 
 // Validation schemas
 const accountTypes = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'] as const
-const normalBalanceTypes = ['DEBIT', 'CREDIT'] as const
-
 interface CreateAccountRequest {
   code: string
   name: string
@@ -48,7 +44,7 @@ interface CreateAccountRequest {
   isActive?: boolean
   isSystem?: boolean
   allowTransactions?: boolean
-  normalBalance?: typeof normalBalanceTypes[number]
+  normalBalance?: NormalBalance
   reportCategory?: string
   reportOrder?: number
 }
@@ -88,8 +84,8 @@ function validateAccountType(type: string): string | null {
 }
 
 function validateNormalBalance(normalBalance: string | undefined, accountType: string): string | null {
-  if (normalBalance && !normalBalanceTypes.includes(normalBalance as typeof normalBalanceTypes[number])) {
-    return `Normal balance must be one of: ${normalBalanceTypes.join(', ')}`
+  if (normalBalance && !['DEBIT', 'CREDIT'].includes(normalBalance)) {
+    return `Normal balance must be one of: DEBIT, CREDIT`
   }
   // Validate against accounting rules
   const expectedNormalBalance = getNormalBalance(accountType as AccountType)
@@ -117,7 +113,7 @@ async function createAccountingServices(d1Database: D1Database, entityId: string
 }
 
 // GET /accounts - List all accounts with enhanced functionality
-accountsRouter.get('/', async (c) => {
+accounts.get('/', async (c) => {
   try {
     const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
     
@@ -169,7 +165,8 @@ accountsRouter.get('/', async (c) => {
       }
     })
   } catch (error) {
-    console.error('Error fetching accounts:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error fetching accounts:', errorMessage)
     
     if (error instanceof AccountingValidationError) {
       return c.json({
@@ -182,14 +179,14 @@ accountsRouter.get('/', async (c) => {
     
     return c.json({
       error: 'Failed to fetch accounts',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: errorMessage,
       code: 'ACCOUNTS_FETCH_ERROR'
     }, 500)
   }
 })
 
 // GET /accounts/:id - Get account by ID with enhanced information
-accountsRouter.get('/:id', async (c) => {
+accounts.get('/:id', async (c) => {
   try {
     const accountId = Number.parseInt(c.req.param('id'), 10)
     
@@ -220,7 +217,7 @@ accountsRouter.get('/:id', async (c) => {
     const enhancedAccount = {
       ...account,
       normalBalance: getNormalBalance(account.type),
-      formattedBalance: account.balance ? formatCurrency(account.balance, account.currency) : null,
+      formattedBalance: account.currentBalance ? formatCurrency(account.currentBalance, 'USD') : null,
       children: childAccounts.map(child => ({
         id: child.id,
         code: child.code,
@@ -243,7 +240,8 @@ accountsRouter.get('/:id', async (c) => {
       account: enhancedAccount
     })
   } catch (error) {
-    console.error('Error fetching account:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error fetching account:', errorMessage)
     
     if (error instanceof AccountingValidationError) {
       return c.json({
@@ -256,14 +254,14 @@ accountsRouter.get('/:id', async (c) => {
     
     return c.json({
       error: 'Failed to fetch account',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: errorMessage,
       code: 'ACCOUNT_FETCH_ERROR'
     }, 500)
   }
 })
 
 // POST /accounts - Create new account with enhanced validation
-accountsRouter.post('/', async (c) => {
+accounts.post('/', async (c) => {
   try {
     const body: CreateAccountRequest = await c.req.json()
     
@@ -330,19 +328,17 @@ accountsRouter.post('/', async (c) => {
       type: body.type as AccountType,
       subtype: body.subtype || '',
       category: body.category || '',
-      parentId: body.parentId || null,
+      parentId: body.parentId || undefined,
       level: 0, // Will be calculated by database adapter
       path: body.code, // Will be calculated by database adapter
       isActive: body.isActive !== false,
       isSystem: body.isSystem || false,
       allowTransactions: body.allowTransactions !== false,
-             normalBalance: (body.normalBalance as typeof normalBalanceTypes[number]) || getNormalBalance(body.type as AccountType),
+      normalBalance: (body.normalBalance as NormalBalance) || getNormalBalance(body.type as AccountType),
       currentBalance: 0,
       reportCategory: body.reportCategory || body.type,
       reportOrder: body.reportOrder || 0,
-      entityId: 'default',
-      metadata: {},
-      tags: []
+      entityId: 'default'
     }
     
     const newAccount = await dbAdapter.createAccount(accountData)
@@ -365,7 +361,8 @@ accountsRouter.post('/', async (c) => {
       message: 'Account created successfully'
     }, 201)
   } catch (error) {
-    console.error('Error creating account:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error creating account:', errorMessage)
     
     if (error instanceof AccountingValidationError) {
       return c.json({
@@ -378,10 +375,10 @@ accountsRouter.post('/', async (c) => {
     
     return c.json({
       error: 'Failed to create account',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: errorMessage,
       code: 'ACCOUNT_CREATE_ERROR'
     }, 500)
   }
 })
 
-export default accountsRouter
+export default accounts

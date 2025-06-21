@@ -1,19 +1,29 @@
 import { Hono } from 'hono';
-import { DatabaseAdapter, FinancialReportsEngine, formatCurrency, FINANCIAL_CONSTANTS } from '@finance-manager/core';
-import { authMiddleware } from '../../middleware/auth';
-// Create reports router
-const reports = new Hono();
-reports.use('/*', authMiddleware);
+import { DatabaseAdapter, FinancialReportsEngine, formatCurrency, FINANCIAL_CONSTANTS, } from '@finance-manager/core';
+import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+import { createMiddleware } from 'hono/factory';
+const reportsRouter = new Hono();
 // Apply authentication middleware to all reports routes
 reportsRouter.use('*', authMiddleware);
-// Helper to create database adapter
-const getDbAdapter = (env) => {
-    return new DatabaseAdapter({
-        database: env.FINANCE_MANAGER_DB,
-        entityId: 'default', // TODO: Get from authenticated user context
-        defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+// Middleware to create and inject dbAdapter and reportsEngine
+const setupReportsContext = createMiddleware(async (c, next) => {
+    const user = getCurrentUser(c);
+    if (!user) {
+        return c.json({ success: false, error: 'Unauthorized' }, 401);
+    }
+    const entityId = user.id; // Or from user selection
+    const dbAdapter = new DatabaseAdapter({
+        database: c.env.FINANCE_MANAGER_DB,
+        entityId: entityId,
+        defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
     });
-};
+    const reportsEngine = new FinancialReportsEngine(dbAdapter);
+    c.set('dbAdapter', dbAdapter);
+    c.set('reportsEngine', reportsEngine);
+    c.set('entityId', entityId);
+    await next();
+});
+reportsRouter.use('*', setupReportsContext);
 // Helper to parse date parameters
 const parseDate = (dateStr, defaultDate) => {
     if (!dateStr)
@@ -27,11 +37,9 @@ const parseDate = (dateStr, defaultDate) => {
  */
 reportsRouter.get('/trial-balance', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
+        const { reportsEngine, entityId } = c.var;
         // Parse query parameters
         const asOfDateStr = c.req.query('asOfDate');
-        const entityId = c.req.query('entityId');
         const asOfDate = parseDate(asOfDateStr, new Date());
         // Generate trial balance
         const trialBalance = await reportsEngine.generateTrialBalance(asOfDate, entityId);
@@ -41,19 +49,20 @@ reportsRouter.get('/trial-balance', async (c) => {
                 ...trialBalance,
                 metadata: {
                     generatedAt: new Date().toISOString(),
-                    generatedBy: c.get('user')?.id || 'system',
+                    generatedBy: getCurrentUser(c).id,
                     reportType: 'trial-balance',
-                    parameters: { asOfDate: asOfDate.toISOString(), entityId }
-                }
+                    parameters: { asOfDate: asOfDate.toISOString(), entityId },
+                },
             }
         });
     }
     catch (error) {
         console.error('Trial balance generation error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             success: false,
             error: 'Failed to generate trial balance',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
         }, 500);
     }
 });
@@ -63,17 +72,15 @@ reportsRouter.get('/trial-balance', async (c) => {
  */
 reportsRouter.get('/balance-sheet', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
+        const { reportsEngine, entityId } = c.var;
         // Parse query parameters
         const asOfDateStr = c.req.query('asOfDate');
-        const entityId = c.req.query('entityId');
         const format = c.req.query('format'); // 'detailed', 'summary', 'comparative'
         const asOfDate = parseDate(asOfDateStr, new Date());
         // Generate balance sheet
         const balanceSheet = await reportsEngine.generateBalanceSheet(asOfDate, entityId);
         // Calculate additional metrics
-        const metrics = await reportsEngine.getFinancialMetrics(asOfDate, entityId);
+        const metrics = await reportsEngine.getFinancialMetrics(asOfDate);
         return c.json({
             success: true,
             data: {
@@ -89,20 +96,21 @@ reportsRouter.get('/balance-sheet', async (c) => {
                 },
                 metadata: {
                     generatedAt: new Date().toISOString(),
-                    generatedBy: c.get('user')?.id || 'system',
+                    generatedBy: getCurrentUser(c).id,
                     reportType: 'balance-sheet',
                     format: format || 'detailed',
-                    parameters: { asOfDate: asOfDate.toISOString(), entityId }
-                }
+                    parameters: { asOfDate: asOfDate.toISOString(), entityId },
+                },
             }
         });
     }
     catch (error) {
         console.error('Balance sheet generation error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             success: false,
             error: 'Failed to generate balance sheet',
-            details: error instanceof Error ? error.message : 'Unknown error'
+            details: errorMessage
         }, 500);
     }
 });
@@ -112,12 +120,10 @@ reportsRouter.get('/balance-sheet', async (c) => {
  */
 reportsRouter.get('/income-statement', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
+        const { reportsEngine, entityId } = c.var;
         // Parse query parameters
         const startDateStr = c.req.query('startDate');
         const endDateStr = c.req.query('endDate');
-        const entityId = c.req.query('entityId');
         const period = c.req.query('period'); // 'monthly', 'quarterly', 'yearly'
         // Default to current month if no dates provided
         const now = new Date();
@@ -144,20 +150,21 @@ reportsRouter.get('/income-statement', async (c) => {
                 },
                 metadata: {
                     generatedAt: new Date().toISOString(),
-                    generatedBy: c.get('user')?.id || 'system',
+                    generatedBy: getCurrentUser(c).id,
                     reportType: 'income-statement',
                     period: period || 'custom',
                     parameters: {
                         startDate: startDate.toISOString(),
                         endDate: endDate.toISOString(),
-                        entityId
-                    }
-                }
+                        entityId,
+                    },
+                },
             }
         });
     }
     catch (error) {
         console.error('Income statement generation error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             success: false,
             error: 'Failed to generate income statement',
@@ -171,12 +178,10 @@ reportsRouter.get('/income-statement', async (c) => {
  */
 reportsRouter.get('/cash-flow', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
+        const { reportsEngine, entityId } = c.var;
         // Parse query parameters
         const startDateStr = c.req.query('startDate');
         const endDateStr = c.req.query('endDate');
-        const entityId = c.req.query('entityId');
         const method = c.req.query('method'); // 'direct', 'indirect'
         // Default to current month if no dates provided
         const now = new Date();
@@ -192,15 +197,15 @@ reportsRouter.get('/cash-flow', async (c) => {
                 ...cashFlow,
                 metadata: {
                     generatedAt: new Date().toISOString(),
-                    generatedBy: c.get('user')?.id || 'system',
+                    generatedBy: getCurrentUser(c).id,
                     reportType: 'cash-flow',
                     method: method || 'indirect',
                     parameters: {
                         startDate: startDate.toISOString(),
                         endDate: endDate.toISOString(),
-                        entityId
-                    }
-                }
+                        entityId,
+                    },
+                },
             }
         });
     }
@@ -219,14 +224,12 @@ reportsRouter.get('/cash-flow', async (c) => {
  */
 reportsRouter.get('/financial-metrics', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
+        const { reportsEngine, entityId } = c.var;
         // Parse query parameters
         const asOfDateStr = c.req.query('asOfDate');
-        const entityId = c.req.query('entityId');
         const asOfDate = parseDate(asOfDateStr, new Date());
         // Generate comprehensive metrics
-        const metrics = await reportsEngine.getFinancialMetrics(asOfDate, entityId);
+        const metrics = await reportsEngine.getFinancialMetrics(asOfDate);
         const balanceSheet = await reportsEngine.generateBalanceSheet(asOfDate, entityId);
         // Calculate additional derived metrics
         const totalAssets = balanceSheet.assets.total;
@@ -269,10 +272,10 @@ reportsRouter.get('/financial-metrics', async (c) => {
                 },
                 metadata: {
                     generatedAt: new Date().toISOString(),
-                    generatedBy: c.get('user')?.id || 'system',
+                    generatedBy: getCurrentUser(c).id,
                     reportType: 'financial-metrics',
-                    parameters: { asOfDate: asOfDate.toISOString(), entityId }
-                }
+                    parameters: { asOfDate: asOfDate.toISOString(), entityId },
+                },
             }
         });
     }
@@ -291,11 +294,9 @@ reportsRouter.get('/financial-metrics', async (c) => {
  */
 reportsRouter.get('/account-balance/:accountId', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
-        const accountId = parseInt(c.req.param('accountId'));
+        const { reportsEngine, entityId } = c.var;
+        const accountId = parseInt(c.req.param('accountId'), 10);
         const asOfDateStr = c.req.query('asOfDate');
-        const entityId = c.req.query('entityId');
         const asOfDate = parseDate(asOfDateStr, new Date());
         if (isNaN(accountId)) {
             return c.json({
@@ -314,10 +315,10 @@ reportsRouter.get('/account-balance/:accountId', async (c) => {
                 formattedBalance: formatCurrency(balance),
                 metadata: {
                     generatedAt: new Date().toISOString(),
-                    generatedBy: c.get('user')?.id || 'system',
+                    generatedBy: getCurrentUser(c).id,
                     reportType: 'account-balance',
-                    parameters: { accountId, asOfDate: asOfDate.toISOString(), entityId }
-                }
+                    parameters: { accountId, asOfDate: asOfDate.toISOString(), entityId },
+                },
             }
         });
     }
@@ -336,9 +337,7 @@ reportsRouter.get('/account-balance/:accountId', async (c) => {
  */
 reportsRouter.get('/summary', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
-        const entityId = c.req.query('entityId');
+        const { reportsEngine, entityId } = c.var;
         const today = new Date();
         // Get current month data
         const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -351,7 +350,7 @@ reportsRouter.get('/summary', async (c) => {
             reportsEngine.generateBalanceSheet(today, entityId),
             reportsEngine.generateIncomeStatement(currentMonthStart, currentMonthEnd, entityId),
             reportsEngine.generateIncomeStatement(previousMonthStart, previousMonthEnd, entityId),
-            reportsEngine.getFinancialMetrics(today, entityId)
+            reportsEngine.getFinancialMetrics(today)
         ]);
         // Calculate month-over-month changes
         const revenueChange = currentIncome.revenue.total - previousIncome.revenue.total;
@@ -391,10 +390,10 @@ reportsRouter.get('/summary', async (c) => {
                 },
                 metadata: {
                     generatedAt: new Date().toISOString(),
-                    generatedBy: c.get('user')?.id || 'system',
+                    generatedBy: getCurrentUser(c).id,
                     reportType: 'financial-summary',
-                    parameters: { entityId }
-                }
+                    parameters: { entityId },
+                },
             }
         });
     }
@@ -416,18 +415,16 @@ reportsRouter.get('/summary', async (c) => {
  */
 reportsRouter.get('/export/balance-sheet', async (c) => {
     try {
-        const dbAdapter = getDbAdapter(c.env);
-        const reportsEngine = new FinancialReportsEngine(dbAdapter);
+        const { reportsEngine, entityId } = c.var;
         // Parse query parameters
         const asOfDateStr = c.req.query('asOfDate');
-        const entityId = c.req.query('entityId');
         const format = c.req.query('format') || 'csv'; // csv, pdf, excel
         const asOfDate = parseDate(asOfDateStr, new Date());
         // Generate balance sheet data
         const balanceSheet = await reportsEngine.generateBalanceSheet(asOfDate, entityId);
-        const metrics = await reportsEngine.getFinancialMetrics(asOfDate, entityId);
+        const metrics = await reportsEngine.getFinancialMetrics(asOfDate);
         const formatDate = (date) => date.toISOString().split('T')[0];
-        const user = c.get('user');
+        const user = getCurrentUser(c);
         switch (format.toLowerCase()) {
             case 'csv': {
                 // Generate CSV content

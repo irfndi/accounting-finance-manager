@@ -40,8 +40,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DatabaseService = void 0;
 exports.createDatabaseService = createDatabaseService;
 exports.createEnhancedDatabase = createEnhancedDatabase;
+const d1_1 = require("drizzle-orm/d1");
 const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("./schema");
+const schema = __importStar(require("./schema"));
 /**
  * Database service class with user management methods
  */
@@ -130,16 +132,5 @@ function createDatabaseService(database) {
  */
 function createEnhancedDatabase(d1Database) {
     const db = (0, d1_1.drizzle)(d1Database, { schema });
-    const service = new DatabaseService(db);
-    // Return an object that has both the raw database and service methods
-    return Object.assign(db, {
-        getUserByEmail: service.getUserByEmail.bind(service),
-        getUserById: service.getUserById.bind(service),
-        createUser: service.createUser.bind(service),
-        updateUser: service.updateUser.bind(service),
-        deleteUser: service.deleteUser.bind(service),
-    });
+    return db;
 }
-// Import drizzle and schema
-const d1_1 = require("drizzle-orm/d1");
-const schema = __importStar(require("./schema"));

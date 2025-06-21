@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "ESNext",
     "moduleResolution": "node",
     "strict": true,
     "skipLibCheck": true,
@@ -12,13 +12,17 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
       "@finance-manager/types": ["../types/src"]
     },
-    "types": ["@cloudflare/workers-types", "vitest/globals"]
+    "types": ["@cloudflare/workers-types", "vitest/globals"],
+    "composite": true
   },
-  "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"],
+  "references": [
+    { "path": "../types" }
+  ]
 }

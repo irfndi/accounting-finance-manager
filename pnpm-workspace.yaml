@@ -5,5 +5,5 @@ packages:
   # Shared packages
   - 'packages/*'
   
-  # Worker is included in the root workspace for simplicity
-  # but could be moved to apps/ if needed 
+  # Worker
+  - 'worker'

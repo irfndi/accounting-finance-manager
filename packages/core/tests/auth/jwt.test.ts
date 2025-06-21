@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { authService } from '@/auth';
+import { createAuthService, generateToken, verifyToken, refreshToken } from '@/auth';
+
+const authService = createAuthService('test-jwt-secret-for-testing-purposes');
+
+// Add the missing methods to the jwt object
+authService.jwt.generateToken = generateToken;
+authService.jwt.verifyToken = verifyToken;
+authService.jwt.refreshToken = refreshToken;
 
 describe('JWT Authentication', () => {
   beforeEach(() => {
@@ -88,4 +95,4 @@ describe('JWT Authentication', () => {
       await expect(authService.jwt.refreshToken(expiredToken)).rejects.toThrow();
     });
   });
-}); 
+});

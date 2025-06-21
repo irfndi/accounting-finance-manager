@@ -693,7 +693,6 @@ export class AccountingEngine {
 }
 
 // Export everything
-export * from '@finance-manager/types';
 
 /**
  * Account Balance Manager - Handles balance calculations and account management
@@ -1913,7 +1912,7 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
 }
 
 // Re-export auth functionality
-export { authService } from './auth/index'
+export { createAuthService } from './auth/index'
 export {
   AuthUser,
   JWTPayload,

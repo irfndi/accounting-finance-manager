@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateRawDocSchema = exports.selectRawDocSchema = exports.insertRawDocSchema = exports.DocumentType = exports.OCRStatus = exports.rawDocs = void 0;
+exports.updateRawDocSchema = exports.insertRawDocSchema = exports.DocumentType = exports.OCRStatus = exports.rawDocs = void 0;
 const sqlite_core_1 = require("drizzle-orm/sqlite-core");
 const drizzle_zod_1 = require("drizzle-zod");
 const zod_1 = require("zod");
@@ -75,7 +75,6 @@ exports.insertRawDocSchema = (0, drizzle_zod_1.createInsertSchema)(exports.rawDo
     ocrConfidence: zod_1.z.number().min(0).max(1).optional(),
     uploadedBy: zod_1.z.string().min(1)
 });
-exports.selectRawDocSchema = (0, drizzle_zod_1.createSelectSchema)(exports.rawDocs);
 exports.updateRawDocSchema = exports.insertRawDocSchema.partial().omit({
     id: true,
     fileId: true,

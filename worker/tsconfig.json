@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "verbatimModuleSyntax": false,
-    "strict": false,
+    "strict": true,
     "skipLibCheck": true,
     "noResolve": false,
     "forceConsistentCasingInFileNames": true,
@@ -12,20 +12,13 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "declaration": false,
+    "declaration": true,
     "outDir": "./dist",
     "baseUrl": ".",
+    "composite": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@tests/*": ["./tests/*"],
-      "@finance-manager/types": ["../packages/types/dist/index"],
-      "@finance-manager/types/*": ["../packages/types/dist/*"],
-      "@finance-manager/db": ["../packages/db/dist/index"],
-      "@finance-manager/db/*": ["../packages/db/dist/*"],
-      "@finance-manager/core": ["../packages/core/dist/index"],
-      "@finance-manager/core/*": ["../packages/core/dist/*"],
-      "@finance-manager/ai": ["../packages/ai/dist/index"],
-      "@finance-manager/ai/*": ["../packages/ai/dist/*"]
+      "@tests/*": ["./tests/*"]
     },
     "types": ["@cloudflare/workers-types"],
     "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
@@ -38,5 +31,11 @@
   "exclude": [
     "dist",
     "node_modules"
+  ],
+  "references": [
+    { "path": "../packages/ai" },
+    { "path": "../packages/core" },
+    { "path": "../packages/db" },
+    { "path": "../packages/types" }
   ]
 }

@@ -3,7 +3,7 @@ import {
   processOCR,
   getOCRMetrics,
   resetOCRMetrics,
-
+  isOCRSupported
 } from './ocr';
 
 // Mock Cloudflare AI

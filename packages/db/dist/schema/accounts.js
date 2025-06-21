@@ -1,6 +1,5 @@
-import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { createInsertSchema } from "drizzle-zod";
 /**
  * Chart of Accounts - Core financial accounts structure
  * Supports hierarchical account structure with parent-child relationships
@@ -32,8 +31,8 @@ export const accounts = sqliteTable("accounts", {
     // Multi-entity support
     entityId: text("entity_id").notNull(), // For multi-company accounting
     // Audit fields
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
+    updatedAt: integer("updated_at").notNull().$defaultFn(() => Date.now()).$onUpdate(() => Date.now()),
     createdBy: text("created_by"),
     updatedBy: text("updated_by"),
 });
@@ -50,17 +49,5 @@ export const NormalBalance = {
     DEBIT: "DEBIT",
     CREDIT: "CREDIT",
 };
-// Zod schemas for validation - simplified for now
-export const insertAccountSchema = z.object({
-    code: z.string().min(1).max(20),
-    name: z.string().min(1).max(100),
-    type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
-    normalBalance: z.enum(["DEBIT", "CREDIT"]),
-});
-export const selectAccountSchema = z.object({
-    id: z.number(),
-    code: z.string(),
-    name: z.string(),
-    type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
-    normalBalance: z.enum(["DEBIT", "CREDIT"]),
-});
+// Zod schemas for validation
+export const insertAccountSchema = createInsertSchema(accounts);

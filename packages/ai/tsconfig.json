@@ -18,7 +18,8 @@
     "paths": {
       "@finance-manager/types": ["../types/src"]
     },
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types"],
+    "composite": true
   },
   "include": [
     "src/**/*"
@@ -26,5 +27,8 @@
   "exclude": [
     "dist",
     "node_modules"
+  ],
+  "references": [
+    { "path": "../types" }
   ]
-} 
+}

@@ -1,11 +1,7 @@
 import { Hono } from 'hono';
-import { DatabaseAdapter, DatabaseAccountRegistry, TransactionBuilder, formatCurrency, AccountingValidationError } from '@finance-manager/core';
-import { authMiddleware } from '../../middleware/auth';
-// Create transactions router
-const transactions = new Hono();
-transactions.use('/*', authMiddleware);
-// Apply authentication middleware to all routes
-// Use strict authentication for all transaction operations
+import { DatabaseAdapter, DatabaseAccountRegistry, TransactionBuilder, formatCurrency, AccountingValidationError, FINANCIAL_CONSTANTS, DatabaseJournalEntryManager, DoubleEntryError, } from '@finance-manager/core';
+import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+const transactionsRouter = new Hono();
 transactionsRouter.use('*', authMiddleware);
 // Enhanced validation using core logic
 function validateTransactionId(id) {
@@ -39,22 +35,17 @@ function validateCurrency(currency) {
     }
     return null;
 }
-// Helper function to create accounting services
-async function createAccountingServices(d1Database, entityId = 'default') {
-    const dbAdapter = new DatabaseAdapter({
-        database: d1Database,
-        entityId,
-        defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
-    });
-    const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
-    await accountRegistry.loadAccountsFromDatabase();
-    const journalManager = new DatabaseJournalEntryManager(dbAdapter, accountRegistry);
-    return { dbAdapter, accountRegistry, journalManager };
-}
 // GET /transactions - List all transactions with enhanced functionality
 transactionsRouter.get('/', async (c) => {
     try {
-        const { dbAdapter: _dbAdapter } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
+        const user = getCurrentUser(c);
+        if (!user)
+            return c.json({ error: 'Unauthorized' }, 401);
+        const dbAdapter = new DatabaseAdapter({
+            database: c.env.FINANCE_MANAGER_DB,
+            entityId: user.id,
+            defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+        });
         // Get query parameters for filtering and pagination
         const { limit = '50', offset = '0', entityId = 'default', dateFrom, dateTo, status, currency } = c.req.query();
         // Validate pagination parameters
@@ -91,11 +82,11 @@ transactionsRouter.get('/', async (c) => {
         // Enhance transactions with accounting information
         const enhancedTransactions = allTransactions.map(transaction => ({
             ...transaction,
-            formattedAmount: formatCurrency(transaction.amount, transaction.currency),
+            // Note: Transaction interface doesn't have amount/currency - these come from journal entries
             accountingInfo: {
                 isBalanced: true, // Would check journal entries in real implementation
                 hasJournalEntries: true, // Would check actual journal entries
-                currency: transaction.currency,
+                currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
                 supportedCurrencies: FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES
             }
         }));
@@ -126,9 +117,10 @@ transactionsRouter.get('/', async (c) => {
                 accountingError: true
             }, 400);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to fetch transactions',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: errorMessage,
             code: 'TRANSACTIONS_FETCH_ERROR'
         }, 500);
     }
@@ -141,10 +133,20 @@ transactionsRouter.get('/:id', async (c) => {
             return c.json({
                 error: 'Invalid transaction ID',
                 message: idValidation.error,
-                code: 'INVALID_TRANSACTION_ID'
+                code: 'INVALID_TRANSACTION_ID',
             }, 400);
         }
-        const { dbAdapter, journalManager } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
+        const user = getCurrentUser(c);
+        if (!user)
+            return c.json({ error: 'Unauthorized' }, 401);
+        const dbAdapter = new DatabaseAdapter({
+            database: c.env.FINANCE_MANAGER_DB,
+            entityId: user.id,
+            defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+        });
+        const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
+        await accountRegistry.loadAccountsFromDatabase();
+        const journalManager = new DatabaseJournalEntryManager(dbAdapter, accountRegistry);
         const transaction = await dbAdapter.getTransaction(idValidation.id);
         if (!transaction) {
             return c.json({
@@ -157,26 +159,27 @@ transactionsRouter.get('/:id', async (c) => {
         const journalEntries = await journalManager.getTransactionJournalEntries(transaction.id);
         // Calculate totals from journal entries
         const debitTotal = journalEntries
-            .filter(entry => entry.type === 'DEBIT')
-            .reduce((sum, entry) => sum + entry.amount, 0);
+            .reduce((sum, entry) => sum + entry.debitAmount, 0);
         const creditTotal = journalEntries
-            .filter(entry => entry.type === 'CREDIT')
-            .reduce((sum, entry) => sum + entry.amount, 0);
+            .reduce((sum, entry) => sum + entry.creditAmount, 0);
+        // Calculate transaction amount from journal entries
+        const transactionAmount = Math.max(debitTotal, creditTotal);
+        const transactionCurrency = journalEntries.length > 0 ? journalEntries[0].currency : FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
         const enhancedTransaction = {
             ...transaction,
-            formattedAmount: formatCurrency(transaction.amount, transaction.currency),
+            formattedAmount: formatCurrency(transactionAmount, transactionCurrency),
             journalEntries: journalEntries.map(entry => ({
                 ...entry,
-                formattedAmount: formatCurrency(entry.amount, entry.currency)
+                formattedAmount: formatCurrency(entry.debitAmount || entry.creditAmount, entry.currency)
             })),
             accountingInfo: {
                 isBalanced: Math.abs(debitTotal - creditTotal) < 0.01,
                 debitTotal,
                 creditTotal,
-                formattedDebitTotal: formatCurrency(debitTotal, transaction.currency),
-                formattedCreditTotal: formatCurrency(creditTotal, transaction.currency),
+                formattedDebitTotal: formatCurrency(debitTotal, transactionCurrency),
+                formattedCreditTotal: formatCurrency(creditTotal, transactionCurrency),
                 journalEntriesCount: journalEntries.length,
-                currency: transaction.currency
+                currency: transactionCurrency
             }
         };
         return c.json({
@@ -193,40 +196,44 @@ transactionsRouter.get('/:id', async (c) => {
                 accountingError: true
             }, 400);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to fetch transaction',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: errorMessage,
             code: 'TRANSACTION_FETCH_ERROR'
         }, 500);
     }
 });
-// POST /transactions - Create new transaction with double-entry validation
 transactionsRouter.post('/', async (c) => {
     try {
         const body = await c.req.json();
         // Enhanced validation using core logic
         if (!body.description || typeof body.description !== 'string') {
-            return c.json({
-                error: 'Transaction description is required',
-                code: 'VALIDATION_ERROR'
-            }, 400);
+            return c.json({ error: 'Transaction description is required', code: 'VALIDATION_ERROR' }, 400);
         }
         // Validate entries array for double-entry bookkeeping
         if (!body.entries || !Array.isArray(body.entries) || body.entries.length < 2) {
             return c.json({
                 error: 'Transaction must have at least 2 journal entries for double-entry bookkeeping',
-                code: 'VALIDATION_ERROR'
+                code: 'VALIDATION_ERROR',
             }, 400);
         }
         const currency = body.currency || FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
         const currencyError = validateCurrency(currency);
         if (currencyError) {
-            return c.json({
-                error: currencyError,
-                code: 'VALIDATION_ERROR'
-            }, 400);
+            return c.json({ error: currencyError, code: 'VALIDATION_ERROR' }, 400);
         }
-        const { dbAdapter, accountRegistry: _accountRegistry, journalManager } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
+        const user = getCurrentUser(c);
+        if (!user)
+            return c.json({ error: 'Unauthorized' }, 401);
+        const dbAdapter = new DatabaseAdapter({
+            database: c.env.FINANCE_MANAGER_DB,
+            entityId: user.id,
+            defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+        });
+        const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
+        await accountRegistry.loadAccountsFromDatabase();
+        const journalManager = new DatabaseJournalEntryManager(dbAdapter, accountRegistry);
         // Build transaction using the transaction builder
         const transactionBuilder = new TransactionBuilder()
             .setDescription(body.description)
@@ -241,7 +248,8 @@ transactionsRouter.post('/', async (c) => {
                     code: 'VALIDATION_ERROR'
                 }, 400);
             }
-            const amountError = validateTransactionAmount(entry.amount);
+            const entryAmount = entry.debitAmount || entry.creditAmount || 0;
+            const amountError = validateTransactionAmount(entryAmount);
             if (amountError) {
                 return c.json({
                     error: `Entry amount error: ${amountError}`,
@@ -262,16 +270,16 @@ transactionsRouter.post('/', async (c) => {
                     code: 'ACCOUNT_TRANSACTIONS_DISABLED'
                 }, 400);
             }
-            // Add to transaction builder based on entry type
-            if (entry.type === 'DEBIT') {
-                transactionBuilder.debit(entry.accountId, entry.amount, entry.description);
+            // Add to transaction builder based on entry amounts
+            if (entry.debitAmount && entry.debitAmount > 0) {
+                transactionBuilder.debit(entry.accountId, entry.debitAmount, entry.description);
             }
-            else if (entry.type === 'CREDIT') {
-                transactionBuilder.credit(entry.accountId, entry.amount, entry.description);
+            else if (entry.creditAmount && entry.creditAmount > 0) {
+                transactionBuilder.credit(entry.accountId, entry.creditAmount, entry.description);
             }
             else {
                 return c.json({
-                    error: `Invalid entry type '${entry.type}'. Must be 'DEBIT' or 'CREDIT'`,
+                    error: 'Entry must have either debitAmount or creditAmount greater than 0',
                     code: 'VALIDATION_ERROR'
                 }, 400);
             }
@@ -289,18 +297,22 @@ transactionsRouter.post('/', async (c) => {
         const transactionData = transactionBuilder.build();
         // Create and persist the transaction with journal entries
         const result = await journalManager.createAndPersistTransaction(transactionData);
+        // Calculate transaction amount and currency from journal entries
+        const transactionAmount = result.journalEntries.reduce((sum, entry) => sum + Math.max(entry.debitAmount, entry.creditAmount), 0);
+        const transactionCurrency = result.journalEntries.length > 0 ?
+            result.journalEntries[0].currency : FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
         // Format the response
         const enhancedTransaction = {
             ...result.transaction,
-            formattedAmount: formatCurrency(result.transaction.amount, result.transaction.currency),
+            formattedAmount: formatCurrency(transactionAmount, transactionCurrency),
             journalEntries: result.journalEntries.map(entry => ({
                 ...entry,
-                formattedAmount: formatCurrency(entry.amount, entry.currency)
+                formattedAmount: formatCurrency(entry.debitAmount || entry.creditAmount, entry.currency)
             })),
             accountingInfo: {
                 isBalanced: true,
                 journalEntriesCount: result.journalEntries.length,
-                currency: result.transaction.currency
+                currency: transactionCurrency
             }
         };
         return c.json({
@@ -327,9 +339,10 @@ transactionsRouter.post('/', async (c) => {
                 accountingError: true
             }, 400);
         }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return c.json({
             error: 'Failed to create transaction',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message: errorMessage,
             code: 'TRANSACTION_CREATE_ERROR'
         }, 500);
     }

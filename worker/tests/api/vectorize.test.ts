@@ -240,10 +240,10 @@ describe('Vectorize Integration', () => {
       
       // Filter results by similarity threshold
       const threshold = 0.7;
-      const filteredResults = result.matches.filter(match => match.score >= threshold);
+      const filteredResults = result.matches.filter((match: any) => match.score >= threshold);
       
       expect(filteredResults).toHaveLength(2);
-      expect(filteredResults.every(match => match.score >= threshold)).toBe(true);
+      expect(filteredResults.every((match: any) => match.score >= threshold)).toBe(true);
     });
   });
 
@@ -283,7 +283,7 @@ describe('Vectorize Integration', () => {
           text: 'test text'
         });
       } catch (error) {
-        expect(error.message).toBe('AI service unavailable');
+        expect(error instanceof Error ? error.message : 'Unknown error').toBe('AI service unavailable');
       }
     });
 
@@ -299,7 +299,7 @@ describe('Vectorize Integration', () => {
       try {
         await mockEnv.VECTORIZE_INDEX.insert([vector]);
       } catch (error) {
-        expect(error.message).toBe('Vectorize insertion failed');
+        expect(error instanceof Error ? error.message : 'Unknown error').toBe('Vectorize insertion failed');
       }
     });
 
@@ -311,7 +311,7 @@ describe('Vectorize Integration', () => {
       try {
         await mockEnv.VECTORIZE_INDEX.query(queryVector, { topK: 5 });
       } catch (error) {
-        expect(error.message).toBe('Vectorize query failed');
+        expect(error instanceof Error ? error.message : 'Unknown error').toBe('Vectorize query failed');
       }
     });
 

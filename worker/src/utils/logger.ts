@@ -248,10 +248,13 @@ export async function withOCRErrorBoundary<T>(
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
     
-    logger.error(`${operation} failed`, error, {
+    logger.error(`${operation} failed`, error instanceof Error ? error : new Error(String(error)), {
       ...context,
-      operation: `${operation.toUpperCase().replace(/\s+/g, '_')}_FAILURE`,
-      duration
+      duration,
+      metadata: {
+        ...(context?.metadata || {}),
+        operation: `${operation.toUpperCase().replace(/\s+/g, '_')}_FAILURE`
+      }
     });
     
     return { success: false, error: errorMessage };
@@ -287,4 +290,4 @@ export class StorageError extends Error {
     super(message);
     this.name = 'StorageError';
   }
-} 
+}

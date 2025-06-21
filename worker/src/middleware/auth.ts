@@ -1,156 +1,148 @@
-/// <reference types="@cloudflare/workers-types" />
-import { Context, Next } from 'hono'
-import { verify } from 'hono/jwt'
-
-// Environment bindings interface
-type Env = {
-  FINANCE_MANAGER_DB: D1Database
-  FINANCE_MANAGER_CACHE: KVNamespace
-  FINANCE_MANAGER_DOCUMENTS: R2Bucket
-  ENVIRONMENT?: string
-  JWT_SECRET?: string
-  AUTH_SESSION_DURATION?: string
-}
-
-// Extend context with user information
-export interface AuthContext extends Context {
-  user?: {
-    id: string
-    email: string
-    displayName: string | null
-    firstName: string | null
-    lastName: string | null
-  }
-}
-
-
+import { Context } from 'hono';
+import { createMiddleware } from 'hono/factory';
+import { verify } from 'hono/jwt';
+import { AppContext, AuthVariables, JwtPayload } from '../types';
 
 /**
  * Authentication middleware
  * Validates JWT token and adds user information to context
  */
-export const authMiddleware = async (c: Context<{ Bindings: Env }>, next: Next) => {
+export const authMiddleware = createMiddleware<AppContext>(async (c, next) => {
+  if (!c.env.JWT_SECRET) {
+    console.error('JWT_SECRET is not configured');
+    return c.json({ error: 'Internal Server Error', message: 'JWT secret is not configured.' }, 500);
+  }
+
   try {
-    const authHeader = c.req.header('Authorization')
-    
+    const authHeader = c.req.header('Authorization');
+
     if (!authHeader?.startsWith('Bearer ')) {
-      return c.json({
-        error: 'Unauthorized',
-        message: 'Authorization header with Bearer token is required'
-      }, 401)
+      return c.json(
+        {
+          error: 'Unauthorized',
+          message: 'Authorization header with Bearer token is required',
+        },
+        401
+      );
     }
 
-    const token = authHeader.substring(7)
+    const token = authHeader.substring(7);
 
     // Verify JWT token
-    const payload = await verify(token, c.get('jwtSecret'))
-    
+    const payload = (await verify(token, c.env.JWT_SECRET)) as JwtPayload;
+
     // Check if session exists in KV (optional additional security)
-    const sessionKey = `session:${payload.userId}`
-    const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey)
-    
+    const sessionKey = `session:${payload.id}`;
+    const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey);
+
     if (!session) {
-      return c.json({
-        error: 'Unauthorized',
-        message: 'Session not found or expired'
-      }, 401)
+      return c.json(
+        { error: 'Unauthorized', message: 'Session not found or expired' },
+        401
+      );
     }
+
+    // Parse session data to get user info
+    const sessionData = JSON.parse(session);
 
     // Add user information to context
-    const authContext = c as AuthContext
-    authContext.user = {
-      id: payload.userId,
+    c.set('user', {
+      id: payload.id,
       email: payload.email,
-      displayName: payload.name,
+      displayName: sessionData.name || null,
       firstName: null, // Or get from payload if available
-      lastName: null // Or get from payload if available
-    }
+      lastName: null, // Or get from payload if available
+    });
 
     // Continue to next middleware/handler
-    await next()
-
+    await next();
   } catch (error) {
-    console.error('Auth middleware error:', error)
-    return c.json({
-      error: 'Unauthorized',
-      message: 'Invalid or expired token'
-    }, 401)
+    console.error('Auth middleware error:', error);
+    return c.json({ error: 'Unauthorized', message: 'Invalid or expired token' }, 401);
   }
-}
+});
 
 /**
  * Optional authentication middleware
  * Adds user information to context if token is valid, but doesn't block if invalid
  */
-export const optionalAuthMiddleware = async (c: Context<{ Bindings: Env }>, next: Next) => {
+export const optionalAuthMiddleware = createMiddleware<AppContext>(async (c, next) => {
   try {
-    const authHeader = c.req.header('Authorization')
-    
+    const authHeader = c.req.header('Authorization');
+
     if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
+      const token = authHeader.substring(7);
 
       try {
+        if (!c.env.JWT_SECRET) {
+          throw new Error('JWT_SECRET is not configured');
+        }
         // Verify JWT token
-        const payload = await verify(token, c.get('jwtSecret'))
-        
+        const payload = (await verify(token, c.env.JWT_SECRET)) as JwtPayload;
+
         // Check if session exists in KV
-        const sessionKey = `session:${payload.userId}`
-        const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey)
-        
+        const sessionKey = `session:${payload.id}`;
+        const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey);
+
         if (session) {
+          // Parse session data to get user info
+          const sessionData = JSON.parse(session);
+          
           // Add user information to context
-          const authContext = c as AuthContext
-          authContext.user = {
-            id: payload.userId,
+          c.set('user', {
+            id: payload.id,
             email: payload.email,
-            displayName: payload.name,
+            displayName: sessionData.name || null,
             firstName: null, // Or get from payload if available
-            lastName: null // Or get from payload if available
-          }
+            lastName: null, // Or get from payload if available
+          });
         }
       } catch (error) {
         // Token is invalid, but we don't block the request
-        console.log('Optional auth failed, continuing without user context:', error)
+        console.log('Optional auth failed, continuing without user context:', error);
       }
     }
 
     // Continue to next middleware/handler regardless of auth status
-    await next()
-
+    await next();
   } catch (error) {
-    console.error('Optional auth middleware error:', error)
+    console.error('Optional auth middleware error:', error);
     // Continue anyway since this is optional
-    await next()
+    await next();
   }
-}
+});
 
 /**
  * Role-based authorization middleware
  * Requires authMiddleware to be used first
  */
-export const requireRole = (_allowedRoles: string[]) => {
-  return async (c: Context<{ Bindings: Env }>, next: Next) => {
-    const authContext = c as AuthContext
-    
-    if (!authContext.user) {
-      return c.json({
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      }, 401)
+export const requireRole = (allowedRoles: string[]) => {
+  return createMiddleware<AppContext>(async (c, next) => {
+    const user = c.get('user');
+
+    if (!user) {
+      return c.json({ error: 'Unauthorized', message: 'Authentication required' }, 401);
     }
 
     // TODO: Implement role checking when user roles are added to the database
     // For now, all authenticated users have access
     // In the future, you could check user roles from database or JWT payload
-    
-    await next()
-  }
-}
+
+    await next();
+  });
+};
 
 /**
  * Helper function to get current user from context
  */
-export const getCurrentUser = (c: Context): { id: string; email: string; displayName: string | null, firstName: string | null, lastName: string | null } | null => {
-  const authContext = c as AuthContext
-  return authContext.user || null
-}
+export const getCurrentUser = (
+  c: any
+): AuthVariables['user'] => {
+  const user = c.get('user');
+  if (!user) {
+    // This should not happen if authMiddleware is used before this function is called.
+    // Throw an error or handle it as per your application's needs.
+    throw new Error('User not found in context. Ensure authMiddleware is used.');
+  }
+  return user;
+};

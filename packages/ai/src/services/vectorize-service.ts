@@ -203,7 +203,6 @@ export class VectorizeService {
         processingTime
       };
     } catch (error) {
-      const processingTime = Date.now() - startTime;
       console.error('Semantic search error:', error);
       
       throw new AIServiceError(
@@ -263,7 +262,6 @@ export class VectorizeService {
         processingTime
       };
     } catch (error) {
-      const processingTime = Date.now() - startTime;
       console.error('Vector search error:', error);
       
       throw new AIServiceError(

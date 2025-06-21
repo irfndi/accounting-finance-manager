@@ -104,23 +104,13 @@ const mockDbAdapter = {
                 }),
                 limit: vitest_1.vi.fn((count) => createChain(chainData.slice(0, count))),
                 orderBy: vitest_1.vi.fn(() => createChain(chainData)),
-                get: vitest_1.vi.fn(() => {
-                    const result = chainData[0] || null;
-                    return Promise.resolve(result);
-                })
-            };
-            // Make chain thenable - return a proper Promise
-            chain.then = (resolve, reject) => {
-                return Promise.resolve(chainData).then(resolve, reject);
-            };
-            chain.catch = (reject) => {
-                return Promise.resolve(chainData).catch(reject);
+                get: vitest_1.vi.fn(() => Promise.resolve(chainData[0] || null))
             };
             return chain;
         };
         return createChain(currentData);
     }),
-    insert: vitest_1.vi.fn((table) => ({
+    insert: vitest_1.vi.fn(() => ({
         values: vitest_1.vi.fn((data) => {
             return new Promise((resolve, reject) => {
                 // Validate required fields
@@ -146,7 +136,7 @@ const mockDbAdapter = {
             });
         })
     })),
-    update: vitest_1.vi.fn((table) => ({
+    update: vitest_1.vi.fn(() => ({
         set: vitest_1.vi.fn((updateData) => ({
             where: vitest_1.vi.fn((condition) => {
                 const updatedData = { ...updateData, updatedAt: Date.now() };
@@ -317,7 +307,7 @@ const dbTestUtils = {
                 createdAt: now,
                 updatedAt: now
             };
-            await getDb().insert(accounts_1.accounts).values(newAccount);
+            await getDb().insert().values(newAccount);
             const result = await getDb().select().from(accounts_1.accounts).where((0, drizzle_orm_1.eq)(accounts_1.accounts.code, newAccount.code)).get();
             (0, vitest_1.expect)(result).toBeDefined();
             (0, vitest_1.expect)(result.code).toBe(newAccount.code);
@@ -328,14 +318,14 @@ const dbTestUtils = {
         (0, vitest_1.it)('should enforce unique account codes', async () => {
             const account1 = await dbTestUtils.insertTestAccount();
             const account2 = dbTestUtils.createTestAccount({ code: account1.code });
-            await (0, vitest_1.expect)(getDb().insert(accounts_1.accounts).values(account2)).rejects.toThrow();
+            await (0, vitest_1.expect)(getDb().insert().values(account2)).rejects.toThrow();
         });
         (0, vitest_1.it)('should require mandatory fields', async () => {
             const incompleteAccount = {
                 name: 'Test Account'
                 // Missing required fields: code, type, normalBalance
             };
-            await (0, vitest_1.expect)(getDb().insert(accounts_1.accounts).values(incompleteAccount)).rejects.toThrow();
+            await (0, vitest_1.expect)(getDb().insert().values(incompleteAccount)).rejects.toThrow();
         });
         (0, vitest_1.it)('should set default values correctly', async () => {
             const now = Date.now();
@@ -354,7 +344,7 @@ const dbTestUtils = {
                 createdAt: now,
                 updatedAt: now
             };
-            await getDb().insert(accounts_1.accounts).values(account);
+            await getDb().insert().values(account);
             const result = await getDb().select().from(accounts_1.accounts).where((0, drizzle_orm_1.eq)(accounts_1.accounts.code, account.code));
             (0, vitest_1.expect)(result[0].isActive).toBe(1); // Default active
             (0, vitest_1.expect)(result[0].createdAt).toBeDefined();
@@ -381,7 +371,7 @@ const dbTestUtils = {
         });
         (0, vitest_1.it)('should retrieve active accounts only', async () => {
             // First, deactivate an account
-            await getDb().update(accounts_1.accounts)
+            await getDb().update()
                 .set({ isActive: 0 })
                 .where((0, drizzle_orm_1.eq)(accounts_1.accounts.code, '1000'));
             const activeAccounts = await getDb().select()
@@ -419,7 +409,7 @@ const dbTestUtils = {
                 createdAt: now,
                 updatedAt: now
             };
-            await getDb().insert(accounts_1.accounts).values(parentAccount);
+            await getDb().insert().values(parentAccount);
             const parent = await getDb().select().from(accounts_1.accounts).where((0, drizzle_orm_1.eq)(accounts_1.accounts.code, parentAccount.code));
             // Create child account
             const childAccount = {
@@ -438,7 +428,7 @@ const dbTestUtils = {
                 createdAt: now,
                 updatedAt: now
             };
-            await getDb().insert(accounts_1.accounts).values(childAccount);
+            await getDb().insert().values(childAccount);
             const child = await getDb().select().from(accounts_1.accounts).where((0, drizzle_orm_1.eq)(accounts_1.accounts.code, childAccount.code));
             (0, vitest_1.expect)(child[0].parentId).toBe(parent[0].id);
         });
@@ -467,7 +457,7 @@ const dbTestUtils = {
                     createdAt: now,
                     updatedAt: now
                 };
-                await getDb().insert(accounts_1.accounts).values(childAccount);
+                await getDb().insert().values(childAccount);
                 // Query child accounts
                 const childAccounts = await getDb().select()
                     .from(accounts_1.accounts)
@@ -491,7 +481,7 @@ const dbTestUtils = {
                 description: 'Updated description',
                 updatedAt: Date.now()
             };
-            await getDb().update(accounts_1.accounts)
+            await getDb().update()
                 .set(updatedData)
                 .where((0, drizzle_orm_1.eq)(accounts_1.accounts.id, originalAccount[0].id));
             const updatedAccount = await getDb().select()
@@ -509,7 +499,7 @@ const dbTestUtils = {
             const originalUpdatedAt = account[0].updatedAt;
             // Wait a moment to ensure timestamp difference
             await new Promise(resolve => setTimeout(resolve, 10));
-            await getDb().update(accounts_1.accounts)
+            await getDb().update()
                 .set({
                 description: 'Modified description',
                 updatedAt: Date.now()
@@ -542,7 +532,7 @@ const dbTestUtils = {
                     createdAt: now,
                     updatedAt: now
                 };
-                await getDb().insert(accounts_1.accounts).values(account);
+                await getDb().insert().values(account);
                 const result = await getDb().select().from(accounts_1.accounts).where((0, drizzle_orm_1.eq)(accounts_1.accounts.code, account.code));
                 (0, vitest_1.expect)(result[0].type).toBe(type);
             }
@@ -566,7 +556,7 @@ const dbTestUtils = {
                     createdAt: now,
                     updatedAt: now
                 };
-                await getDb().insert(accounts_1.accounts).values(account);
+                await getDb().insert().values(account);
                 const result = await getDb().select().from(accounts_1.accounts).where((0, drizzle_orm_1.eq)(accounts_1.accounts.code, account.code));
                 (0, vitest_1.expect)(result[0].normalBalance).toBe(balance);
             }

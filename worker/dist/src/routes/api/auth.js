@@ -1,363 +1,166 @@
 import { Hono } from 'hono';
-import { createEnhancedDatabase } from '@finance-manager/db';
-// Create auth router
+import { sign } from 'hono/jwt';
+import * as bcrypt from 'bcryptjs';
+import { eq } from 'drizzle-orm';
+import { users, createDatabase } from '@finance-manager/db';
+import { authMiddleware, getCurrentUser } from '../../middleware/auth';
 const authRouter = new Hono();
-// Helper to get JWT secret from environment
-const getJWTSecret = (env) => {
-    return env.JWT_SECRET || 'default-development-secret-please-change-in-production';
-};
 // Helper to get session duration from environment (default 7 days)
 const getSessionDuration = (env) => {
     return env.AUTH_SESSION_DURATION || '7d';
 };
-// Register endpoint
+// Registration endpoint
 authRouter.post('/register', async (c) => {
+    const db = createDatabase(c.env.FINANCE_MANAGER_DB);
+    const jwtSecret = c.env.JWT_SECRET;
     try {
         const { email, password, name } = await c.req.json();
         if (!email || !password) {
-            return c.json({
-                error: 'Missing required fields',
-                message: 'Email and password are required'
-            }, 400);
+            return c.json({ error: 'Missing required fields', message: 'Email and password are required' }, 400);
         }
-        // Initialize database connection
-        const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB);
-        // Check if user already exists
-        const existingUser = await database.getUserByEmail(email);
+        const existingUser = await db.select().from(users).where(eq(users.email, email)).get();
         if (existingUser) {
-            return c.json({
-                error: 'User already exists',
-                message: 'A user with this email already exists'
-            }, 409);
+            return c.json({ error: 'User already exists', message: 'A user with this email already exists' }, 409);
         }
-        // Hash password
-        const hashedPassword = await authService.password.hashPassword(password);
-        // Create user
-        const user = await database.createUser({
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [user] = await db.insert(users).values({
             email,
-            passwordHash: hashedPassword,
+            password: hashedPassword,
             displayName: name || null,
             emailVerified: false,
             createdAt: new Date(),
-            updatedAt: new Date()
-        });
-        // Generate JWT token
-        const jwtSecret = getJWTSecret(c.env);
+            updatedAt: new Date(),
+        }).returning();
         const sessionDuration = getSessionDuration(c.env);
-        const token = await authService.jwt.generateToken({
-            id: user.id,
-            email: user.email,
-            role: 'USER' // Default role, should be from user data
-        });
-        // Store session in KV
+        const token = await sign({ id: user.id, email: user.email, role: 'USER' }, jwtSecret);
         const sessionKey = `session:${user.id}`;
         await c.env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({
             userId: user.id,
             email: user.email,
-            name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-            createdAt: new Date().toISOString()
-        }), {
-            expirationTtl: 7 * 24 * 60 * 60 // 7 days in seconds
-        });
-        // Return success response (don't include password hash)
+            name: user.displayName,
+            createdAt: new Date().toISOString(),
+        }), { expirationTtl: 7 * 24 * 60 * 60 });
         return c.json({
             message: 'User registered successfully',
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-                emailVerified: user.emailVerified,
-                createdAt: user.createdAt
-            },
+            user: { id: user.id, email: user.email, name: user.displayName, emailVerified: user.emailVerified, createdAt: user.createdAt },
             token,
-            expiresIn: sessionDuration
+            expiresIn: sessionDuration,
         }, 201);
     }
     catch (error) {
-        console.error('Registration error:', error);
-        return c.json({
-            error: 'Registration failed',
-            message: error instanceof Error ? error.message : 'Unknown error occurred'
-        }, 500);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Registration error:', errorMessage);
+        return c.json({ error: 'Registration failed', message: errorMessage }, 500);
     }
 });
 // Login endpoint
 authRouter.post('/login', async (c) => {
+    const db = createDatabase(c.env.FINANCE_MANAGER_DB);
+    const jwtSecret = c.env.JWT_SECRET;
     try {
         const { email, password } = await c.req.json();
         if (!email || !password) {
-            return c.json({
-                error: 'Missing credentials',
-                message: 'Email and password are required'
-            }, 400);
+            return c.json({ error: 'Missing credentials', message: 'Email and password are required' }, 400);
         }
-        // Initialize database connection
-        const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB);
-        // Get user by email
-        const user = await database.getUserByEmail(email);
+        const userResult = await db.select().from(users).where(eq(users.email, email));
+        const user = userResult[0];
         if (!user) {
-            return c.json({
-                error: 'Invalid credentials',
-                message: 'Email or password is incorrect'
-            }, 401);
+            return c.json({ error: 'Invalid credentials', message: 'Email or password is incorrect' }, 401);
         }
-        // Verify password
-        const isValidPassword = await authService.verifyPassword(password, user.passwordHash);
+        const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-            return c.json({
-                error: 'Invalid credentials',
-                message: 'Email or password is incorrect'
-            }, 401);
+            return c.json({ error: 'Invalid credentials', message: 'Email or password is incorrect' }, 401);
         }
-        // Generate JWT token
-        const jwtSecret = getJWTSecret(c.env);
         const sessionDuration = getSessionDuration(c.env);
-        const token = await authService.jwt.generateToken({
-            id: user.id,
-            email: user.email,
-            role: 'USER' // Default role, should be from user data
-        });
-        // Store session in KV
+        const token = await sign({ id: user.id, email: user.email, role: 'USER' }, jwtSecret);
         const sessionKey = `session:${user.id}`;
         await c.env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({
             userId: user.id,
             email: user.email,
-            name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-            createdAt: new Date().toISOString()
-        }), {
-            expirationTtl: 7 * 24 * 60 * 60 // 7 days in seconds
-        });
-        // Update last login timestamp
-        await database.updateUser(user.id, {
-            lastLoginAt: new Date(),
-            updatedAt: new Date()
-        });
+            name: user.displayName,
+            createdAt: new Date().toISOString(),
+        }), { expirationTtl: 7 * 24 * 60 * 60 });
+        await db.update(users).set({ lastLoginAt: new Date(), updatedAt: new Date() }).where(eq(users.id, user.id));
         return c.json({
             message: 'Login successful',
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-                emailVerified: user.emailVerified,
-                lastLoginAt: new Date()
-            },
+            user: { id: user.id, email: user.email, name: user.displayName, emailVerified: user.emailVerified, lastLoginAt: new Date() },
             token,
-            expiresIn: sessionDuration
+            expiresIn: sessionDuration,
         });
     }
     catch (error) {
-        console.error('Login error:', error);
-        return c.json({
-            error: 'Login failed',
-            message: error instanceof Error ? error.message : 'Unknown error occurred'
-        }, 500);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Login error:', errorMessage);
+        return c.json({ error: 'Login failed', message: errorMessage }, 500);
     }
 });
 // Logout endpoint
-authRouter.post('/logout', async (c) => {
+authRouter.post('/logout', authMiddleware, async (c) => {
+    const user = getCurrentUser(c);
     try {
-        const authHeader = c.req.header('Authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return c.json({
-                error: 'No token provided',
-                message: 'Authorization header with Bearer token is required'
-            }, 401);
-        }
-        const token = authHeader.substring(7);
-        const jwtSecret = getJWTSecret(c.env);
-        // Verify and decode token
-        const payload = await authService.verifyJWT(token, jwtSecret);
-        // Remove session from KV
-        const sessionKey = `session:${payload.userId}`;
+        const sessionKey = `session:${user.id}`;
         await c.env.FINANCE_MANAGER_CACHE.delete(sessionKey);
-        return c.json({
-            message: 'Logout successful'
-        });
+        return c.json({ message: 'Logout successful' });
     }
     catch (error) {
-        console.error('Logout error:', error);
-        return c.json({
-            error: 'Logout failed',
-            message: 'Invalid or expired token'
-        }, 401);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        console.error('Logout error:', errorMessage);
+        return c.json({ error: 'Logout failed', message: 'An unexpected error occurred' }, 500);
     }
 });
 // Get current user profile
-authRouter.get('/profile', async (c) => {
-    try {
-        const authHeader = c.req.header('Authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return c.json({
-                error: 'No token provided',
-                message: 'Authorization header with Bearer token is required'
-            }, 401);
-        }
-        const token = authHeader.substring(7);
-        const jwtSecret = getJWTSecret(c.env);
-        // Verify and decode token
-        const payload = await authService.verifyJWT(token, jwtSecret);
-        // Get user from database
-        const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB);
-        const user = await database.getUserById(payload.userId);
-        if (!user) {
-            return c.json({
-                error: 'User not found',
-                message: 'User associated with this token no longer exists'
-            }, 404);
-        }
-        return c.json({
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.displayName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-                emailVerified: user.emailVerified,
-                createdAt: user.createdAt,
-                lastLoginAt: user.lastLoginAt
-            }
-        });
-    }
-    catch (error) {
-        console.error('Profile fetch error:', error);
-        return c.json({
-            error: 'Unauthorized',
-            message: 'Invalid or expired token'
-        }, 401);
-    }
+authRouter.get('/profile', authMiddleware, async (c) => {
+    const user = getCurrentUser(c);
+    return c.json({ user });
 });
 // Update user profile
-authRouter.put('/profile', async (c) => {
+authRouter.put('/profile', authMiddleware, async (c) => {
+    const db = c.get('db');
+    const user = getCurrentUser(c);
     try {
-        const authHeader = c.req.header('Authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return c.json({
-                error: 'No token provided',
-                message: 'Authorization header with Bearer token is required'
-            }, 401);
-        }
-        const token = authHeader.substring(7);
-        const jwtSecret = getJWTSecret(c.env);
-        // Verify and decode token
-        const payload = await authService.verifyJWT(token, jwtSecret);
         const { name } = await c.req.json();
-        // Update user in database
-        const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB);
-        const updatedUser = await database.updateUser(payload.userId, {
-            name,
-            updatedAt: new Date()
-        });
+        const [updatedUser] = await db.update(users).set({ displayName: name, updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
         return c.json({
             message: 'Profile updated successfully',
-            user: {
-                id: updatedUser.id,
-                email: updatedUser.email,
-                name: updatedUser.displayName || `${updatedUser.firstName || ''} ${updatedUser.lastName || ''}`.trim(),
-                emailVerified: updatedUser.emailVerified,
-                updatedAt: updatedUser.updatedAt
-            }
+            user: { id: updatedUser.id, email: updatedUser.email, name: updatedUser.displayName, emailVerified: updatedUser.emailVerified, updatedAt: updatedUser.updatedAt },
         });
     }
     catch (error) {
-        console.error('Profile update error:', error);
-        return c.json({
-            error: 'Profile update failed',
-            message: error instanceof Error ? error.message : 'Unknown error occurred'
-        }, 500);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Profile update error:', errorMessage);
+        return c.json({ error: 'Profile update failed', message: errorMessage }, 500);
     }
 });
 // Change password endpoint
-authRouter.put('/password', async (c) => {
+authRouter.put('/password', authMiddleware, async (c) => {
+    const db = c.get('db');
+    const user = getCurrentUser(c);
     try {
-        const authHeader = c.req.header('Authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return c.json({
-                error: 'No token provided',
-                message: 'Authorization header with Bearer token is required'
-            }, 401);
-        }
-        const token = authHeader.substring(7);
-        const jwtSecret = getJWTSecret(c.env);
-        // Verify and decode token
-        const payload = await authService.verifyJWT(token, jwtSecret);
         const { currentPassword, newPassword } = await c.req.json();
         if (!currentPassword || !newPassword) {
-            return c.json({
-                error: 'Missing required fields',
-                message: 'Current password and new password are required'
-            }, 400);
+            return c.json({ error: 'Missing required fields', message: 'Current password and new password are required' }, 400);
         }
-        // Get user from database
-        const database = createEnhancedDatabase(c.env.FINANCE_MANAGER_DB);
-        const user = await database.getUserById(payload.userId);
-        if (!user) {
-            return c.json({
-                error: 'User not found',
-                message: 'User associated with this token no longer exists'
-            }, 404);
+        const dbUser = await db.select().from(users).where(eq(users.id, user.id)).get();
+        if (!dbUser) {
+            return c.json({ error: 'User not found' }, 404); // Should not happen if authMiddleware works
         }
-        // Verify current password
-        const isValidPassword = await authService.verifyPassword(currentPassword, user.passwordHash);
+        const isValidPassword = await bcrypt.compare(currentPassword, dbUser.password);
         if (!isValidPassword) {
-            return c.json({
-                error: 'Invalid current password',
-                message: 'Current password is incorrect'
-            }, 401);
+            return c.json({ error: 'Invalid current password', message: 'Current password is incorrect' }, 401);
         }
-        // Hash new password
-        const hashedNewPassword = await authService.hashPassword(newPassword);
-        // Update password in database
-        await database.updateUser(user.id, {
-            passwordHash: hashedNewPassword,
-            updatedAt: new Date()
-        });
-        return c.json({
-            message: 'Password updated successfully'
-        });
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        await db.update(users).set({ password: hashedNewPassword, updatedAt: new Date() }).where(eq(users.id, user.id));
+        return c.json({ message: 'Password updated successfully' });
     }
     catch (error) {
-        console.error('Password change error:', error);
-        return c.json({
-            error: 'Password change failed',
-            message: error instanceof Error ? error.message : 'Unknown error occurred'
-        }, 500);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Password change error:', errorMessage);
+        return c.json({ error: 'Password change failed', message: errorMessage }, 500);
     }
 });
-// Validate session endpoint (useful for frontend auth checks)
-authRouter.get('/validate', async (c) => {
-    try {
-        const authHeader = c.req.header('Authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return c.json({
-                valid: false,
-                message: 'No token provided'
-            }, 401);
-        }
-        const token = authHeader.substring(7);
-        const jwtSecret = getJWTSecret(c.env);
-        // Verify token
-        const payload = await authService.verifyJWT(token, jwtSecret);
-        // Check if session exists in KV
-        const sessionKey = `session:${payload.userId}`;
-        const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey);
-        if (!session) {
-            return c.json({
-                valid: false,
-                message: 'Session not found'
-            }, 401);
-        }
-        return c.json({
-            valid: true,
-            user: {
-                id: payload.userId,
-                email: payload.email,
-                name: payload.name
-            }
-        });
-    }
-    catch {
-        return c.json({
-            valid: false,
-            message: 'Invalid or expired token'
-        }, 401);
-    }
+// Validate session endpoint
+authRouter.get('/validate', authMiddleware, async (c) => {
+    const user = getCurrentUser(c);
+    return c.json({ valid: true, user });
 });
 export default authRouter;

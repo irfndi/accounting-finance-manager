@@ -288,12 +288,8 @@ export async function processOCR(ai, fileData, mimeType, options = {}, fileId, f
         fileId: fileId || 'unknown',
         fileName: fileName || 'unknown'
     });
+    const { maxTextLength = OCR_DEFAULTS.MAX_TEXT_LENGTH, timeout = OCR_DEFAULTS.TIMEOUT_MS, retryAttempts = OCR_DEFAULTS.MAX_RETRY_ATTEMPTS, retryDelay = OCR_DEFAULTS.RETRY_DELAY_MS } = options;
     const startTime = Date.now();
-    // Set defaults from options or constants
-    const retryAttempts = options.retryAttempts ?? OCR_DEFAULTS.MAX_RETRY_ATTEMPTS;
-    const retryDelay = options.retryDelay ?? OCR_DEFAULTS.RETRY_DELAY_MS;
-    const timeout = options.timeout ?? OCR_DEFAULTS.TIMEOUT_MS;
-    const maxTextLength = options.maxTextLength ?? OCR_DEFAULTS.MAX_TEXT_LENGTH;
     try {
         // Validate file requirements
         const validation = validateOCRRequirements(mimeType, fileData.byteLength, fileName, logger);
@@ -309,8 +305,8 @@ export async function processOCR(ai, fileData, mimeType, options = {}, fileId, f
             const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => reject(new Error('OCR processing timeout')), timeout);
             });
-            const processingPromise = ai.run('@cf/microsoft/trocr-base-handwritten', {
-                image: new Uint8Array(fileData)
+            const processingPromise = ai.run('@cf/llava-hf/llava-1.5-7b-hf', {
+                image: Array.from(new Uint8Array(fileData))
             });
             return Promise.race([processingPromise, timeoutPromise]);
         }, {
@@ -393,14 +389,14 @@ export async function processOCR(ai, fileData, mimeType, options = {}, fileId, f
     catch (error) {
         const processingTime = Date.now() - startTime;
         const errorInfo = classifyOCRError(error);
-        logger.processingFailure(fileId || 'unknown', error, processingTime);
+        logger.processingFailure(fileId || 'unknown', error instanceof Error ? error : new Error(String(error)), processingTime);
         // Try fallback OCR if enabled and primary processing failed
         // Never use fallback for validation errors
         if (options.enableFallback !== false && errorInfo.retryable && !(error instanceof ValidationError)) {
             logger.info('Primary OCR failed, attempting fallback processing', {
                 fileId: fileId || 'unknown',
                 operation: 'FALLBACK_ATTEMPT',
-                primaryError: errorInfo.code
+                metadata: { primaryError: errorInfo.code }
             });
             try {
                 const fallbackResult = await processFallbackOCR(fileData, mimeType, options, logger, fileId || 'unknown');
@@ -413,10 +409,11 @@ export async function processOCR(ai, fileData, mimeType, options = {}, fileId, f
                 }
             }
             catch (fallbackError) {
-                logger.error('Fallback OCR failed', {
-                    fileId: fileId || 'unknown',
-                    operation: 'FALLBACK_FAILURE',
-                    error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+                logger.error('Fallback OCR failed', fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)), {
+                    metadata: {
+                        fileId: fileId || 'unknown',
+                        operation: 'FALLBACK_FAILURE'
+                    }
                 });
             }
         }
@@ -472,7 +469,7 @@ export async function processFileOCR(ai, r2Bucket, fileId, options = {}) {
         return await processOCR(ai, fileData, mimeType, options, fileId, fileName);
     }
     catch (error) {
-        logger.storageOperation('retrieve', fileId, 'unknown', false, error);
+        logger.storageOperation('retrieve', fileId, 'unknown', false, error instanceof Error ? error : new Error(String(error)));
         return {
             success: false,
             error: error instanceof Error ? error.message : String(error),
@@ -500,7 +497,7 @@ export async function batchProcessOCR(ai, files, options = {}) {
             });
         }
         catch (error) {
-            logger.error('Batch processing file failed', error, {
+            logger.error('Batch processing file failed', error instanceof Error ? error : new Error(String(error)), {
                 fileId: file.fileId,
                 operation: 'BATCH_OCR_FILE_FAILURE'
             });

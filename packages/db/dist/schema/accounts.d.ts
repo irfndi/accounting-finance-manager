@@ -336,9 +336,9 @@ export declare const accounts: import("drizzle-orm/sqlite-core").SQLiteTableWith
         createdAt: import("drizzle-orm/sqlite-core").SQLiteColumn<{
             name: "created_at";
             tableName: "accounts";
-            dataType: "date";
-            columnType: "SQLiteTimestamp";
-            data: Date;
+            dataType: "number";
+            columnType: "SQLiteInteger";
+            data: number;
             driverParam: number;
             notNull: true;
             hasDefault: true;
@@ -353,9 +353,9 @@ export declare const accounts: import("drizzle-orm/sqlite-core").SQLiteTableWith
         updatedAt: import("drizzle-orm/sqlite-core").SQLiteColumn<{
             name: "updated_at";
             tableName: "accounts";
-            dataType: "date";
-            columnType: "SQLiteTimestamp";
-            data: Date;
+            dataType: "number";
+            columnType: "SQLiteInteger";
+            data: number;
             driverParam: number;
             notNull: true;
             hasDefault: true;
@@ -422,40 +422,74 @@ export declare const NormalBalance: {
 };
 export type NormalBalance = typeof NormalBalance[keyof typeof NormalBalance];
 export declare const insertAccountSchema: z.ZodObject<{
+    id: z.ZodOptional<z.ZodNumber>;
     code: z.ZodString;
     name: z.ZodString;
-    type: z.ZodEnum<["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]>;
-    normalBalance: z.ZodEnum<["DEBIT", "CREDIT"]>;
-}, "strip", z.ZodTypeAny, {
+    description: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    type: z.ZodString;
+    subtype: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    category: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    parentId: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
+    level: z.ZodOptional<z.ZodNumber>;
+    path: z.ZodString;
+    isActive: z.ZodOptional<z.ZodNumber>;
+    isSystem: z.ZodOptional<z.ZodNumber>;
+    allowTransactions: z.ZodOptional<z.ZodNumber>;
+    normalBalance: z.ZodString;
+    reportCategory: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    reportOrder: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
+    currentBalance: z.ZodOptional<z.ZodNumber>;
+    entityId: z.ZodString;
+    createdAt: z.ZodOptional<z.ZodNumber>;
+    updatedAt: z.ZodOptional<z.ZodNumber>;
+    createdBy: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    updatedBy: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+}, z.UnknownKeysParam, z.ZodTypeAny, {
     code: string;
     name: string;
-    type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
-    normalBalance: "DEBIT" | "CREDIT";
+    type: string;
+    path: string;
+    normalBalance: string;
+    entityId: string;
+    id?: number | undefined;
+    description?: string | null | undefined;
+    subtype?: string | null | undefined;
+    category?: string | null | undefined;
+    parentId?: number | null | undefined;
+    level?: number | undefined;
+    isActive?: number | undefined;
+    isSystem?: number | undefined;
+    allowTransactions?: number | undefined;
+    reportCategory?: string | null | undefined;
+    reportOrder?: number | null | undefined;
+    currentBalance?: number | undefined;
+    createdAt?: number | undefined;
+    updatedAt?: number | undefined;
+    createdBy?: string | null | undefined;
+    updatedBy?: string | null | undefined;
 }, {
     code: string;
     name: string;
-    type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
-    normalBalance: "DEBIT" | "CREDIT";
-}>;
-export declare const selectAccountSchema: z.ZodObject<{
-    id: z.ZodNumber;
-    code: z.ZodString;
-    name: z.ZodString;
-    type: z.ZodEnum<["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]>;
-    normalBalance: z.ZodEnum<["DEBIT", "CREDIT"]>;
-}, "strip", z.ZodTypeAny, {
-    id: number;
-    code: string;
-    name: string;
-    type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
-    normalBalance: "DEBIT" | "CREDIT";
-}, {
-    id: number;
-    code: string;
-    name: string;
-    type: "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
-    normalBalance: "DEBIT" | "CREDIT";
+    type: string;
+    path: string;
+    normalBalance: string;
+    entityId: string;
+    id?: number | undefined;
+    description?: string | null | undefined;
+    subtype?: string | null | undefined;
+    category?: string | null | undefined;
+    parentId?: number | null | undefined;
+    level?: number | undefined;
+    isActive?: number | undefined;
+    isSystem?: number | undefined;
+    allowTransactions?: number | undefined;
+    reportCategory?: string | null | undefined;
+    reportOrder?: number | null | undefined;
+    currentBalance?: number | undefined;
+    createdAt?: number | undefined;
+    updatedAt?: number | undefined;
+    createdBy?: string | null | undefined;
+    updatedBy?: string | null | undefined;
 }>;
 export type InsertAccount = z.infer<typeof insertAccountSchema>;
-export type SelectAccount = z.infer<typeof selectAccountSchema>;
 //# sourceMappingURL=accounts.d.ts.map

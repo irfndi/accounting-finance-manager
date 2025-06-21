@@ -3,7 +3,7 @@
  * Handles text extraction from images using Cloudflare AI
  */
 
-import type { Ai } from '@cloudflare/workers-types';
+import type { Ai, R2Bucket } from '@cloudflare/workers-types';
 import { createOCRLogger, ValidationError, withOCRErrorBoundary, type OCRLogger } from './logger';
 
 export interface OCRResult {
@@ -420,8 +420,8 @@ export async function processOCR(
           setTimeout(() => reject(new Error('OCR processing timeout')), timeout);
         });
         
-        const processingPromise = ai.run('@cf/microsoft/trocr-base-handwritten', {
-          image: [...new Uint8Array(fileData)]
+        const processingPromise = ai.run('@cf/llava-hf/llava-1.5-7b-hf', {
+          image: Array.from(new Uint8Array(fileData)) as number[]
         });
         
         return Promise.race([processingPromise, timeoutPromise]);
@@ -526,7 +526,7 @@ export async function processOCR(
     const processingTime = Date.now() - startTime;
     const errorInfo = classifyOCRError(error);
     
-    logger.processingFailure(fileId || 'unknown', error, processingTime);
+    logger.processingFailure(fileId || 'unknown', error instanceof Error ? error : new Error(String(error)), processingTime);
     
     // Try fallback OCR if enabled and primary processing failed
     // Never use fallback for validation errors
@@ -534,7 +534,7 @@ export async function processOCR(
       logger.info('Primary OCR failed, attempting fallback processing', {
         fileId: fileId || 'unknown',
         operation: 'FALLBACK_ATTEMPT',
-        primaryError: errorInfo.code
+        metadata: { primaryError: errorInfo.code }
       });
       
       try {
@@ -554,10 +554,11 @@ export async function processOCR(
           return fallbackResult;
         }
       } catch (fallbackError) {
-        logger.error('Fallback OCR failed', {
-          fileId: fileId || 'unknown',
-          operation: 'FALLBACK_FAILURE',
-          error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+        logger.error('Fallback OCR failed', fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)), {
+          metadata: { 
+            fileId: fileId || 'unknown',
+            operation: 'FALLBACK_FAILURE'
+          }
         });
       }
     }
@@ -636,7 +637,7 @@ export async function processFileOCR(
     return await processOCR(ai, fileData, mimeType, options, fileId, fileName);
     
   } catch (error) {
-    logger.storageOperation('retrieve', fileId, 'unknown', false, error);
+    logger.storageOperation('retrieve', fileId, 'unknown', false, error instanceof Error ? error : new Error(String(error)));
     
     return {
       success: false,
@@ -686,7 +687,7 @@ export async function batchProcessOCR(
       });
       
     } catch (error) {
-      logger.error('Batch processing file failed', error, {
+      logger.error('Batch processing file failed', error instanceof Error ? error : new Error(String(error)), {
         fileId: file.fileId,
         operation: 'BATCH_OCR_FILE_FAILURE'
       });
