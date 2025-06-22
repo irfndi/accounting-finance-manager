@@ -1,5 +1,5 @@
 import { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types';
-import { Hono } from 'hono';
+
 import type { Ai, Vectorize } from '@cloudflare/workers-types';
 
 // Environment bindings interface

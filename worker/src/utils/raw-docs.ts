@@ -3,7 +3,7 @@
  * Handles CRUD operations for the raw_docs table
  */
 
-import { eq, desc, like, or, and, gte, lte, sql, count } from "drizzle-orm";
+import { eq, desc, like, or, and, gte, lte, count } from "drizzle-orm";
 import { rawDocs, type RawDoc, type NewRawDoc, type UpdateRawDoc, type Database } from "@finance-manager/db";
 import { createOCRLogger, DatabaseError, withOCRErrorBoundary } from './logger';
 

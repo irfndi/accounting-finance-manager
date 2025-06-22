@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { sign, verify } from 'hono/jwt';
 import { eq } from 'drizzle-orm';
 import { users, createDatabase } from '@finance-manager/db';
-import { AppContext, Env, AuthVariables } from '../../types';
+import { AppContext } from '../../types';
 import { authMiddleware, getCurrentUser } from '../../middleware/auth';
 
 // Simple email validation function
@@ -13,7 +13,7 @@ function validateEmail(email: string): boolean {
 
 // Simple password validation function
 function validatePassword(password: string): boolean {
-  return password && password.length >= 8;
+  return Boolean(password && password.length >= 8);
 }
 
 // Helper functions for password hashing using Web Crypto API
@@ -33,45 +33,52 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 const authRouter = new Hono<AppContext>();
 
 // Helper to get session duration from environment (default 7 days)
-const getSessionDuration = (env: Env): string => {
+const getSessionDuration = (env: AppContext['Bindings']): string => {
   return env.AUTH_SESSION_DURATION || '7d';
 };
 
 // Registration endpoint
 authRouter.post('/register', async (c) => {
+  // Registration endpoint started
+  
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
   const jwtSecret = c.env.JWT_SECRET;
 
+  if (!jwtSecret) {
+    // JWT_SECRET is missing
+    return c.json({ error: 'Server configuration error', message: 'Authentication not properly configured' }, 500);
+  }
+
   try {
-    console.log('Registration attempt started');
+    // Registration attempt started
     const { email, password, name } = await c.req.json();
-    console.log('Request data parsed:', { email, hasPassword: !!password, name });
+    // Request data parsed
 
     if (!email || !password) {
       return c.json({ error: 'Missing required fields', message: 'Email and password are required' }, 400);
     }
 
-    console.log('Validating email...');
+    // Validating email
     if (!validateEmail(email)) {
       return c.json({ error: 'Invalid email format', message: 'Please provide a valid email address' }, 400);
     }
 
-    console.log('Validating password...');
+    // Validating password
     if (!validatePassword(password)) {
       return c.json({ error: 'Password must be at least 8 characters long', message: 'Password does not meet security requirements' }, 400);
     }
 
-    console.log('Checking for existing user...');
+    // Checking for existing user
     const existingUserResult = await db.select().from(users).where(eq(users.email, email));
     const existingUser = existingUserResult[0];
     if (existingUser) {
       return c.json({ error: 'User already exists', message: 'A user with this email already exists' }, 409);
     }
 
-    console.log('Hashing password...');
+    // Hashing password
     const hashedPassword = await hashPassword(password);
 
-    console.log('Inserting user into database...');
+    // Inserting user into database
     const [user] = await db.insert(users).values({
       id: crypto.randomUUID(),
       email,
@@ -79,7 +86,7 @@ authRouter.post('/register', async (c) => {
       displayName: name || null,
       emailVerified: false,
     }).returning();
-    console.log('User inserted successfully:', user.id);
+    // User inserted successfully
 
     const sessionDuration = getSessionDuration(c.env);
     const token = await sign({ id: user.id, email: user.email, role: 'USER' }, jwtSecret);
@@ -99,10 +106,9 @@ authRouter.post('/register', async (c) => {
       expiresIn: sessionDuration,
     }, 201);
   } catch (error) {
-    console.error('Registration error:', error);
-    console.error('Error stack:', error.stack);
+    // Registration error occurred
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Registration error:', errorMessage);
+    // Registration error occurred
     return c.json({ error: 'Registration failed', message: errorMessage }, 500);
   }
 });
@@ -142,8 +148,8 @@ authRouter.post('/login', async (c) => {
     }), { expirationTtl: 7 * 24 * 60 * 60 });
 
     await db.update(users).set({ 
-      lastLoginAt: Math.floor(Date.now() / 1000),
-      updatedAt: Math.floor(Date.now() / 1000)
+      lastLoginAt: new Date(),
+      updatedAt: new Date()
     }).where(eq(users.id, user.id));
 
     return c.json({
@@ -154,37 +160,24 @@ authRouter.post('/login', async (c) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Login error:', errorMessage);
+    // Login error occurred
     return c.json({ error: 'Login failed', message: errorMessage }, 500);
   }
 });
 
 // Logout endpoint
-authRouter.post('/logout', async (c) => {
-  console.log('Logout endpoint hit');
-  console.log('JWT_SECRET:', c.env.JWT_SECRET ? 'loaded' : 'missing');
+authRouter.post('/logout', authMiddleware, async (c) => {
   try {
-    const authHeader = c.req.header('Authorization');
-    if (authHeader) {
-      const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
-      if (token) {
-        try {
-          const jwtSecret = c.env.JWT_SECRET;
-          const payload = await verify(token, jwtSecret);
-          if (payload && payload.id) {
-            const sessionKey = `session:${payload.id}`;
-            await c.env.FINANCE_MANAGER_CACHE.delete(sessionKey);
-            return c.json({ message: 'Logged out successfully' });
-          }
-        } catch (jwtError) {
-          // Ignore JWT errors (e.g., expired token), as the user is effectively logged out.
-        }
-      }
+    const user = getCurrentUser(c);
+    if (!user) {
+      return c.json({ error: 'User not authenticated' }, 401);
     }
-    return c.json({ message: 'Logged out' });
+    const sessionKey = `session:${user.id}`;
+    await c.env.FINANCE_MANAGER_CACHE.delete(sessionKey);
+    return c.json({ message: 'Logout successful' });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-    console.error('Logout error:', errorMessage);
+    // Logout error occurred
     return c.json({ error: 'Logout failed', message: 'An unexpected error occurred' }, 500);
   }
 });
@@ -192,6 +185,9 @@ authRouter.post('/logout', async (c) => {
 // Get current user profile
 authRouter.get('/profile', authMiddleware, async (c) => {
   const user = getCurrentUser(c);
+  if (!user) {
+    return c.json({ error: 'User not authenticated' }, 401);
+  }
   return c.json({ user });
 });
 
@@ -199,10 +195,13 @@ authRouter.get('/profile', authMiddleware, async (c) => {
 authRouter.put('/profile', authMiddleware, async (c) => {
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
   const user = getCurrentUser(c);
+  if (!user) {
+    return c.json({ error: 'User not authenticated' }, 401);
+  }
 
   try {
     const { name } = await c.req.json();
-    const [updatedUser] = await db.update(users).set({ displayName: name, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(users.id, user.id)).returning();
+    const [updatedUser] = await db.update(users).set({ displayName: name, updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
 
     return c.json({
       message: 'Profile updated successfully',
@@ -210,21 +209,24 @@ authRouter.put('/profile', authMiddleware, async (c) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Profile update error:', errorMessage);
+    // Profile update error occurred
     return c.json({ error: 'Profile update failed', message: errorMessage }, 500);
   }
 });
 
 // Change password endpoint
 authRouter.put('/password', authMiddleware, async (c) => {
-  console.log('Password change attempt started');
+  // Password change attempt started
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
   const user = getCurrentUser(c);
-  console.log('User from middleware:', user ? 'found' : 'not found');
+  if (!user) {
+    return c.json({ error: 'User not authenticated' }, 401);
+  }
+  // User from middleware
 
   try {
     const { currentPassword, newPassword } = await c.req.json();
-    console.log('Password change data:', { hasCurrentPassword: !!currentPassword, hasNewPassword: !!newPassword });
+    // Password change data received
 
     if (!currentPassword || !newPassword) {
       return c.json({ error: 'Missing required fields', message: 'Current password and new password are required' }, 400);
@@ -232,29 +234,28 @@ authRouter.put('/password', authMiddleware, async (c) => {
 
     const dbUserResult = await db.select().from(users).where(eq(users.id, user.id));
     const dbUser = dbUserResult[0];
-    console.log('Database user lookup:', dbUser ? 'found' : 'not found');
+    // Database user lookup
     if (!dbUser) {
       return c.json({ error: 'User not found' }, 404); // Should not happen if authMiddleware works
     }
 
-    console.log('Verifying current password...');
+    // Verifying current password
     const isValidPassword = await verifyPassword(currentPassword, dbUser.passwordHash as string);
-    console.log('Password verification result:', isValidPassword);
+    // Password verification completed
     if (!isValidPassword) {
       return c.json({ error: 'Invalid current password', message: 'Current password is incorrect' }, 401);
     }
 
-    console.log('Hashing new password...');
+    // Hashing new password
     const hashedNewPassword = await hashPassword(newPassword);
-    console.log('Updating password in database...');
-    await db.update(users).set({ passwordHash: hashedNewPassword, updatedAt: Math.floor(Date.now() / 1000) }).where(eq(users.id, user.id));
+    // Updating password in database
+    await db.update(users).set({ passwordHash: hashedNewPassword, updatedAt: new Date() }).where(eq(users.id, user.id));
 
-    console.log('Password change successful');
+    // Password change successful
     return c.json({ message: 'Password updated successfully' });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Password change error:', errorMessage);
-    console.error('Password change error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    // Password change error occurred
     return c.json({ error: 'Password change failed', message: errorMessage }, 500);
   }
 });
@@ -262,6 +263,9 @@ authRouter.put('/password', authMiddleware, async (c) => {
 // Validate session endpoint
 authRouter.get('/validate', authMiddleware, async (c) => {
   const user = getCurrentUser(c);
+  if (!user) {
+    return c.json({ error: 'Unauthorized', message: 'Invalid session' }, 401);
+  }
   return c.json({ valid: true, user });
 });
 

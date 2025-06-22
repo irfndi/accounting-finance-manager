@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types'
-import { createDatabase } from '@finance-manager/db'
+
 import { 
   DatabaseAdapter, 
   DatabaseAccountRegistry,
@@ -166,7 +166,7 @@ accounts.get('/', async (c) => {
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error fetching accounts:', errorMessage)
+    // Error fetching accounts
     
     if (error instanceof AccountingValidationError) {
       return c.json({
@@ -241,7 +241,7 @@ accounts.get('/:id', async (c) => {
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error fetching account:', errorMessage)
+    // Error fetching account
     
     if (error instanceof AccountingValidationError) {
       return c.json({
@@ -362,7 +362,7 @@ accounts.post('/', async (c) => {
     }, 201)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error creating account:', errorMessage)
+    // Error creating account
     
     if (error instanceof AccountingValidationError) {
       return c.json({

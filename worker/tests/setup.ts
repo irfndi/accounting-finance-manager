@@ -1,5 +1,4 @@
 import { beforeEach, vi } from 'vitest'
-import { env } from 'cloudflare:test'
 import type { Env } from '../src/types'
 import { sign } from 'hono/jwt'
 
@@ -87,15 +86,15 @@ globalThis.fetch = vi.fn(() =>
   } as Response)
 );
 
-// Mock console for cleaner test output
-(globalThis as any).console = {
-  ...console,
-  log: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  info: vi.fn(),
-  debug: vi.fn()
-} as Console;
+// Mock console for cleaner test output - temporarily disabled for debugging
+// (globalThis as any).console = {
+//   ...console,
+//   log: vi.fn(),
+//   warn: vi.fn(),
+//   error: vi.fn(),
+//   info: vi.fn(),
+//   debug: vi.fn()
+// } as Console;
 
 // Environment variables for testing
 process.env.NODE_ENV = 'test';

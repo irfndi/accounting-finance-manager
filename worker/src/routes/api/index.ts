@@ -5,17 +5,10 @@ import reportsRouter from './reports'
 import transactionsRouter from './transactions'
 import uploadsRouter from './uploads'
 import vectorizeRouter from './vectorize'
-
-// Environment bindings interface
-type Env = {
-  FINANCE_MANAGER_DB: D1Database
-  FINANCE_MANAGER_CACHE: KVNamespace
-  FINANCE_MANAGER_DOCUMENTS: R2Bucket
-  ENVIRONMENT?: string
-}
+import type { AppContext } from '../../types'
 
 // Create main API router
-const api = new Hono<{ Bindings: Env }>()
+const api = new Hono<AppContext>()
 
 // API root endpoint
 api.get('/', (c) => {

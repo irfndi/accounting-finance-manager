@@ -1,27 +1,39 @@
-import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config'
+import { resolve } from 'path';
+import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
 
 export default defineWorkersConfig({
+  plugins: [],
   test: {
+    pool: '@cloudflare/vitest-pool-workers',
     poolOptions: {
       workers: {
         wrangler: { configPath: './wrangler.toml' },
-        miniflare: {
-          compatibilityDate: '2024-01-01',
-          compatibilityFlags: ['nodejs_compat'],
-          bindings: {
-            ENVIRONMENT: 'test',
-            JWT_SECRET: 'test-jwt-secret-key-for-testing-only',
-            AUTH_SESSION_DURATION: '86400'
-          },
-          kvNamespaces: ['FINANCE_MANAGER_CACHE'],
-          r2Buckets: ['FINANCE_MANAGER_DOCUMENTS'],
-          d1Databases: ['FINANCE_MANAGER_DB']
-        }
-      }
+      },
     },
     globals: true,
+    testTimeout: 10000,
     setupFiles: ['./tests/setup.ts'],
-    testTimeout: 20000,
-    hookTimeout: 20000
+    include: ['./tests/**/*.test.ts'],
+    silent: false,
+    reporter: 'verbose',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: ['**/node_modules/**', '**/dist/**', '**/coverage/**', '**/*.d.ts', '**/*.test.ts', '**/tests/**'],
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80
+        }
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    },
+    extensions: ['.ts', '.js']
   }
-})
+});

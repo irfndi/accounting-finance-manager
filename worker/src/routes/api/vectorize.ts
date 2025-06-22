@@ -182,7 +182,7 @@ vectorize.post('/search', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Vector search error:', error);
+    // Vector search error occurred
     
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
@@ -261,7 +261,7 @@ vectorize.post('/embed', async (c) => {
       error: result.error
     });
   } catch (error) {
-    console.error('Embedding generation error:', error);
+    // Embedding generation error occurred
     
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
@@ -335,7 +335,7 @@ vectorize.get('/document/:fileId', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Get document embeddings error:', error);
+    // Get document embeddings error occurred
     
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
@@ -405,7 +405,7 @@ vectorize.delete('/document/:fileId', async (c) => {
       error: result.error
     });
   } catch (error) {
-    console.error('Delete document embeddings error:', error);
+    // Delete document embeddings error occurred
     
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
@@ -446,7 +446,7 @@ vectorize.get('/stats', async (c) => {
       data: stats
     });
   } catch (error) {
-    console.error('Get vectorize stats error:', error);
+    // Get vectorize stats error occurred
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return c.json({

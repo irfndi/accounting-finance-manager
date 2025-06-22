@@ -8,34 +8,40 @@
     "skipLibCheck": true,
     "noResolve": false,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2022", "WebWorker"],
+    "lib": [
+      "ES2022",
+      "WebWorker"
+    ],
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "declaration": true,
-    "outDir": "./dist",
     "baseUrl": ".",
-    "composite": true,
+    "noEmit": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@tests/*": ["./tests/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@tests/*": [
+        "./tests/*"
+      ]
     },
-    "types": ["@cloudflare/workers-types"],
-    "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
+    "types": [
+      "@cloudflare/workers-types"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "../node_modules/@types"
+    ]
   },
   "include": [
     "src/**/*",
-    "tests/**/*",
     "worker-configuration.d.ts"
   ],
   "exclude": [
     "dist",
-    "node_modules"
-  ],
-  "references": [
-    { "path": "../packages/ai" },
-    { "path": "../packages/core" },
-    { "path": "../packages/db" },
-    { "path": "../packages/types" }
+    "node_modules",
+    "tests",
+    "**/*.test.ts",
+    "**/*.d.ts"
   ]
 }

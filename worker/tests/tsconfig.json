@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "types": [
+      "@cloudflare/vitest-pool-workers"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../src/**/*",
+    "../worker-configuration.d.ts"
+  ]
+}

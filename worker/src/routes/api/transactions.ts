@@ -64,11 +64,7 @@ transactionsRouter.get('/', async (c) => {
     const user = getCurrentUser(c);
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
-    const dbAdapter = new DatabaseAdapter({
-      database: c.env.FINANCE_MANAGER_DB,
-      entityId: user.id,
-      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
-    });
+
     
     // Get query parameters for filtering and pagination
     const { 
@@ -146,7 +142,7 @@ transactionsRouter.get('/', async (c) => {
       }
     })
   } catch (error) {
-    console.error('Error fetching transactions:', error)
+    // Error fetching transactions
     
     if (error instanceof AccountingValidationError) {
       return c.json({
@@ -240,7 +236,7 @@ transactionsRouter.get('/:id', async (c) => {
       transaction: enhancedTransaction
     })
   } catch (error) {
-    console.error('Error fetching transaction:', error)
+    // Error fetching transaction
     
     if (error instanceof AccountingValidationError) {
       return c.json({
@@ -395,7 +391,7 @@ transactionsRouter.post('/', async (c) => {
       message: 'Transaction created successfully with balanced journal entries'
     }, 201)
   } catch (error) {
-    console.error('Error creating transaction:', error)
+    // Error creating transaction
     
     if (error instanceof DoubleEntryError) {
       return c.json({

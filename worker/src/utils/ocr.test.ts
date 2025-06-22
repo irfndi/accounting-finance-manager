@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   processOCR,
   getOCRMetrics,
@@ -42,6 +42,15 @@ describe('OCR Utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetOCRMetrics();
+    // Clear any previous mock implementations
+    mockAI.run.mockReset();
+  });
+
+  afterEach(() => {
+    // Clear any pending timeouts
+    const timeoutIds = (global as any).__timeoutIds || [];
+    timeoutIds.forEach((id: NodeJS.Timeout) => clearTimeout(id));
+    (global as any).__timeoutIds = [];
   });
 
 
@@ -49,7 +58,7 @@ describe('OCR Utilities', () => {
   describe('processOCR with retry mechanism', () => {
     it('should succeed on first attempt', async () => {
       const mockResponse = { text: 'Extracted text content' };
-      mockAI.run.mockResolvedValueOnce(mockResponse);
+      mockAI.run.mockResolvedValue(mockResponse);
 
       const fileData = new ArrayBuffer(1000);
       const result = await processOCR(mockAI as any, fileData, 'image/jpeg', {
@@ -82,13 +91,15 @@ describe('OCR Utilities', () => {
     });
 
     it('should fail after max retries', async () => {
+      mockAI.run.mockReset();
       const persistentError = new Error('Persistent AI service error');
       mockAI.run.mockRejectedValue(persistentError);
 
       const fileData = new ArrayBuffer(1000);
       const result = await processOCR(mockAI as any, fileData, 'image/jpeg', {
         retryAttempts: 2,
-        retryDelay: 10
+        retryDelay: 10,
+        enableFallback: false // Disable fallback to test retry failure properly
       }, 'test-file-id', 'test.jpg');
 
       expect(result.success).toBe(false);
@@ -113,16 +124,29 @@ describe('OCR Utilities', () => {
     });
 
     it('should handle timeout errors', async () => {
-      mockAI.run.mockImplementation(() => 
-        new Promise(resolve => setTimeout(() => resolve({ text: 'Too slow' }), 2000))
-      );
+      // Reset any previous mock implementations
+      mockAI.run.mockReset();
+      // Create a mock that hangs for longer than timeout
+      mockAI.run.mockImplementation(() => {
+        return new Promise((resolve) => {
+          // This will resolve after 1000ms, but timeout is 50ms
+          setTimeout(() => resolve({ text: 'Too slow' }), 1000);
+        });
+      });
 
       const fileData = new ArrayBuffer(1000);
+      
+      // Test the timeout mechanism directly
+      const startTime = Date.now();
       const result = await processOCR(mockAI as any, fileData, 'image/jpeg', {
-        timeout: 100,
-        retryAttempts: 1
+        timeout: 50, // Very short timeout
+        retryAttempts: 1, // Only try once
+        enableFallback: false // Disable fallback to test timeout properly
       }, 'test-file-id', 'test.jpg');
-
+      const endTime = Date.now();
+      
+      // Should complete quickly due to timeout
+      expect(endTime - startTime).toBeLessThan(500);
       expect(result.success).toBe(false);
       expect(result.errorCode).toBeDefined();
     });
@@ -133,7 +157,8 @@ describe('OCR Utilities', () => {
 
       const fileData = new ArrayBuffer(1000);
       const result = await processOCR(mockAI as any, fileData, 'image/jpeg', {
-        maxTextLength: 1000
+        maxTextLength: 1000,
+        enableFallback: false // Disable fallback to test retry failure properly
       }, 'test-file-id', 'test.jpg');
 
       expect(result.success).toBe(true);
@@ -185,7 +210,12 @@ describe('OCR Utilities', () => {
     });
 
     it('should calculate average processing time', async () => {
-      mockAI.run.mockResolvedValue({ text: 'Success' });
+      // Reset any previous mock implementations
+      mockAI.run.mockReset();
+      // Mock AI with delay to simulate processing time
+      mockAI.run.mockImplementation(() => 
+        new Promise(resolve => setTimeout(() => resolve({ text: 'Success' }), 10))
+      );
 
       const fileData = new ArrayBuffer(1000);
       

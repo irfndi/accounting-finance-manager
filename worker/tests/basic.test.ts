@@ -1,39 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import { SELF } from 'cloudflare:test';
 import worker from '../src/index';
+import type { Env } from '../src/types';
 
 describe('Basic Worker Tests', () => {
   it('should respond to health check', async () => {
-    const request = new Request('http://localhost/health');
-    const ctx = createExecutionContext();
-    const response = await worker.fetch(request, env, ctx);
-    await waitOnExecutionContext(ctx);
+    const response = await SELF.fetch('http://localhost/health');
     
     expect(response.status).toBe(200);
     
-    const result = await response.json();
+    const result = await response.json() as { status: string };
     expect(result.status).toBe('healthy');
   });
 
   it('should respond to API root', async () => {
-    const request = new Request('http://localhost/api/', {
+    const response = await SELF.fetch('http://localhost/api', {
       headers: { 'Accept': 'application/json' }
     });
-    const ctx = createExecutionContext();
-    const response = await worker.fetch(request, env, ctx);
-    await waitOnExecutionContext(ctx);
     
     expect(response.status).toBe(200);
     
-    const result = await response.json();
+    const result = await response.json() as { message: string };
     expect(result.message).toContain('Corporate Finance Manager API');
   });
 
   it('should handle 404 for unknown routes', async () => {
-    const request = new Request('http://localhost/api/nonexistent');
-    const ctx = createExecutionContext();
-    const response = await worker.fetch(request, env, ctx);
-    await waitOnExecutionContext(ctx);
+    const response = await SELF.fetch('http://localhost/api/nonexistent');
     
     expect(response.status).toBe(404);
   });

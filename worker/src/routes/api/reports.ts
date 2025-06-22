@@ -6,12 +6,12 @@ import {
   FINANCIAL_CONSTANTS,
 } from '@finance-manager/core';
 import { authMiddleware, getCurrentUser } from '../../middleware/auth';
-import { AppContext, Env, AuthVariables } from '../../types';
+import { AppContext } from '../../types';
 import { createMiddleware } from 'hono/factory';
 
 
 type ReportsContext = {
-  Variables: AuthVariables & {
+  Variables: {
     dbAdapter: DatabaseAdapter;
     reportsEngine: FinancialReportsEngine;
     entityId: string;
@@ -60,7 +60,7 @@ const parseDate = (dateStr: string | undefined, defaultDate: Date): Date => {
  */
 reportsRouter.get('/trial-balance', async (c) => {
   try {
-    const { reportsEngine, entityId } = c.var;
+    const { entityId, reportsEngine } = c.var;
     
     // Parse query parameters
     const asOfDateStr = c.req.query('asOfDate');
@@ -75,14 +75,14 @@ reportsRouter.get('/trial-balance', async (c) => {
         ...trialBalance,
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c).id,
+          generatedBy: getCurrentUser(c)?.id || 'unknown',
           reportType: 'trial-balance',
           parameters: { asOfDate: asOfDate.toISOString(), entityId },
         },
       }
     })
   } catch (error) {
-    console.error('Trial balance generation error:', error)
+    // Trial balance generation error occurred
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return c.json({
       success: false,
@@ -126,7 +126,7 @@ reportsRouter.get('/balance-sheet', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c).id,
+          generatedBy: getCurrentUser(c)?.id || 'unknown',
           reportType: 'balance-sheet',
           format: format || 'detailed',
           parameters: { asOfDate: asOfDate.toISOString(), entityId },
@@ -134,7 +134,7 @@ reportsRouter.get('/balance-sheet', async (c) => {
       }
     })
   } catch (error) {
-    console.error('Balance sheet generation error:', error)
+    // Balance sheet generation error occurred
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return c.json({
       success: false,
@@ -186,7 +186,7 @@ reportsRouter.get('/income-statement', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c).id,
+          generatedBy: getCurrentUser(c)?.id || 'unknown',
           reportType: 'income-statement',
           period: period || 'custom',
           parameters: {
@@ -198,8 +198,7 @@ reportsRouter.get('/income-statement', async (c) => {
       }
     })
   } catch (error) {
-    console.error('Income statement generation error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // Income statement generation error occurred
     return c.json({
       success: false,
       error: 'Failed to generate income statement',
@@ -238,7 +237,7 @@ reportsRouter.get('/cash-flow', async (c) => {
         ...cashFlow,
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c).id,
+          generatedBy: getCurrentUser(c)?.id || 'unknown',
           reportType: 'cash-flow',
           method: method || 'indirect',
           parameters: {
@@ -250,7 +249,7 @@ reportsRouter.get('/cash-flow', async (c) => {
       }
     })
   } catch (error) {
-    console.error('Cash flow statement generation error:', error)
+    // Cash flow statement generation error occurred
     return c.json({
       success: false,
       error: 'Failed to generate cash flow statement',
@@ -316,14 +315,14 @@ reportsRouter.get('/financial-metrics', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c).id,
+          generatedBy: getCurrentUser(c)?.id || 'unknown',
           reportType: 'financial-metrics',
           parameters: { asOfDate: asOfDate.toISOString(), entityId },
         },
       }
     })
   } catch (error) {
-    console.error('Financial metrics generation error:', error)
+    // Financial metrics generation error occurred
     return c.json({
       success: false,
       error: 'Failed to generate financial metrics',
@@ -364,14 +363,14 @@ reportsRouter.get('/account-balance/:accountId', async (c) => {
         formattedBalance: formatCurrency(balance),
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c).id,
+          generatedBy: getCurrentUser(c)?.id || 'unknown',
           reportType: 'account-balance',
           parameters: { accountId, asOfDate: asOfDate.toISOString(), entityId },
         },
       }
     })
   } catch (error) {
-    console.error('Account balance query error:', error)
+    // Account balance query error occurred
     return c.json({
       success: false,
       error: 'Failed to get account balance',
@@ -444,14 +443,14 @@ reportsRouter.get('/summary', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c).id,
+          generatedBy: getCurrentUser(c)?.id || 'unknown',
           reportType: 'financial-summary',
           parameters: { entityId },
         },
       }
     })
   } catch (error) {
-    console.error('Financial summary generation error:', error)
+    // Financial summary generation error occurred
     return c.json({
       success: false,
       error: 'Failed to generate financial summary',
@@ -667,7 +666,7 @@ reportsRouter.get('/export/balance-sheet', async (c) => {
         }, 400)
     }
   } catch (error) {
-    console.error('Balance sheet export error:', error)
+    // Balance sheet export error occurred
     return c.json({
       success: false,
       error: 'Failed to export balance sheet',
@@ -749,7 +748,7 @@ reportsRouter.get('/export/income-statement', async (c) => {
         }, 400)
     }
   } catch (error) {
-    console.error('Income statement export error:', error)
+    // Income statement export error occurred
     return c.json({
       success: false,
       error: 'Failed to export income statement',
@@ -815,7 +814,7 @@ reportsRouter.get('/export/trial-balance', async (c) => {
         }, 400)
     }
   } catch (error) {
-    console.error('Trial balance export error:', error)
+    // Trial balance export error occurred
     return c.json({
       success: false,
       error: 'Failed to export trial balance',

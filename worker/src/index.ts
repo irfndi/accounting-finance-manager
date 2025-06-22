@@ -11,17 +11,10 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { prettyJSON } from 'hono/pretty-json'
 import api from './routes/api/index'
-
-// Environment bindings interface
-type Env = {
-  FINANCE_MANAGER_DB: D1Database
-  FINANCE_MANAGER_CACHE: KVNamespace
-  FINANCE_MANAGER_DOCUMENTS: R2Bucket
-  ENVIRONMENT?: string
-}
+import type { AppContext } from './types'
 
 // Create Hono app
-const app = new Hono<{ Bindings: Env }>()
+export const app = new Hono<AppContext>()
 
 // Middleware
 app.use('*', cors({
@@ -35,11 +28,27 @@ app.use('*', prettyJSON())
 
 // Error handling middleware
 app.onError((err, c) => {
-  console.error('Worker error:', err)
-  return c.json({
-    error: 'Internal server error',
-    message: err.message || 'Unknown error'
-  }, 500)
+  console.error('=== Global error handler called ===');
+  console.error('Error name:', err.name);
+  console.error('Error message:', err.message);
+  console.error('Error stack:', err.stack);
+  console.error('Request URL:', c.req.url);
+  console.error('Request method:', c.req.method);
+  console.error('=====================================');
+  
+  // Check if this is an authentication error
+  if (err.name === 'Unauthorized' || 
+      err.message.includes('Unauthorized') || 
+      err.message.includes('Invalid or expired token') || 
+      err.message.includes('Authentication not configured') ||
+      err.message.includes('Authorization header') ||
+      err.message.includes('Session not found')) {
+    console.log('🔒 Returning 401 for auth error');
+    return c.json({ error: 'Unauthorized', message: err.message }, 401);
+  }
+  
+  console.log('💥 Returning 500 for non-auth error');
+  return c.json({ error: 'Internal server error', details: err.message }, 500);
 })
 
 // Health check endpoint
@@ -51,6 +60,9 @@ app.get('/health', (c) => {
     worker: 'finance-manager'
   })
 })
+
+// Mount API routes BEFORE catch-all routes
+app.route('/api', api)
 
 // Root endpoint - redirect to enhanced interface
 app.get('/', (c) => {
@@ -73,9 +85,6 @@ app.get('/', (c) => {
   // This will be handled by the catch-all route below
   return c.redirect('/?interface=web', 302)
 })
-
-// Mount API routes
-app.route('/api', api)
 
 // Static file serving for Astro front-end
 // This handles serving built Astro assets and SPA routing
@@ -239,4 +248,4 @@ app.get('*', async (c) => {
   return c.redirect('/', 302)
 })
 
-export default app 
+export default app

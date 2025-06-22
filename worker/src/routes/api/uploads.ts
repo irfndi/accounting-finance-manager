@@ -55,7 +55,6 @@ function createFinancialAIService(c: AppContext): FinancialAIService | null {
   const env = c.Bindings;
   try {
     if (!env.OPENROUTER_API_KEY) {
-      console.warn('⚠️ OpenRouter API key not found, LLM features disabled');
       return null;
     }
 
@@ -71,14 +70,16 @@ function createFinancialAIService(c: AppContext): FinancialAIService | null {
 
     return new FinancialAIService(aiService);
   } catch (error) {
-    console.error('Failed to initialize AI service:', error);
     return null;
   }
 }
 
 // Helper function to create vectorize service
-function createVectorizeServiceInstance(c: any): ReturnType<typeof createVectorizeService> {
-  const { DOCUMENT_EMBEDDINGS: vectorize, AI: ai } = c.env;
+function createVectorizeServiceInstance(c: any, deps?: { ai?: any; vectorize?: any }): ReturnType<typeof createVectorizeService> {
+  const { DOCUMENT_EMBEDDINGS: envVectorize, AI: envAi } = c.env;
+  const ai = deps?.ai || envAi;
+  const vectorize = deps?.vectorize || envVectorize;
+
   return createVectorizeService({
     vectorize,
     ai,
@@ -105,7 +106,7 @@ function isValidFileSize(file: File): boolean {
 }
 
 // Helper function to create file metadata
-function createFileMetadata(file: File, fileId: string, userId: string, entityId?: string) {
+function createFileMetadata(file: File, fileId: string, userId: string) {
   return {
     id: fileId,
     originalName: file.name,
@@ -177,6 +178,9 @@ function createFileMetadata(file: File, fileId: string, userId: string, entityId
  */
 uploads.post('/', async (c) => {
   try {
+    // Debug environment access
+    
+    
     const user = getCurrentUser(c);
     if (!user) {
       return c.json({
@@ -246,14 +250,7 @@ uploads.post('/', async (c) => {
           includeConfidence: true
         }, fileId);
         
-        console.log(`OCR processing for ${fileId}:`, {
-          success: ocrResult.success === true,
-          textLength: ocrResult.text?.length || 0,
-          processingTime: ocrResult.processingTime,
-          errorCode: ocrResult.errorCode,
-          fallbackUsed: ocrResult.fallbackUsed,
-          retryable: ocrResult.retryable
-        });
+        // OCR processing completed
 
         // Process with LLM if OCR was successful
         if (ocrResult.success === true && ocrResult.text) {
@@ -266,11 +263,7 @@ uploads.post('/', async (c) => {
                 confidence: ocrResult.confidence || 0
               });
 
-              console.log(`Document classification for ${fileId}:`, {
-                type: documentClassification?.type,
-                confidence: documentClassification?.confidence,
-                subtype: documentClassification?.subtype
-              });
+              // Document classification completed
 
               // Extract structured data based on classification
               if (documentClassification && documentClassification.confidence > 0.6) {
@@ -283,10 +276,7 @@ uploads.post('/', async (c) => {
                   (documentClassification?.type as 'receipt' | 'invoice' | 'bank_statement' | undefined)
                 );
 
-                console.log(`Data extraction for ${fileId}:`, {
-                  hasStructuredData: !!structuredData,
-                  dataKeys: structuredData ? Object.keys(structuredData) : []
-                });
+                // Data extraction completed
 
                 // Update database with LLM results
                 try {
@@ -303,13 +293,9 @@ uploads.post('/', async (c) => {
                     user.id
                   );
                   
-                  if (llmUpdateResult.success === true) {
-                    console.log('✅ LLM data saved to database:', { fileId });
-                  } else {
-                    console.warn('⚠️ Failed to save LLM data to database:', llmUpdateResult.error);
-                  }
+                  // LLM data processing completed
                 } catch (dbError) {
-                  console.warn('⚠️ Database update for LLM data failed:', dbError);
+                  // Database update failed, continue processing
                 }
 
                 // Generate document embeddings for semantic search
@@ -332,26 +318,17 @@ uploads.post('/', async (c) => {
                     embeddingMetadata
                   );
 
-                  if (embeddingResult.success === false) {
-                    console.warn('⚠️ Failed to generate document embeddings:', embeddingResult.error);
-                  } else {
-                    console.log(`✅ Generated ${embeddingResult.chunksCreated} embedding chunks for document ${fileId}`);
-                  }
+                  // Embedding generation completed
                 } catch (embeddingError) {
-                  console.error('Embedding generation failed:', embeddingError);
                   // Continue with upload even if embedding generation fails
                 }
               }
             } catch (aiError) {
-              const errorMessage = aiError instanceof Error ? aiError.message : 'Unknown error during LLM processing';
-              console.error('LLM processing failed:', errorMessage);
               // Continue with upload even if LLM processing fails
             }
           }
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error during OCR processing';
-        console.error('OCR processing failed:', errorMessage);
         // Continue with upload even if OCR fails
         ocrResult = {
           success: false,
@@ -530,10 +507,12 @@ uploads.post('/', async (c) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error during upload';
-    console.error('Upload error:', errorMessage);
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace';
+    // Upload error occurred
     return c.json({
       success: false,
-      error: 'Internal server error during upload'
+      error: 'Internal server error during upload',
+      details: errorMessage
     }, 500);
   }
 });
@@ -627,7 +606,7 @@ uploads.get('/:fileId', async (c) => {
     });
 
   } catch (error) {
-    console.error('Download error:', error);
+    // Download error occurred
     return c.json({
       success: false,
       error: 'Internal server error during download'
@@ -712,7 +691,7 @@ uploads.delete('/:fileId', async (c) => {
     });
 
   } catch (error) {
-    console.error('Delete error:', error);
+    // Delete error occurred
     return c.json({
       success: false,
       error: 'Internal server error during deletion'
@@ -831,10 +810,11 @@ uploads.get('/', async (c) => {
     });
 
   } catch (error) {
-    console.error('List files error:', error);
+    // List files error occurred
     return c.json({
       success: false,
-      error: 'Internal server error while listing files'
+      error: 'Internal server error while listing files',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }
 });
@@ -923,7 +903,7 @@ uploads.get('/:fileId/metadata', async (c) => {
     });
 
   } catch (error) {
-    console.error('Get metadata error:', error);
+    // Get metadata error occurred
     return c.json({
       success: false,
       error: 'Internal server error while getting metadata'
@@ -1122,7 +1102,7 @@ uploads.post('/:fileId/ocr', async (c) => {
 
       await updateRawDocOCR(db, fileId, updateData, user.id);
 
-      console.log(`Updated OCR results for document ${fileId} in database`);
+      // OCR results updated in database
       
       // Also update R2 metadata for backwards compatibility
       try {
@@ -1149,11 +1129,11 @@ uploads.post('/:fileId/ocr', async (c) => {
           customMetadata: updatedMetadata
         });
       } catch (r2Error) {
-        console.error('Failed to update R2 metadata:', r2Error);
+        // Failed to update R2 metadata
         // Continue - database update was successful
       }
     } catch (dbError) {
-      console.error('Failed to update OCR results in database:', dbError);
+      // Failed to update OCR results in database
       // Fallback to R2 metadata only
       try {
         const existingMetadata = { ...object.customMetadata };
@@ -1175,7 +1155,7 @@ uploads.post('/:fileId/ocr', async (c) => {
           customMetadata: updatedMetadata
         });
       } catch (error) {
-        console.error('Failed to update both database and R2 metadata:', error);
+        // Failed to update both database and R2 metadata
       }
     }
 
@@ -1199,7 +1179,7 @@ uploads.post('/:fileId/ocr', async (c) => {
     });
 
   } catch (error) {
-    console.error('OCR processing error:', error);
+    // OCR processing error occurred
     return c.json({
       success: false,
       error: 'Internal server error during OCR processing'
@@ -1326,7 +1306,7 @@ uploads.get('/:fileId/ocr', async (c) => {
     });
 
   } catch (error) {
-    console.error('Get OCR error:', error);
+    // Get OCR error occurred
     return c.json({
       success: false,
       error: 'Internal server error while getting OCR results'
@@ -1377,7 +1357,7 @@ uploads.get('/stats', async (c) => {
       data: stats.data
     });
   } catch (error) {
-    console.error('Upload stats error:', error);
+    // Upload stats error occurred
     return c.json({
       error: 'Failed to get upload statistics',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -1428,13 +1408,18 @@ uploads.post('/search', async (c) => {
   try {
     const user = getCurrentUser(c);
     if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
+      return c.json({ 
+        success: false,
+        error: 'Unauthorized' 
+      }, 401);
     }
 
     const { query, limit = 10, threshold = 0.7, filter } = await c.req.json();
 
     if (!query || typeof query !== 'string') {
-      return c.json({ error: 'Search query is required' }, 400);
+      return c.json({ 
+        error: 'Search query is required' 
+      }, 400);
     }
 
     // Create vectorize service and perform semantic search
@@ -1480,7 +1465,17 @@ uploads.post('/search', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Semantic search error:', error);
+    // Semantic search error occurred
+    
+    // Handle AIServiceError specifically
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'AIServiceError') {
+      return c.json({
+        success: false,
+        error: 'Failed to generate embeddings',
+        details: (error as any).message || 'Unknown AI service error'
+      }, 500);
+    }
+    
     return c.json({
       success: false,
       error: 'Failed to generate embeddings',

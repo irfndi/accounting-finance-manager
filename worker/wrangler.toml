@@ -10,11 +10,19 @@ name = "finance-manager"
 [env.development]
 name = "finance-manager-dev"
 
+[env.test]
+name = "finance-manager-test"
+
 # Variables
 [vars]
 ENVIRONMENT = "development"
 JWT_SECRET = "dev-jwt-secret-please-change-in-production-use-strong-random-key"
 AUTH_SESSION_DURATION = "7d"
+
+[env.test.vars]
+ENVIRONMENT = "test"
+JWT_SECRET = "test-jwt-secret-key-for-testing-only"
+AUTH_SESSION_DURATION = "1h"
 
 [env.production.vars]
 ENVIRONMENT = "production"
@@ -29,6 +37,13 @@ database_name = "finance-manager-db"
 database_id = "886fa63b-1b70-42bc-8acd-62c21d68e42b"
 migrations_dir = "../packages/db/migrations"
 
+# Test D1 Database
+[[env.test.d1_databases]]
+binding = "FINANCE_MANAGER_DB"
+database_name = "test-finance-manager-db"
+database_id = "test-db-id"
+migrations_dir = "../packages/db/migrations"
+
 # Production D1 Database (separate instance for production)
 [[env.production.d1_databases]]
 binding = "FINANCE_MANAGER_DB"
@@ -41,6 +56,11 @@ migrations_dir = "../packages/db/migrations"
 binding = "FINANCE_MANAGER_CACHE"
 id = "0e0af82b22224048a122082d1f3f6d42"
 
+# Test KV Storage
+[[env.test.kv_namespaces]]
+binding = "FINANCE_MANAGER_CACHE"
+id = "test-kv-id"
+
 # Production KV Storage
 [[env.production.kv_namespaces]]
 binding = "FINANCE_MANAGER_CACHE"
@@ -50,6 +70,11 @@ id = "138dfa25adf345539677e7ef493eb335"
 [[r2_buckets]]
 binding = "FINANCE_MANAGER_DOCUMENTS"
 bucket_name = "finance-manager-documents"
+
+# Test R2 Storage
+[[env.test.r2_buckets]]
+binding = "FINANCE_MANAGER_DOCUMENTS"
+bucket_name = "test-finance-manager-documents"
 
 # Production R2 Storage
 [[env.production.r2_buckets]]
@@ -64,6 +89,11 @@ binding = "AI"
 [[vectorize]]
 binding = "DOCUMENT_EMBEDDINGS"
 index_name = "finance-manager-documents"
+
+# Test Vectorize
+[[env.test.vectorize]]
+binding = "DOCUMENT_EMBEDDINGS"
+index_name = "test-finance-manager-documents"
 
 # Production Vectorize
 [[env.production.vectorize]]
