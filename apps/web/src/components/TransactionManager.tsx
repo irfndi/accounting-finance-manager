@@ -91,33 +91,45 @@ export default function TransactionManager() {
     ]);
   }, []);
 
-  // AI-powered smart categorization
+  // AI-powered smart categorization with approval workflow
   const handleSmartCategorization = async (description: string, amount: number) => {
     if (!description.trim()) return;
     
     setAnalyzing(true);
     try {
-      const response = await aiClient.categorizeExpense(description, amount);
-      if (response.success && response.result) {
-        const { suggestedCategory, confidence, accountId } = response.result;
+      const response = await aiClient.suggestCategorization(description, amount);
+      if (response.success && response.suggestion) {
+        const { suggestedCategory, confidence, reasoning } = response.suggestion;
         
-        // Update the first entry with AI suggestion
-        const updated = [...transactionEntries];
-        if (accountId) {
-          updated[0].accountId = accountId;
-        }
-        
-        setTransactionEntries(updated);
-        
-        // Show AI insight
+        // Show AI insight with approval workflow info
         setAiInsights([{
-          type: confidence > 0.8 ? 'info' : 'warning',
-          message: `AI suggests: ${suggestedCategory} (${Math.round(confidence * 100)}% confidence)`,
+          type: 'info',
+          message: `AI suggests: ${suggestedCategory} (${Math.round(confidence * 100)}% confidence). Check the Categorization Manager to approve or reject this suggestion.`,
           confidence
+        }]);
+        
+        // Optional: Show additional reasoning
+        if (reasoning) {
+          setAiInsights(prev => [...prev, {
+            type: 'info',
+            message: `Reasoning: ${reasoning}`,
+            confidence
+          }]);
+        }
+      } else {
+        setAiInsights([{
+          type: 'error',
+          message: response.error || 'Failed to generate categorization suggestion',
+          confidence: 0
         }]);
       }
     } catch (error) {
       console.error('Smart categorization error:', error);
+      setAiInsights([{
+        type: 'error',
+        message: 'Failed to connect to categorization service',
+        confidence: 0
+      }]);
     } finally {
       setAnalyzing(false);
     }
@@ -681,4 +693,4 @@ export default function TransactionManager() {
       )}
     </div>
   );
-} 
+}

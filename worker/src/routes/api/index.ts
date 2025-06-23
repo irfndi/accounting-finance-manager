@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import accountsRouter from './accounts'
 import authRouter from './auth'
+import categorizationRouter from './categorization'
 import reportsRouter from './reports'
 import transactionsRouter from './transactions'
 import uploadsRouter from './uploads'
@@ -19,6 +20,7 @@ api.get('/', (c) => {
     endpoints: {
       auth: '/api/auth - Authentication and user management',
       accounts: '/api/accounts - Chart of accounts management',
+      categorization: '/api/categorization - AI-powered transaction categorization',
       transactions: '/api/transactions - Financial transactions',
       reports: '/api/reports - Financial reporting',
       uploads: '/api/uploads - File upload and document management',
@@ -52,6 +54,7 @@ api.get('/', (c) => {
 // Mount route modules
 api.route('/auth', authRouter)
 api.route('/accounts', accountsRouter)
+api.route('/categorization', categorizationRouter)
 api.route('/transactions', transactionsRouter)
 api.route('/reports', reportsRouter)
 api.route('/uploads', uploadsRouter)
@@ -65,12 +68,14 @@ api.get('/health', (c) => {
     timestamp: new Date().toISOString(),
     environment: c.env.ENVIRONMENT,
     modules: {
-      auth: 'operational',
-      accounts: 'operational',
-      transactions: 'operational',
-      reports: 'operational',
-      uploads: 'operational'
-    }
+        auth: 'operational',
+        accounts: 'operational',
+        categorization: 'operational',
+        transactions: 'operational',
+        reports: 'operational',
+        uploads: 'operational',
+        vectorize: 'operational'
+      }
   })
 })
 
@@ -80,30 +85,36 @@ api.all('*', (c) => {
     error: 'API endpoint not found',
     message: `The endpoint ${c.req.method} ${c.req.path} does not exist`,
     availableEndpoints: [
-      'GET /api/',
-      'GET /api/health',
-      'POST /api/auth/register',
-      'POST /api/auth/login',
-      'POST /api/auth/logout',
-      'GET /api/auth/profile',
-      'PUT /api/auth/profile',
-      'PUT /api/auth/password',
-      'GET /api/auth/validate',
-      'GET /api/accounts',
-      'POST /api/accounts',
-      'GET /api/accounts/:id',
-      'GET /api/transactions',
-      'POST /api/transactions',
-      'GET /api/transactions/:id',
-      'GET /api/reports/trial-balance',
-      'GET /api/reports/balance-sheet',
-      'GET /api/reports/income-statement',
-      'POST /api/uploads',
-      'GET /api/uploads',
-      'GET /api/uploads/{fileId}',
-      'GET /api/uploads/{fileId}/metadata',
-      'DELETE /api/uploads/{fileId}'
-    ],
+        'GET /api/',
+        'GET /api/health',
+        'POST /api/auth/register',
+        'POST /api/auth/login',
+        'POST /api/auth/logout',
+        'GET /api/auth/profile',
+        'PUT /api/auth/profile',
+        'PUT /api/auth/password',
+        'GET /api/auth/validate',
+        'GET /api/accounts',
+        'POST /api/accounts',
+        'GET /api/accounts/:id',
+        'POST /api/categorization/suggest',
+        'GET /api/categorization/pending',
+        'POST /api/categorization/approve',
+        'POST /api/categorization/reject',
+        'GET /api/categorization/history',
+        'DELETE /api/categorization/:suggestionId',
+        'GET /api/transactions',
+        'POST /api/transactions',
+        'GET /api/transactions/:id',
+        'GET /api/reports/trial-balance',
+        'GET /api/reports/balance-sheet',
+        'GET /api/reports/income-statement',
+        'POST /api/uploads',
+        'GET /api/uploads',
+        'GET /api/uploads/{fileId}',
+        'GET /api/uploads/{fileId}/metadata',
+        'DELETE /api/uploads/{fileId}'
+      ],
     code: 'API_ENDPOINT_NOT_FOUND'
   }, 404)
 })

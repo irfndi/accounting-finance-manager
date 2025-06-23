@@ -716,7 +716,7 @@
         "dependencies": [
           10
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -733,7 +733,9 @@
             "description": "Generate embeddings for extracted document text using Cloudflare AI.",
             "details": "Use Cloudflare AI text embedding models to convert OCR-extracted text into vector embeddings. Handle text chunking for large documents.",
             "status": "done",
-            "dependencies": ["12.1"],
+            "dependencies": [
+              "12.1"
+            ],
             "parentTaskId": 12
           },
           {
@@ -742,7 +744,9 @@
             "description": "Save generated embeddings to Vectorize with metadata.",
             "details": "Store document embeddings in Vectorize with associated metadata (document ID, file name, upload date, text preview). Implement batch insertion for efficiency.",
             "status": "done",
-            "dependencies": ["12.2"],
+            "dependencies": [
+              "12.2"
+            ],
             "parentTaskId": 12
           },
           {
@@ -751,7 +755,9 @@
             "description": "Create API endpoints for semantic document search.",
             "details": "Build search endpoints that convert user queries to embeddings and perform similarity search in Vectorize. Return ranked results with relevance scores.",
             "status": "done",
-            "dependencies": ["12.3"],
+            "dependencies": [
+              "12.3"
+            ],
             "parentTaskId": 12
           },
           {
@@ -760,7 +766,10 @@
             "description": "Automatically generate embeddings during document upload.",
             "details": "Extend the existing OCR pipeline to automatically generate and store embeddings when documents are uploaded and processed.",
             "status": "done",
-            "dependencies": ["12.2", "12.3"],
+            "dependencies": [
+              "12.2",
+              "12.3"
+            ],
             "parentTaskId": 12
           },
           {
@@ -769,7 +778,9 @@
             "description": "Create frontend components for semantic document search.",
             "details": "Build search interface with query input, results display, and document preview. Include filters for date range, document type, and relevance threshold.",
             "status": "done",
-            "dependencies": ["12.4"],
+            "dependencies": [
+              "12.4"
+            ],
             "parentTaskId": 12
           }
         ]
@@ -785,7 +796,7 @@
           7,
           11
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": []
       },
       {
@@ -813,7 +824,7 @@
           3,
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -1121,7 +1132,7 @@
     ],
     "metadata": {
       "created": "2025-06-18T14:16:21.370Z",
-      "updated": "2025-06-19T14:42:59.483Z",
+      "updated": "2025-06-23T04:20:39.551Z",
       "description": "Tasks for master context"
     }
   }

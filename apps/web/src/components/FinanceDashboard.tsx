@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { aiClient } from '../lib/ai-client';
 import TransactionManager from './TransactionManager';
+import CategorizationManager from './CategorizationManager';
+import { aiClient } from '../lib/ai-client';
 
 interface FinancialMetric {
   label: string;
@@ -71,6 +72,7 @@ export default function FinanceDashboard() {
   const modules = [
     { id: 'overview', name: 'Overview', icon: '📊', hasAI: true },
     { id: 'gl', name: 'General Ledger', icon: '📋', hasAI: true },
+    { id: 'categorization', name: 'AI Categorization', icon: '🎯', hasAI: true },
     { id: 'reports', name: 'Financial Reports', icon: '📈', hasAI: true },
     { id: 'budget', name: 'Budget & Forecast', icon: '💰', hasAI: true },
     { id: 'audit', name: 'Audit Trail', icon: '🔍', hasAI: true },
@@ -335,6 +337,24 @@ export default function FinanceDashboard() {
             <TransactionManager />
           )}
 
+          {activeModule === 'categorization' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">AI Transaction Categorization</h3>
+                <div className="text-sm text-gray-600">
+                  Review and approve AI-suggested transaction categories
+                </div>
+              </div>
+              <CategorizationManager 
+                onSuggestionApproved={(suggestion) => {
+                  // Handle approved suggestion - could refresh transaction list or show notification
+                  console.log('Suggestion approved:', suggestion);
+                }}
+                className="bg-white rounded-lg shadow-sm"
+              />
+            </div>
+          )}
+
           {activeModule === 'ai-insights' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -499,4 +519,4 @@ export default function FinanceDashboard() {
       </Card>
     </div>
   );
-} 
+}
