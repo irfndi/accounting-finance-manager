@@ -1305,7 +1305,7 @@ uploads.get('/:fileId/ocr', async (c) => {
       }
     });
 
-  } catch (error) {
+  } catch (_error) {
     // Get OCR error occurred
     return c.json({
       success: false,

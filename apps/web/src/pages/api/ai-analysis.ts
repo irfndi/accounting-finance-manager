@@ -28,15 +28,22 @@ export const POST: APIRoute = async ({ request }) => {
         break;
 
       case 'generate-insights':
-        result = await financialAI.generateFinancialInsights(data.transactions, data.accounts);
+        result = await financialAI.generateInsights({
+          transactions: data.transactions,
+          accounts: data.accounts,
+          timeframe: data.timeframe,
+          context: data.context
+        });
         break;
 
       case 'analyze-document':
-        result = await financialAI.analyzeDocument(data.content, data.type);
+        // TODO: Implement document analysis method
+        result = { error: 'Document analysis not yet implemented' };
         break;
 
       case 'fraud-detection':
-        result = await financialAI.detectFraud(data.transaction);
+        // TODO: Implement fraud detection method
+        result = { error: 'Fraud detection not yet implemented' };
         break;
 
       default:

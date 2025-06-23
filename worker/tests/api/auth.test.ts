@@ -12,13 +12,13 @@ const mockKVCache = {
     if (type === 'json' && value) {
       try {
         return Promise.resolve(JSON.parse(value));
-      } catch (e) {
+      } catch (_e) {
         return Promise.resolve(null);
       }
     }
     return Promise.resolve(value || null);
   }),
-  put: vi.fn().mockImplementation((key: string, value: string, options?: any) => {
+  put: vi.fn().mockImplementation((key: string, value: string, _options?: any) => {
     // KV PUT operation logged
     mockKVStorage.set(key, value);
     return Promise.resolve(undefined);
@@ -157,11 +157,7 @@ function createTestRequest(method: string, path: string, body?: any, headers?: R
   return new Request(url, init);
 }
 
-function createAuthenticatedRequest(method: string, path: string, token: string, body?: any) {
-  return createTestRequest(method, path, body, {
-    'Authorization': `Bearer ${token}`,
-  });
-}
+
 
 async function parseJsonResponse(response: Response) {
   const text = await response.text();
@@ -178,35 +174,10 @@ async function createTestJWTToken(payload: any, secret: string) {
 
 
 
-// Helper function to create authenticated test user with session and database record
-async function createAuthenticatedTestUser(userId: string, email: string, name: string): Promise<string> {
-  const token = await createTestJWTToken({
-    id: userId,
-    email: email,
-    role: 'USER',
-    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-  }, mockEnv.JWT_SECRET);
 
-  // Mock session in KV cache
-  const sessionKey = `session:${userId}`;
-  await mockKVCache.put(sessionKey, JSON.stringify({
-    userId: userId,
-    email: email,
-    name: name,
-    createdAt: new Date().toISOString(),
-  }));
 
-  return token;
-}
 
-// Helper function for password hashing (same as in auth.ts)
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+
 
 describe('Authentication API', () => {
   beforeEach(() => {

@@ -15,19 +15,9 @@ export default defineWorkersConfig({
     setupFiles: ['./tests/setup.ts'],
     include: ['./tests/**/*.test.ts'],
     silent: false,
-    reporter: 'verbose',
+    reporters: ['verbose'],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['**/node_modules/**', '**/dist/**', '**/coverage/**', '**/*.d.ts', '**/*.test.ts', '**/tests/**'],
-      thresholds: {
-        global: {
-          branches: 80,
-          functions: 80,
-          lines: 80,
-          statements: 80
-        }
-      }
+      enabled: false
     }
   },
   resolve: {

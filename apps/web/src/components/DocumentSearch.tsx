@@ -130,7 +130,7 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder="Search for documents... (e.g., 'invoices from last month', 'tax documents')"
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={loading}

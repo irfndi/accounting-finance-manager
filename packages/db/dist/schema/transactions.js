@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
-import { accounts } from "./accounts.js";
+import { accounts } from "./accounts";
 /**
  * Financial Transactions - Header record for double-entry transactions
  * Each transaction contains multiple journal entries that must balance

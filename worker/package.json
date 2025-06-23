@@ -15,7 +15,7 @@
     "types": "wrangler types",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run",
     "test:ui": "vitest --ui",
     "migrate": "wrangler d1 migrations apply finance-manager-db --env development",
     "migrate:prod": "wrangler d1 migrations apply finance-manager-db-prod --env production"

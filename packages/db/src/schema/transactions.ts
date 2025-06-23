@@ -1,5 +1,4 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
-
 import { z } from "zod";
 import { accounts } from "./accounts";
 

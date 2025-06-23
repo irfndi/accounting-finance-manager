@@ -105,7 +105,7 @@ export const optionalAuthMiddleware = createMiddleware<AppContext>(async (c, nex
 
     // Continue to next middleware/handler regardless of auth status
     await next();
-  } catch (error) {
+  } catch (_error) {
     // Optional auth middleware error occurred
     // Continue anyway since this is optional
     await next();
