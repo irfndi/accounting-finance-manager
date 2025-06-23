@@ -2628,7 +2628,7 @@ export declare const schema: {
                 columnType: "SQLiteInteger";
                 data: number;
                 driverParam: number;
-                notNull: false;
+                notNull: true;
                 hasDefault: true;
                 isPrimaryKey: false;
                 isAutoincrement: false;
@@ -2710,6 +2710,76 @@ export declare const schema: {
             }, {}, {
                 length: number | undefined;
             }>;
+            ocrErrorCode: import("drizzle-orm/sqlite-core").SQLiteColumn<{
+                name: "ocr_error_code";
+                tableName: "raw_docs";
+                dataType: "string";
+                columnType: "SQLiteText";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                length: number | undefined;
+            }>;
+            ocrFallbackUsed: import("drizzle-orm/sqlite-core").SQLiteColumn<{
+                name: "ocr_fallback_used";
+                tableName: "raw_docs";
+                dataType: "boolean";
+                columnType: "SQLiteBoolean";
+                data: boolean;
+                driverParam: number;
+                notNull: false;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            ocrRetryable: import("drizzle-orm/sqlite-core").SQLiteColumn<{
+                name: "ocr_retryable";
+                tableName: "raw_docs";
+                dataType: "boolean";
+                columnType: "SQLiteBoolean";
+                data: boolean;
+                driverParam: number;
+                notNull: false;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            ocrMaxRetries: import("drizzle-orm/sqlite-core").SQLiteColumn<{
+                name: "ocr_max_retries";
+                tableName: "raw_docs";
+                dataType: "number";
+                columnType: "SQLiteInteger";
+                data: number;
+                driverParam: number;
+                notNull: false;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
             ocrProcessedAt: import("drizzle-orm/sqlite-core").SQLiteColumn<{
                 name: "ocr_processed_at";
                 tableName: "raw_docs";

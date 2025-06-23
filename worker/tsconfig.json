@@ -16,15 +16,6 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "baseUrl": ".",
-    "noEmit": true,
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@tests/*": [
-        "./tests/*"
-      ]
-    },
     "types": [
       "@cloudflare/workers-types"
     ],
@@ -43,5 +34,9 @@
     "tests",
     "**/*.test.ts",
     "**/*.d.ts"
+  ],
+  "references": [
+    { "path": "../packages/types" },
+    { "path": "../packages/db" }
   ]
 }

@@ -17,6 +17,7 @@
     "paths": {
       "~/*": ["./src/*"],
       "@finance-manager/types": ["../../packages/types/src"],
+      "@finance-manager/db": ["../../packages/db/src"],
       "@finance-manager/core": ["../../packages/core/src"]
     }
   },
@@ -28,4 +29,4 @@
     "dist",
     ".astro"
   ]
-} 
+}

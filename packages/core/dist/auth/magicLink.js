@@ -2,7 +2,7 @@
  * Magic Link Utilities
  * Corporate Finance Manager - Passwordless authentication with magic links
  */
-import { MagicLinkPurpose } from './types.js';
+import { MagicLinkPurpose } from './types';
 import { randomBytes } from '@noble/hashes/utils';
 /**
  * Magic link manager for generating and validating magic links

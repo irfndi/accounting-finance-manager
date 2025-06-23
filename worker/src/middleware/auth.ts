@@ -1,65 +1,49 @@
 import { createMiddleware } from 'hono/factory';
 import { verify } from 'hono/jwt';
-import { AppContext, AuthVariables, JwtPayload } from '../types';
+import { AppContext, JwtPayload } from '../types';
+import { createDatabase, createDatabaseService, type Session, type User } from '@finance-manager/db';
 
 /**
  * Authentication middleware
  * Validates JWT token and adds user information to context
  */
 export const authMiddleware = createMiddleware<AppContext>(async (c, next) => {
-  const jwtSecret = c.env.JWT_SECRET;
-  
-  if (!jwtSecret) {
-    const error = new Error('Authentication not configured');
-    error.name = 'Unauthorized';
-    throw error;
-  }
-
-  const authHeader = c.req.header('Authorization');
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    const error = new Error('Authorization header with Bearer token is required');
-    error.name = 'Unauthorized';
-    throw error;
-  }
-
-  const token = authHeader.substring(7);
-
-  // Verify JWT token
-  let payload: JwtPayload;
   try {
-    payload = (await verify(token, c.env.JWT_SECRET)) as JwtPayload;
-  } catch (jwtError) {
-    console.error('JWT verification failed:', jwtError);
-    const error = new Error('Invalid or expired token');
-    error.name = 'Unauthorized';
-    throw error;
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const decodedPayload = (await verify(token, c.env.JWT_SECRET)) as JwtPayload;
+    if (!decodedPayload) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    const session: Session = {
+      userId: decodedPayload.sub, // Use 'sub' for user ID
+      sessionId: decodedPayload.jti,
+    };
+
+    const db = createDatabase(c.env.FINANCE_MANAGER_DB);
+    const dbService = createDatabaseService(db);
+    const user = await dbService.getCurrentUser(session);
+
+    if (!user) {
+      return c.json({ error: 'User not found' }, 401);
+    }
+
+    c.set('user', user as User);
+    c.set('jwtPayload', decodedPayload);
+
+    await next();
+  } catch (e) {
+    return c.json({ error: 'Unauthorized' }, 401);
   }
-
-  // Check if session exists in KV
-  const sessionKey = `session:${payload.id}`;
-  const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey, 'json');
-
-  if (!session) {
-    const error = new Error('Session not found or expired');
-    error.name = 'Unauthorized';
-    throw error;
-  }
-
-  // Use session data to get user info
-  const sessionData = session as any;
-
-  // Add user information to context
-  c.set('user', {
-    id: payload.id,
-    email: payload.email,
-    displayName: sessionData.name || null,
-    firstName: null,
-    lastName: null,
-  });
-
-  // Continue to next middleware/handler
-  await next();
 });
 
 /**
@@ -67,49 +51,34 @@ export const authMiddleware = createMiddleware<AppContext>(async (c, next) => {
  * Adds user information to context if token is valid, but doesn't block if invalid
  */
 export const optionalAuthMiddleware = createMiddleware<AppContext>(async (c, next) => {
-  try {
-    const authHeader = c.req.header('Authorization');
-
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-
+  const authHeader = c.req.header('Authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    if (token) {
       try {
-        if (!c.env.JWT_SECRET) {
-          throw new Error('JWT_SECRET is not configured');
-        }
-        // Verify JWT token
-        const payload = (await verify(token, c.env.JWT_SECRET)) as JwtPayload;
+        const decodedPayload = (await verify(token, c.env.JWT_SECRET)) as JwtPayload;
+        if (decodedPayload) {
+          const session: Session = {
+            userId: decodedPayload.sub,
+            sessionId: decodedPayload.jti,
+          };
 
-        // Check if session exists in KV
-        const sessionKey = `session:${payload.id}`;
-        const session = await c.env.FINANCE_MANAGER_CACHE.get(sessionKey);
+          const db = createDatabase(c.env.FINANCE_MANAGER_DB);
+          const dbService = createDatabaseService(db);
+          const user = await dbService.getCurrentUser(session);
 
-        if (session) {
-          // Parse session data to get user info
-          const sessionData = JSON.parse(session);
-          
-          // Add user information to context
-          c.set('user', {
-            id: payload.id,
-            email: payload.email,
-            displayName: sessionData.name || null,
-            firstName: null, // Or get from payload if available
-            lastName: null, // Or get from payload if available
-          });
+          if (user) {
+            c.set('user', user as User);
+            c.set('jwtPayload', decodedPayload);
+          }
         }
-      } catch (error) {
-        // Token is invalid, but we don't block the request
-        // Optional auth failed, continuing without user context
+      } catch (e) {
+        // Invalid token, but we continue without setting the user
       }
     }
-
-    // Continue to next middleware/handler regardless of auth status
-    await next();
-  } catch (_error) {
-    // Optional auth middleware error occurred
-    // Continue anyway since this is optional
-    await next();
   }
+
+  await next();
 });
 
 /**
@@ -130,19 +99,4 @@ export const requireRole = (_allowedRoles: string[]) => {
 
     await next();
   });
-};
-
-/**
- * Helper function to get current user from context
- */
-export const getCurrentUser = (
-  c: any
-): AuthVariables['user'] | null => {
-  const user = c.get('user');
-  if (!user) {
-    // This should not happen if authMiddleware is used before this function is called.
-    // Return null instead of throwing to avoid secondary errors
-    return null;
-  }
-  return user;
 };

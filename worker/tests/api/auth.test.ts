@@ -12,7 +12,7 @@ const mockKVCache = {
     if (type === 'json' && value) {
       try {
         return Promise.resolve(JSON.parse(value));
-      } catch (_e) {
+      } catch (__e) {
         return Promise.resolve(null);
       }
     }

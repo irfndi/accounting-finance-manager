@@ -1,7 +1,10 @@
-name = "finance-manager"
+name = "finance-manager-worker"
 main = "src/index.ts"
-compatibility_date = "2025-01-15"
+compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
+
+[site]
+bucket = "../apps/web/dist/client"
 
 # Worker configuration
 [env.production]
@@ -16,7 +19,6 @@ name = "finance-manager-test"
 # Variables
 [vars]
 ENVIRONMENT = "development"
-JWT_SECRET = "dev-jwt-secret-please-change-in-production-use-strong-random-key"
 AUTH_SESSION_DURATION = "7d"
 
 [env.test.vars]
@@ -26,6 +28,7 @@ AUTH_SESSION_DURATION = "1h"
 
 [env.production.vars]
 ENVIRONMENT = "production"
+JWT_SECRET = "dev-jwt-secret-please-change-in-production-use-strong-random-key"
 # JWT_SECRET should be set via secrets in production: wrangler secret put JWT_SECRET
 # AUTH_SESSION_DURATION can be set here or via secrets for flexibility
 AUTH_SESSION_DURATION = "7d"
@@ -82,8 +85,10 @@ binding = "FINANCE_MANAGER_DOCUMENTS"
 bucket_name = "prod-finance-manager-documents"
 
 # AI bindings for OCR functionality
-[ai]
+[env.production.ai]
 binding = "AI"
+
+
 
 # Vectorize bindings for document embeddings
 [[vectorize]]

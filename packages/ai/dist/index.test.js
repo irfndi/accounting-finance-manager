@@ -19,7 +19,7 @@ describe('AI Service Tests', () => {
         it('should create OpenRouter provider with valid config', () => {
             const provider = createProvider({
                 provider: 'openrouter',
-                modelId: 'gpt-4',
+                modelId: 'google/gemini-2.5-flash-lite-preview-06-17',
                 apiKey: 'test-key'
             });
             expect(provider).toBeInstanceOf(OpenRouterProvider);
@@ -47,7 +47,7 @@ describe('AI Service Tests', () => {
         beforeEach(() => {
             provider = new OpenRouterProvider({
                 apiKey: 'test-key',
-                modelId: 'gpt-4'
+                modelId: 'google/gemini-2.5-flash-lite-preview-06-17'
             });
         });
         it('should generate text successfully', async () => {
@@ -359,7 +359,7 @@ describe('AI Service Tests', () => {
             const customConfig = {
                 primary: {
                     provider: 'openrouter',
-                    modelId: 'gpt-4',
+                    modelId: 'google/gemini-2.5-flash-lite-preview-06-17',
                     apiKey: 'test-api-key'
                 }
             };

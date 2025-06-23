@@ -111,6 +111,38 @@ export interface TrialBalance {
     asOfDate: Date;
     currency: Currency;
 }
+export type DocumentStatus = 'PENDING' | 'UPLOADED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+export type DocumentType = 'INVOICE' | 'RECEIPT' | 'BANK_STATEMENT' | 'OTHER';
+export interface RawDocument {
+    id: number;
+    fileId: string;
+    originalName: string;
+    mimeType: string;
+    fileSize: number;
+    r2Key: string;
+    r2Bucket: string;
+    extractedText?: string | null;
+    textLength: number;
+    ocrConfidence?: number | null;
+    ocrProcessingTime?: number | null;
+    ocrStatus: string;
+    ocrErrorMessage?: string | null;
+    ocrProcessedAt?: Date | null;
+    documentType?: string | null;
+    category?: string | null;
+    tags?: string | null;
+    structuredData?: string | null;
+    llmConfidence?: number | null;
+    llmProcessedAt?: Date | null;
+    uploadedBy: string;
+    description?: string | null;
+    searchableText?: string | null;
+    entityId?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy?: string | null;
+    updatedBy?: string | null;
+}
 export interface BalanceSheet {
     assets: AccountBalance[];
     liabilities: AccountBalance[];

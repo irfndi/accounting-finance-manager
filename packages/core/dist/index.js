@@ -4,10 +4,11 @@
  * Professional Double-Entry Bookkeeping Engine
  */
 // Core financial constants
+const SUPPORTED_CURRENCIES = ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'];
 export const FINANCIAL_CONSTANTS = {
     DECIMAL_PLACES: 2,
     DEFAULT_CURRENCY: 'IDR',
-    SUPPORTED_CURRENCIES: ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'],
+    SUPPORTED_CURRENCIES,
     CURRENCY_SYMBOLS: {
         IDR: 'Rp',
         USD: '$',
@@ -56,6 +57,20 @@ export class DoubleEntryError extends AccountingValidationError {
         this.name = 'DoubleEntryError';
     }
 }
+// Enhanced Error System - Severity and Categories
+export var ErrorSeverity;
+(function (ErrorSeverity) {
+    ErrorSeverity["WARNING"] = "WARNING";
+    ErrorSeverity["ERROR"] = "ERROR";
+    ErrorSeverity["CRITICAL"] = "CRITICAL";
+})(ErrorSeverity || (ErrorSeverity = {}));
+export var ErrorCategory;
+(function (ErrorCategory) {
+    ErrorCategory["VALIDATION"] = "VALIDATION";
+    ErrorCategory["BUSINESS_RULE"] = "BUSINESS_RULE";
+    ErrorCategory["SYSTEM"] = "SYSTEM";
+    ErrorCategory["COMPLIANCE"] = "COMPLIANCE";
+})(ErrorCategory || (ErrorCategory = {}));
 // Specialized Error Classes
 export class BalanceSheetError extends AccountingValidationError {
     constructor(message, details) {
@@ -98,7 +113,7 @@ export class ErrorAggregator {
     errors = [];
     warnings = [];
     addError(error) {
-        if (error.severity === 'WARNING') {
+        if (error.severity === ErrorSeverity.WARNING) {
             this.warnings.push(error);
         }
         else {
@@ -126,7 +141,7 @@ export class ErrorAggregator {
         return [...this.errors, ...this.warnings];
     }
     getCriticalErrors() {
-        return this.errors.filter(error => error.severity === 'CRITICAL');
+        return this.errors.filter(error => error.severity === ErrorSeverity.CRITICAL);
     }
     getErrorsByCategory(category) {
         return this.getAllIssues().filter(error => error.category === category);
@@ -137,17 +152,8 @@ export class ErrorAggregator {
     }
     generateReport() {
         const allIssues = this.getAllIssues();
-        const byCategory = {
-            VALIDATION: 0,
-            BUSINESS_RULE: 0,
-            SYSTEM: 0,
-            COMPLIANCE: 0
-        };
-        const bySeverity = {
-            WARNING: 0,
-            ERROR: 0,
-            CRITICAL: 0
-        };
+        const byCategory = Object.fromEntries(Object.values(ErrorCategory).map(cat => [cat, 0]));
+        const bySeverity = Object.fromEntries(Object.values(ErrorSeverity).map(sev => [sev, 0]));
         for (const issue of allIssues) {
             byCategory[issue.category]++;
             bySeverity[issue.severity]++;
@@ -167,7 +173,7 @@ export class ErrorAggregator {
 // Enhanced Error Factory
 export var AccountingErrorFactory;
 (function (AccountingErrorFactory) {
-    function createValidationError(field, message, code, severity = 'ERROR', category = 'VALIDATION', suggestions, context) {
+    function createValidationError(field, message, code, severity = ErrorSeverity.ERROR, category = ErrorCategory.VALIDATION, suggestions, context) {
         return {
             field,
             message,
@@ -175,21 +181,20 @@ export var AccountingErrorFactory;
             severity,
             category,
             suggestions,
-            context,
-            timestamp: new Date()
+            context
         };
     }
     AccountingErrorFactory.createValidationError = createValidationError;
     function createBusinessRuleError(field, message, code, suggestions) {
-        return createValidationError(field, message, code, 'ERROR', 'BUSINESS_RULE', suggestions);
+        return createValidationError(field, message, code, ErrorSeverity.ERROR, ErrorCategory.BUSINESS_RULE, suggestions);
     }
     AccountingErrorFactory.createBusinessRuleError = createBusinessRuleError;
-    function createComplianceError(field, message, code, severity = 'CRITICAL') {
-        return createValidationError(field, message, code, severity, 'COMPLIANCE');
+    function createComplianceError(field, message, code, severity = ErrorSeverity.CRITICAL) {
+        return createValidationError(field, message, code, severity, ErrorCategory.COMPLIANCE);
     }
     AccountingErrorFactory.createComplianceError = createComplianceError;
     function createSystemError(field, message, code, context) {
-        return createValidationError(field, message, code, 'CRITICAL', 'SYSTEM', undefined, context);
+        return createValidationError(field, message, code, ErrorSeverity.CRITICAL, ErrorCategory.SYSTEM, undefined, context);
     }
     AccountingErrorFactory.createSystemError = createSystemError;
 })(AccountingErrorFactory || (AccountingErrorFactory = {}));
@@ -254,21 +259,21 @@ export var ErrorRecoveryManager;
             'EXCHANGE_RATE_OUTDATED'
         ];
         if (criticalCodes.some(code => errorCode.includes(code))) {
-            return 'CRITICAL';
+            return ErrorSeverity.CRITICAL;
         }
         if (warningCodes.some(code => errorCode.includes(code))) {
-            return 'WARNING';
+            return ErrorSeverity.WARNING;
         }
-        return 'ERROR';
+        return ErrorSeverity.ERROR;
     }
     function determineCategory(errorCode) {
         if (errorCode.includes('COMPLIANCE'))
-            return 'COMPLIANCE';
+            return ErrorCategory.COMPLIANCE;
         if (errorCode.includes('SYSTEM'))
-            return 'SYSTEM';
+            return ErrorCategory.SYSTEM;
         if (errorCode.includes('BUSINESS_RULE'))
-            return 'BUSINESS_RULE';
-        return 'VALIDATION';
+            return ErrorCategory.BUSINESS_RULE;
+        return ErrorCategory.VALIDATION;
     }
 })(ErrorRecoveryManager || (ErrorRecoveryManager = {}));
 // Utility functions
@@ -1477,7 +1482,7 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
     }
 }
 // Re-export auth functionality
-export { createAuthService } from './auth/index.js';
-export { UserRole, MagicLinkPurpose, AuditEventType, AuthError, UnauthorizedError, ForbiddenError, NotFoundError, RateLimitError, ValidationError as AuthValidationError, AUTH_ERROR_CODES } from './auth/types.js';
+export { createAuthService } from './auth/index';
+export { UserRole, MagicLinkPurpose, AuditEventType, AuthError, UnauthorizedError, ForbiddenError, NotFoundError, RateLimitError, ValidationError as AuthValidationError, AUTH_ERROR_CODES } from './auth/types';
 // Re-export financial reports functionality
-export * from './financial-reports.js';
+export * from './financial-reports';

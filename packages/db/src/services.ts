@@ -11,6 +11,14 @@ import { users } from "./schema";
 import * as schema from "./schema";
 
 /**
+ * Session data for authentication
+ */
+export interface Session {
+  userId: string;
+  sessionId: string;
+}
+
+/**
  * User data for creation
  */
 export interface CreateUserData {
@@ -21,6 +29,11 @@ export interface CreateUserData {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+/**
+ * User type inferred from the database schema
+ */
+export type User = typeof users.$inferSelect;
 
 /**
  * User data for updates
@@ -37,6 +50,17 @@ export interface UpdateUserData {
  * Database service class with user management methods
  */
 export class DatabaseService {
+  /**
+   * Get current user by session
+   */
+  async getCurrentUser(session: Session) {
+    if (!session?.userId) {
+      return null;
+    }
+
+    const user = await this.getUserById(session.userId);
+    return user;
+  }
   constructor(public db: Database) {}
 
   /**

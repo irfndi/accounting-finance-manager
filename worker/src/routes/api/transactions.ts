@@ -11,6 +11,7 @@ import {
 } from '@finance-manager/core';
 import type { Currency } from '@finance-manager/types';
 import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+import { FinancialAIService, createAIService } from '@finance-manager/ai';
 import { AppContext } from '../../types';
 
 const transactionsRouter = new Hono<AppContext>();
@@ -111,7 +112,7 @@ transactionsRouter.get('/', async (c) => {
     // For now, use empty array since we don't have transactions yet
     // In a full implementation, we'd use the database adapter to fetch transactions
     const allTransactions: any[] = []
-    const totalCount: any[] = []
+    const totalCount = 0
     
     // Enhance transactions with accounting information
     const enhancedTransactions = allTransactions.map(transaction => ({
@@ -128,11 +129,11 @@ transactionsRouter.get('/', async (c) => {
     return c.json({
       transactions: enhancedTransactions,
       count: enhancedTransactions.length,
-      totalCount: totalCount.length,
+      totalCount,
       pagination: {
         limit: limitNum,
         offset: offsetNum,
-        hasMore: (offsetNum + limitNum) < totalCount.length
+        hasMore: (offsetNum + limitNum) < totalCount
       },
       filters: { entityId, dateFrom, dateTo, status, currency },
       metadata: {
@@ -366,10 +367,87 @@ transactionsRouter.post('/', async (c) => {
     
     // Calculate transaction amount and currency from journal entries
     const transactionAmount = result.journalEntries.reduce((sum: number, entry: any) => 
-      sum + Math.max(entry.debitAmount, entry.creditAmount), 0
-    )
+      sum + (entry.debitAmount || entry.creditAmount || 0), 0
+    ) / 2; // Each transaction is double-entry, so we divide by 2
     const transactionCurrency = result.journalEntries.length > 0 ? 
       result.journalEntries[0].currency : FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+    
+    // Auto-categorize the transaction if it's an expense
+    let categorizationSuggestion: any = null
+    try {
+      // Check if this is an expense transaction (has debit entries to expense accounts)
+      const expenseEntry = result.journalEntries.find((entry: any) => {
+        const account = accountRegistry.getAccount(entry.accountId);
+        return account && account.type === 'EXPENSE' && entry.debitAmount > 0;
+      });
+
+      if (expenseEntry && body.description) {
+        // Initialize AI services for categorization
+        const aiService = createAIService();
+        const financialAI = new FinancialAIService(aiService);
+        
+        const suggestion = await financialAI.categorizeExpense(
+          body.description,
+          transactionAmount
+        );
+        
+        // Find matching account for the suggested category
+        let suggestedAccountId: string | undefined
+        try {
+          const accounts = await dbAdapter.getAllAccounts()
+          const matchingAccount = accounts.find(account => 
+            account.category?.toLowerCase().includes(suggestion.category.toLowerCase()) ||
+            account.name.toLowerCase().includes(suggestion.category.toLowerCase())
+          )
+          if (matchingAccount) {
+            suggestedAccountId = matchingAccount.id?.toString()
+          }
+        } catch (error) {
+          console.warn('Failed to find matching account:', error)
+        }
+        
+        // Generate unique suggestion ID
+        const suggestionId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        
+        // Create suggestion object for KV storage
+        const kvSuggestion = {
+          id: suggestionId,
+          transactionId: result.transaction.id?.toString(),
+          userId: user.id,
+          timestamp: Date.now(),
+          status: 'pending',
+          suggestedCategory: suggestion.category,
+          suggestedSubcategory: suggestion.subcategory,
+          suggestedAccountId,
+          originalAccountId: expenseEntry.accountId,
+          confidence: suggestion.confidence,
+          originalDescription: body.description,
+          amount: transactionAmount,
+          currency: transactionCurrency
+        }
+        
+        // Store suggestion in KV for user approval (7 days expiration)
+        const kvKey = `categorization:${user.id}:${suggestionId}`
+        await c.env.FINANCE_MANAGER_CACHE.put(
+          kvKey,
+          JSON.stringify(kvSuggestion),
+          { expirationTtl: 7 * 24 * 60 * 60 } // 7 days
+        )
+        
+        // Create response suggestion object
+        categorizationSuggestion = {
+          suggestionId,
+          category: suggestion.category,
+          subcategory: suggestion.subcategory,
+          accountId: suggestedAccountId,
+          confidence: suggestion.confidence,
+          requiresApproval: suggestion.confidence < 0.8
+        }
+      }
+    } catch (categorizationError) {
+      console.warn('Failed to generate categorization suggestion:', categorizationError)
+      // Continue with transaction creation even if categorization fails
+    }
     
     // Format the response
     const enhancedTransaction = {
@@ -386,10 +464,18 @@ transactionsRouter.post('/', async (c) => {
       }
     }
     
-    return c.json({
+    const response: any = {
       transaction: enhancedTransaction,
       message: 'Transaction created successfully with balanced journal entries'
-    }, 201)
+    }
+    
+    // Include categorization suggestion if available
+    if (categorizationSuggestion) {
+      response.categorization = categorizationSuggestion
+      response.message += ' with AI categorization suggestion'
+    }
+    
+    return c.json(response, 201)
   } catch (error) {
     // Error creating transaction
     
@@ -420,5 +506,140 @@ transactionsRouter.post('/', async (c) => {
     }, 500)
   }
 })
+
+// GET /transactions/categorization-suggestions - Get all pending categorization suggestions
+transactionsRouter.get('/categorization-suggestions', async (c) => {
+  try {
+    const user = getCurrentUser(c);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+
+    const kvStore = c.env.FINANCE_MANAGER_CACHE;
+    const suggestionKeys = await kvStore.list({ prefix: `categorization:${user.id}:` });
+
+    const suggestions = await Promise.all(
+      suggestionKeys.keys.map(async (key) => {
+        const data = await kvStore.get(key.name);
+        return data ? JSON.parse(data) : null;
+      })
+    );
+
+    const validSuggestions = suggestions.filter(s => s !== null);
+
+    return c.json({
+      suggestions: validSuggestions,
+      count: validSuggestions.length,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return c.json({
+      error: 'Failed to fetch categorization suggestions',
+      message: errorMessage,
+      code: 'SUGGESTIONS_FETCH_ERROR',
+    }, 500);
+  }
+});
+
+// POST /transactions/categorization-suggestions/:suggestionId/apply - Apply a suggestion
+transactionsRouter.post('/categorization-suggestions/:suggestionId/apply', async (c) => {
+  try {
+    const user = getCurrentUser(c);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+
+    const suggestionId = c.req.param('suggestionId');
+    const kvKey = `categorization:${user.id}:${suggestionId}`;
+
+    // 1. Get suggestion
+    const suggestionJSON = await c.env.FINANCE_MANAGER_CACHE.get(kvKey);
+    if (!suggestionJSON) {
+      return c.json({ error: 'Suggestion not found or expired' }, 404);
+    }
+    const suggestion = JSON.parse(suggestionJSON);
+
+    // 2. Validate suggestion
+    if (!suggestion.suggestedAccountId || !suggestion.originalAccountId || !suggestion.amount) {
+      return c.json({ error: 'Invalid suggestion data for application' }, 400);
+    }
+
+    // 3. Create a re-classification transaction
+    const dbAdapter = new DatabaseAdapter({
+      database: c.env.FINANCE_MANAGER_DB,
+      entityId: user.id,
+      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+    });
+    const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
+    await accountRegistry.loadAccountsFromDatabase();
+    const journalManager = new DatabaseJournalEntryManager(dbAdapter, accountRegistry);
+
+    const transactionBuilder = new TransactionBuilder()
+      .setDescription(`Re-classify expense from transaction ${suggestion.transactionId} based on suggestion ${suggestionId}`)
+      .setReference(`SUGGESTION_APPLY_${suggestionId}`)
+      .setDate(new Date())
+      .setCurrency(suggestion.currency as Currency);
+
+    // Credit the original account, debit the new one
+    transactionBuilder.credit(suggestion.originalAccountId, suggestion.amount);
+    transactionBuilder.debit(suggestion.suggestedAccountId, suggestion.amount);
+
+    // 4. Validate and persist
+    const validationErrors = transactionBuilder.validate();
+    if (validationErrors.length > 0) {
+      return c.json({
+        error: 'Failed to create re-classification transaction',
+        code: 'DOUBLE_ENTRY_VALIDATION_ERROR',
+        details: validationErrors
+      }, 400);
+    }
+
+    const transactionData = transactionBuilder.build();
+    const result = await journalManager.createAndPersistTransaction(transactionData);
+
+    // 5. Delete the suggestion from KV
+    await c.env.FINANCE_MANAGER_CACHE.delete(kvKey);
+
+    return c.json({
+      message: 'Suggestion applied successfully. A new re-classification transaction has been created.',
+      transaction: result.transaction,
+    });
+  } catch (error) {
+    if (error instanceof DoubleEntryError) {
+      return c.json({
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        accountingError: true,
+        errorType: 'DOUBLE_ENTRY_VIOLATION'
+      }, 400);
+    }
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return c.json({
+      error: 'Failed to apply suggestion',
+      message: errorMessage,
+      code: 'SUGGESTION_APPLY_ERROR',
+    }, 500);
+  }
+});
+
+// DELETE /transactions/categorization-suggestions/:suggestionId - Reject a suggestion
+transactionsRouter.delete('/categorization-suggestions/:suggestionId', async (c) => {
+  try {
+    const user = getCurrentUser(c);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+
+    const suggestionId = c.req.param('suggestionId');
+    const kvKey = `categorization:${user.id}:${suggestionId}`;
+
+    await c.env.FINANCE_MANAGER_CACHE.delete(kvKey);
+
+    return c.json({ message: 'Suggestion rejected successfully' });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return c.json({
+      error: 'Failed to reject suggestion',
+      message: errorMessage,
+      code: 'SUGGESTION_REJECT_ERROR',
+    }, 500);
+  }
+});
 
 export default transactionsRouter

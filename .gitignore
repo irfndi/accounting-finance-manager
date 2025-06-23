@@ -27,3 +27,5 @@ node_modules/
 .cursor/mcp.json
 
 coverage/
+.wrangler
+.astro

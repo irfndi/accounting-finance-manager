@@ -18,11 +18,18 @@ const navigationItems: NavigationItem[] = [
     description: 'Overview and key metrics'
   },
   {
+    id: 'chart-of-accounts',
+    label: 'Chart of Accounts',
+    href: '/chart-of-accounts',
+    icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
+    description: 'Manage chart of accounts'
+  },
+  {
     id: 'general-ledger',
     label: 'General Ledger',
     href: '/general-ledger',
     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    description: 'Chart of accounts and transactions'
+    description: 'Transactions and journal entries'
   },
   {
     id: 'financial-reports',

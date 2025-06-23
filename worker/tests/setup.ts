@@ -1,4 +1,4 @@
-import { beforeEach, vi } from 'vitest'
+import { vi } from 'vitest'
 import type { Env } from '../src/types'
 import { sign } from 'hono/jwt'
 

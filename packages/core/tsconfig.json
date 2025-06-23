@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -14,11 +14,7 @@
     "outDir": "./dist",
     "rootDir": "src",
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@finance-manager/types": ["../types/src"],
-      "@finance-manager/db": ["../db/src"]
-    },
+
     "types": ["@cloudflare/workers-types", "node"],
     "composite": true
   },

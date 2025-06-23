@@ -13,7 +13,7 @@ export default function CategorizationManager({
   const [suggestions, setSuggestions] = useState<CategorizationSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set<string>());
 
   // Load pending suggestions
   const loadSuggestions = async () => {

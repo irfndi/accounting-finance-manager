@@ -21,13 +21,17 @@ export const rawDocs = sqliteTable("raw_docs", {
   
   // OCR processing results
   extractedText: text("extracted_text"), // Full OCR extracted text
-  textLength: integer("text_length").default(0), // Length of extracted text
+  textLength: integer("text_length").default(0).notNull(), // Length of extracted text
   ocrConfidence: real("ocr_confidence"), // OCR confidence score (0-1)
   ocrProcessingTime: real("ocr_processing_time"), // Processing time in milliseconds
   
   // Processing status
   ocrStatus: text("ocr_status").notNull().default("PENDING"), // PENDING, PROCESSING, COMPLETED, FAILED
   ocrErrorMessage: text("ocr_error_message"), // Error details if processing failed
+  ocrErrorCode: text("ocr_error_code"), // Error code if processing failed
+  ocrFallbackUsed: integer("ocr_fallback_used", { mode: "boolean" }).default(false), // Whether a fallback OCR engine was used
+  ocrRetryable: integer("ocr_retryable", { mode: "boolean" }).default(true), // Whether the OCR error is retryable
+  ocrMaxRetries: integer("ocr_max_retries").default(3), // Maximum number of retries for OCR processing
   ocrProcessedAt: integer("ocr_processed_at", { mode: "timestamp" }), // When OCR was completed
   
   // Document classification

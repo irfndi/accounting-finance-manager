@@ -26,20 +26,12 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "jsx": "preserve",
-    "baseUrl": ".",
-    "paths": {
-      "@finance-manager/types": ["./packages/types/src"],
-      "@finance-manager/db": ["./packages/db/src"],
-      "@finance-manager/core": ["./packages/core/src"],
-      "@finance-manager/ai": ["./packages/ai/src"]
-    }
+    "jsx": "preserve"
   }
-} 
+}

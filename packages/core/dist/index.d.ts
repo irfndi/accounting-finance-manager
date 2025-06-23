@@ -5,38 +5,20 @@
  */
 import type { Currency, AccountType, NormalBalance, TransactionStatus, Account, Transaction, JournalEntry, TransactionEntry, TransactionData, ValidationError as BaseValidationError, AccountingError, AccountBalance, TrialBalance, BalanceSheet, IncomeStatement } from '@finance-manager/types';
 export declare const FINANCIAL_CONSTANTS: {
-    readonly DECIMAL_PLACES: 2;
-    readonly DEFAULT_CURRENCY: "IDR";
-    readonly SUPPORTED_CURRENCIES: readonly ["IDR", "USD", "EUR", "GBP", "SGD", "MYR"];
-    readonly CURRENCY_SYMBOLS: {
-        readonly IDR: "Rp";
-        readonly USD: "$";
-        readonly EUR: "€";
-        readonly GBP: "£";
-        readonly SGD: "S$";
-        readonly MYR: "RM";
+    DECIMAL_PLACES: number;
+    DEFAULT_CURRENCY: Currency;
+    SUPPORTED_CURRENCIES: readonly Currency[];
+    CURRENCY_SYMBOLS: {
+        [key in Currency]: string;
     };
-    readonly CURRENCY_LOCALES: {
-        readonly IDR: "id-ID";
-        readonly USD: "en-US";
-        readonly EUR: "de-DE";
-        readonly GBP: "en-GB";
-        readonly SGD: "en-SG";
-        readonly MYR: "ms-MY";
+    CURRENCY_LOCALES: {
+        [key in Currency]: string;
     };
-    readonly ACCOUNT_TYPES: {
-        readonly ASSET: "ASSET";
-        readonly LIABILITY: "LIABILITY";
-        readonly EQUITY: "EQUITY";
-        readonly REVENUE: "REVENUE";
-        readonly EXPENSE: "EXPENSE";
+    ACCOUNT_TYPES: {
+        [key: string]: AccountType;
     };
-    readonly NORMAL_BALANCES: {
-        readonly ASSET: "DEBIT";
-        readonly EXPENSE: "DEBIT";
-        readonly LIABILITY: "CREDIT";
-        readonly EQUITY: "CREDIT";
-        readonly REVENUE: "CREDIT";
+    NORMAL_BALANCES: {
+        [key in AccountType]: NormalBalance;
     };
 };
 export declare class AccountingValidationError extends Error implements AccountingError {
@@ -47,8 +29,17 @@ export declare class AccountingValidationError extends Error implements Accounti
 export declare class DoubleEntryError extends AccountingValidationError {
     constructor(message: string, details?: BaseValidationError[]);
 }
-export type ErrorSeverity = 'WARNING' | 'ERROR' | 'CRITICAL';
-export type ErrorCategory = 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE';
+export declare enum ErrorSeverity {
+    WARNING = "WARNING",
+    ERROR = "ERROR",
+    CRITICAL = "CRITICAL"
+}
+export declare enum ErrorCategory {
+    VALIDATION = "VALIDATION",
+    BUSINESS_RULE = "BUSINESS_RULE",
+    SYSTEM = "SYSTEM",
+    COMPLIANCE = "COMPLIANCE"
+}
 export interface EnhancedValidationError extends BaseValidationError {
     severity: ErrorSeverity;
     category: ErrorCategory;

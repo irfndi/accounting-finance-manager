@@ -1479,11 +1479,11 @@ export declare const insertAuditLogSchema: z.ZodObject<{
     eventType: z.ZodString;
     description: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    eventType: string;
     description: string;
+    eventType: string;
 }, {
-    eventType: string;
     description: string;
+    eventType: string;
 }>;
 export declare const selectAuditLogSchema: z.ZodObject<{
     id: z.ZodString;
@@ -1491,12 +1491,12 @@ export declare const selectAuditLogSchema: z.ZodObject<{
     description: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    eventType: string;
     description: string;
+    eventType: string;
 }, {
     id: string;
-    eventType: string;
     description: string;
+    eventType: string;
 }>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type SelectUser = z.infer<typeof selectUserSchema>;

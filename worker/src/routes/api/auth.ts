@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { sign, verify } from 'hono/jwt';
+import { sign } from 'hono/jwt';
 import { eq } from 'drizzle-orm';
 import { users, createDatabase } from '@finance-manager/db';
 import { AppContext } from '../../types';
@@ -178,7 +178,7 @@ authRouter.post('/logout', authMiddleware, async (c) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     // Logout error occurred
-    return c.json({ error: 'Logout failed', message: 'An unexpected error occurred' }, 500);
+    return c.json({ error: 'Logout failed', message: errorMessage }, 500);
   }
 });
 

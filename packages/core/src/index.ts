@@ -23,10 +23,20 @@ import type {
 } from '@finance-manager/types';
 
 // Core financial constants
-export const FINANCIAL_CONSTANTS = {
+const SUPPORTED_CURRENCIES = ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'] as const;
+
+export const FINANCIAL_CONSTANTS: {
+  DECIMAL_PLACES: number;
+  DEFAULT_CURRENCY: Currency;
+  SUPPORTED_CURRENCIES: readonly Currency[];
+  CURRENCY_SYMBOLS: { [key in Currency]: string };
+  CURRENCY_LOCALES: { [key in Currency]: string };
+  ACCOUNT_TYPES: { [key: string]: AccountType };
+  NORMAL_BALANCES: { [key in AccountType]: NormalBalance };
+} = {
   DECIMAL_PLACES: 2,
   DEFAULT_CURRENCY: 'IDR' as const,
-  SUPPORTED_CURRENCIES: ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'] as const,
+  SUPPORTED_CURRENCIES,
   CURRENCY_SYMBOLS: {
     IDR: 'Rp',
     USD: '$',
@@ -57,7 +67,7 @@ export const FINANCIAL_CONSTANTS = {
     EQUITY: 'CREDIT',
     REVENUE: 'CREDIT'
   } as const
-} as const;
+};
 
 // Custom Error Classes
 export class AccountingValidationError extends Error implements AccountingError {
@@ -80,8 +90,18 @@ export class DoubleEntryError extends AccountingValidationError {
 }
 
 // Enhanced Error System - Severity and Categories
-export type ErrorSeverity = 'WARNING' | 'ERROR' | 'CRITICAL';
-export type ErrorCategory = 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE';
+export enum ErrorSeverity {
+  WARNING = 'WARNING',
+  ERROR = 'ERROR',
+  CRITICAL = 'CRITICAL'
+}
+
+export enum ErrorCategory {
+  VALIDATION = 'VALIDATION',
+  BUSINESS_RULE = 'BUSINESS_RULE',
+  SYSTEM = 'SYSTEM',
+  COMPLIANCE = 'COMPLIANCE'
+}
 
 export interface EnhancedValidationError extends BaseValidationError {
   severity: ErrorSeverity;
@@ -140,7 +160,7 @@ export class ErrorAggregator {
   private warnings: EnhancedValidationError[] = [];
 
   addError(error: EnhancedValidationError): void {
-    if (error.severity === 'WARNING') {
+    if (error.severity === ErrorSeverity.WARNING) {
       this.warnings.push(error);
     } else {
       this.errors.push(error);
@@ -174,7 +194,7 @@ export class ErrorAggregator {
   }
 
   getCriticalErrors(): EnhancedValidationError[] {
-    return this.errors.filter(error => error.severity === 'CRITICAL');
+    return this.errors.filter(error => error.severity === ErrorSeverity.CRITICAL);
   }
 
   getErrorsByCategory(category: ErrorCategory): EnhancedValidationError[] {
@@ -197,19 +217,14 @@ export class ErrorAggregator {
     issues: EnhancedValidationError[];
   } {
     const allIssues = this.getAllIssues();
-    
-    const byCategory: Record<ErrorCategory, number> = {
-      VALIDATION: 0,
-      BUSINESS_RULE: 0,
-      SYSTEM: 0,
-      COMPLIANCE: 0
-    };
 
-    const bySeverity: Record<ErrorSeverity, number> = {
-      WARNING: 0,
-      ERROR: 0,
-      CRITICAL: 0
-    };
+    const byCategory = Object.fromEntries(
+      Object.values(ErrorCategory).map(cat => [cat, 0])
+    ) as Record<ErrorCategory, number>;
+
+    const bySeverity = Object.fromEntries(
+      Object.values(ErrorSeverity).map(sev => [sev, 0])
+    ) as Record<ErrorSeverity, number>;
 
     for (const issue of allIssues) {
       byCategory[issue.category]++;
@@ -235,8 +250,8 @@ export namespace AccountingErrorFactory {
     field: string,
     message: string,
     code: string,
-    severity: ErrorSeverity = 'ERROR',
-    category: ErrorCategory = 'VALIDATION',
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    category: ErrorCategory = ErrorCategory.VALIDATION,
     suggestions?: string[],
     context?: Record<string, unknown>
   ): EnhancedValidationError {
@@ -247,8 +262,7 @@ export namespace AccountingErrorFactory {
       severity,
       category,
       suggestions,
-      context,
-      timestamp: new Date()
+      context
     };
   }
 
@@ -262,8 +276,8 @@ export namespace AccountingErrorFactory {
       field,
       message,
       code,
-      'ERROR',
-      'BUSINESS_RULE',
+      ErrorSeverity.ERROR,
+      ErrorCategory.BUSINESS_RULE,
       suggestions
     );
   }
@@ -272,14 +286,14 @@ export namespace AccountingErrorFactory {
     field: string,
     message: string,
     code: string,
-    severity: ErrorSeverity = 'CRITICAL'
+    severity: ErrorSeverity = ErrorSeverity.CRITICAL
   ): EnhancedValidationError {
     return createValidationError(
       field,
       message,
       code,
       severity,
-      'COMPLIANCE'
+      ErrorCategory.COMPLIANCE
     );
   }
 
@@ -293,8 +307,8 @@ export namespace AccountingErrorFactory {
       field,
       message,
       code,
-      'CRITICAL',
-      'SYSTEM',
+      ErrorSeverity.CRITICAL,
+      ErrorCategory.SYSTEM,
       undefined,
       context
     );
@@ -365,21 +379,21 @@ export namespace ErrorRecoveryManager {
     ];
 
     if (criticalCodes.some(code => errorCode.includes(code))) {
-      return 'CRITICAL';
+      return ErrorSeverity.CRITICAL;
     }
     
     if (warningCodes.some(code => errorCode.includes(code))) {
-      return 'WARNING';
+      return ErrorSeverity.WARNING;
     }
 
-    return 'ERROR';
+    return ErrorSeverity.ERROR;
   }
 
   function determineCategory(errorCode: string): ErrorCategory {
-    if (errorCode.includes('COMPLIANCE')) return 'COMPLIANCE';
-    if (errorCode.includes('SYSTEM')) return 'SYSTEM';
-    if (errorCode.includes('BUSINESS_RULE')) return 'BUSINESS_RULE';
-    return 'VALIDATION';
+    if (errorCode.includes('COMPLIANCE')) return ErrorCategory.COMPLIANCE;
+    if (errorCode.includes('SYSTEM')) return ErrorCategory.SYSTEM;
+    if (errorCode.includes('BUSINESS_RULE')) return ErrorCategory.BUSINESS_RULE;
+    return ErrorCategory.VALIDATION;
   }
 }
 
@@ -408,7 +422,7 @@ export function roundToDecimalPlaces(amount: number, places: number = FINANCIAL_
 }
 
 export function getNormalBalance(accountType: AccountType): NormalBalance {
-  return FINANCIAL_CONSTANTS.NORMAL_BALANCES[accountType] as NormalBalance;
+  return FINANCIAL_CONSTANTS.NORMAL_BALANCES[accountType];
 }
 
 // Transaction Validator Class
@@ -1595,7 +1609,7 @@ export class DatabaseAdapter {
       RETURNING *
     `;
 
-    const totalAmount = transactionData.entries.reduce((sum, entry) => 
+    const totalAmount = transactionData.entries.reduce((sum: number, entry: TransactionEntry) => 
       sum + (entry.debitAmount || 0) + (entry.creditAmount || 0), 0
     ) / 2; // Divide by 2 since each amount is counted twice (debit and credit)
 

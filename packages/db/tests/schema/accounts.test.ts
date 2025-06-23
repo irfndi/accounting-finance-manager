@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { accounts } from '../../src/schema/accounts';
+import { accounts, NewAccount } from '../../src/schema/accounts';
 
 // Mock database adapter with Drizzle-like interface
-let mockData: any[] = [];
+let mockData: NewAccount[] = [];
 
-const createMockAccount = (overrides = {}) => {
+const createMockAccount = (overrides: Partial<NewAccount> = {}): NewAccount => {
   const defaults = {
     id: 1,
     code: '1000',
@@ -30,10 +30,10 @@ const createMockAccount = (overrides = {}) => {
   };
   
   // Apply overrides, ensuring they take precedence
-  const result = { ...defaults, ...overrides };
+  const result: NewAccount = { ...defaults, ...overrides };
   
   // Adjust reportCategory based on type if not explicitly set
-  if (!(overrides as any).reportCategory) {
+  if (!overrides.reportCategory) {
     if (result.type === 'LIABILITY') {
       result.reportCategory = 'LIABILITIES';
     } else if (result.type === 'EQUITY') {
@@ -50,13 +50,13 @@ const createMockAccount = (overrides = {}) => {
 
 const mockDbAdapter = {
   select: vi.fn(() => {
-    let currentData = [...mockData];
+        const currentData = [...mockData];
     
-    const createChain = (chainData: any[]): any => {
-      const chain: any = {
+    const createChain = (chainData: NewAccount[]): any => {
+            const chain = {
         from: vi.fn((): any => createChain(chainData)),
-        where: vi.fn((condition: any): any => {
-          let filteredData = chainData;
+        where: vi.fn((condition: any) => {
+                    let filteredData: NewAccount[] = chainData;
           
           // Handle eq() function calls from drizzle-orm
           if (condition && typeof condition === 'object' && condition.queryChunks) {
@@ -93,28 +93,27 @@ const mockDbAdapter = {
                   value = valueChunk.value;
                 }
                 
-                filteredData = chainData.filter((item: any) => item[jsPropertyName] === value);
+                filteredData = chainData.filter((item) => item[jsPropertyName as keyof NewAccount] === value);
               }
             }
           }
           
           // Handle other condition formats (fallback)
           if (condition && typeof condition === 'object' && condition.operator && condition.left && condition.right) {
-            const { operator, left, right } = condition;
+                        const { operator, left, right } = condition;
             if (operator === '=' && left && left.name) {
               const columnName = left.name;
               const value = right;
-              filteredData = chainData.filter((item: any) => item[columnName] === value);
+              filteredData = chainData.filter((item) => item[columnName as keyof NewAccount] === value);
             }
           }
           
           return createChain(filteredData);
         }),
-        limit: vi.fn((count: number): any => createChain(chainData.slice(0, count))),
-        orderBy: vi.fn((): any => createChain(chainData)),
-        get: vi.fn(() => Promise.resolve(chainData[0] || null)),
-        then: vi.fn((callback: any) => Promise.resolve(chainData).then(callback)),
-        catch: vi.fn((callback: any) => Promise.resolve(chainData).catch(callback))
+        limit: vi.fn((count: number) => createChain(chainData.slice(0, count))),
+        orderBy: vi.fn(() => createChain(chainData)),
+        get: vi.fn(async () => chainData[0] || null),
+        catch: vi.fn((callback: (reason: any) => void) => Promise.resolve(chainData).catch(callback))
       };
       
 

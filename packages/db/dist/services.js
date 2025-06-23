@@ -4,13 +4,23 @@
  */
 import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
-import { users } from "./schema/index.js";
-import * as schema from "./schema/index.js";
+import { users } from "./schema";
+import * as schema from "./schema";
 /**
  * Database service class with user management methods
  */
 export class DatabaseService {
     db;
+    /**
+     * Get current user by session
+     */
+    async getCurrentUser(session) {
+        if (!session?.userId) {
+            return null;
+        }
+        const user = await this.getUserById(session.userId);
+        return user;
+    }
     constructor(db) {
         this.db = db;
     }

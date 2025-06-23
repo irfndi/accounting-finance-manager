@@ -3,6 +3,8 @@
  * Corporate Finance Manager - Database operations and schema
  */
 export * from "./schema";
+export * from "./schema/documents";
+export * from "./raw-docs";
 export * from "./services";
 import * as schema from "./schema";
 /**

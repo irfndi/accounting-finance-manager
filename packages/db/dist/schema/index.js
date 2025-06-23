@@ -3,15 +3,15 @@
  * Corporate Finance Manager - Centralized schema exports
  */
 // Table exports
-export * from "./accounts.js";
-export * from "./transactions.js";
-export * from "./auth.js";
-export * from "./documents.js";
+export * from "./accounts";
+export * from "./transactions";
+export * from "./auth";
+export * from "./documents";
 // Re-export all tables for Drizzle relations
-import { accounts } from "./accounts.js";
-import { transactions, journalEntries } from "./transactions.js";
-import { users, sessions, magicLinks, auditLog } from "./auth.js";
-import { rawDocs } from "./documents.js";
+import { accounts } from "./accounts";
+import { transactions, journalEntries } from "./transactions";
+import { users, sessions, magicLinks, auditLog } from "./auth";
+import { rawDocs } from "./documents";
 export const schema = {
     accounts,
     transactions,

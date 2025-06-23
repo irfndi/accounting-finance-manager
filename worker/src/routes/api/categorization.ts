@@ -99,18 +99,19 @@ categorization.post('/suggest', async (c) => {
     let suggestedAccountId: string | undefined
     
     try {
-      // Search for accounts that match the suggested category
-      const accounts = await db.getAllAccounts()
+      const accounts = await db.getAllAccounts();
+      const lowerCaseCategory = aiResult.category.toLowerCase();
       const matchingAccount = accounts.find((account: Account) => 
-        account.category?.toLowerCase().includes(aiResult.category.toLowerCase()) ||
-        account.name.toLowerCase().includes(aiResult.category.toLowerCase())
-      )
+        account.category?.toLowerCase().includes(lowerCaseCategory) ||
+        account.name.toLowerCase().includes(lowerCaseCategory)
+      );
       
       if (matchingAccount) {
-        suggestedAccountId = matchingAccount.id?.toString()
+        suggestedAccountId = matchingAccount.id?.toString();
       }
-    } catch (error) {
-      console.warn('Failed to find matching account:', error)
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error while finding matching account';
+        console.warn('Failed to find matching account:', errorMessage);
     }
     
     // Generate unique suggestion ID
@@ -402,18 +403,17 @@ categorization.delete('/suggestion/:id', async (c) => {
 })
 
 // Helper function to get top categories
-function getTopCategories(approvedSuggestions: CategorizationSuggestion[]): Array<{category: string, count: number}> {
-  const categoryCount = new Map<string, number>()
-  
-  approvedSuggestions.forEach(suggestion => {
-    const category = suggestion.suggestedCategory
-    categoryCount.set(category, (categoryCount.get(category) || 0) + 1)
-  })
-  
+function getTopCategories(approvedSuggestions: CategorizationSuggestion[]): Array<{ category: string; count: number }> {
+  const categoryCount = approvedSuggestions.reduce((acc, suggestion) => {
+    const category = suggestion.suggestedCategory;
+    acc.set(category, (acc.get(category) || 0) + 1);
+    return acc;
+  }, new Map<string, number>());
+
   return Array.from(categoryCount.entries())
     .map(([category, count]) => ({ category, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
+    .slice(0, 10);
 }
 
 export default categorization

@@ -5,6 +5,8 @@
 
 // Schema exports
 export * from "./schema";
+export * from "./schema/documents";
+export * from "./raw-docs";
 
 // Service exports
 export * from "./services";

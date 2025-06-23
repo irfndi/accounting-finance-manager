@@ -21,21 +21,42 @@ export type JwtPayload = {
   email: string;
   role: string;
   exp: number;
+  jti: string;
+  sub: string;
 };
 
-// Define the variables that the middleware will add to the context
-export type AuthVariables = {
-  user: {
-    id: string;
-    email: string;
-    displayName: string | null;
-    firstName: string | null;
-    lastName: string | null;
-  };
-};
+
+
+import { RawDocument } from '@finance-manager/types';
+import type { User } from '@finance-manager/db';
 
 // Define the application context for Hono
 export type AppContext = {
   Bindings: Env;
-  Variables: AuthVariables;
+  Variables: {
+    user: User;
+    doc: RawDocument;
+    jwtPayload: JwtPayload;
+  };
+};
+
+// Define the variables that the middleware will add to the context
+export type AuthVariables = {
+  user: AppContext['Variables']['user'];
+  jwtPayload: AppContext['Variables']['jwtPayload'];
+};
+
+// Define the variables that the middleware will add to the context
+export type SearchResultDocument = RawDocument & {
+  similarity: number;
+  matchedText: string;
+  chunkInfo?: {
+    chunkIndex: number;
+    totalChunks: number;
+    chunkId: string;
+  };
+};
+
+export type DocVariable = {
+  doc: AppContext['Variables']['doc'];
 };

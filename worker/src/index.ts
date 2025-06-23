@@ -65,30 +65,27 @@ app.get('/health', (c) => {
 app.route('/api', api)
 
 // Root endpoint - redirect to enhanced interface
-app.get('/', (c) => {
-  // Check if this is an API request (Accept header contains application/json)
-  const acceptHeader = c.req.header('Accept') || ''
-  if (acceptHeader.includes('application/json')) {
-    return c.json({
-      message: 'Corporate Finance Manager API',
-      environment: c.env.ENVIRONMENT,
-      endpoints: [
-        '/health - Health check',
-        '/api/accounts - Chart of accounts management',
-        '/api/transactions - Financial transactions',
-        '/api/reports - Financial reporting'
-      ]
-    })
-  }
-  
-  // For browser requests, serve the enhanced interface
-  // This will be handled by the catch-all route below
-  return c.redirect('/?interface=web', 302)
-})
-
 // Static file serving for Astro front-end
 // This handles serving built Astro assets and SPA routing
 app.get('*', async (c) => {
+  const isBrowser = c.req.header('user-agent')?.includes('Mozilla')
+
+  if (c.req.path === '/' && !isBrowser) {
+    return c.json({
+      message: 'Welcome to the Finance Manager API!',
+      version: '1.0.0',
+      documentation: '/api-docs',
+      health: '/health',
+      api_entry: '/api',
+      production: c.env.ENVIRONMENT === 'production',
+      endpoints: {
+        accounts: '/api/accounts',
+        transactions: '/api/transactions',
+        reports: '/api/reports',
+        search: '/api/search'
+      }
+    })
+  }
   const path = c.req.path
   
   // Check if this is an API route (should not reach here due to routing order)
@@ -100,152 +97,120 @@ app.get('*', async (c) => {
     }, 404)
   }
   
-  // TODO: When Astro front-end is built, serve actual static assets
-  // For now, serve enhanced development fallback
-  
-  // Handle specific front-end routes that would exist in production
-  const frontendRoutes = ['/', '/general-ledger', '/reports']
-  const isFrontendRoute = frontendRoutes.includes(path) || path === ''
-  
-  if (isFrontendRoute) {
-    // Enhanced fallback page with navigation to actual front-end pages
-    return c.html(`
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <title>Corporate Finance Manager${path !== '/' ? ` - ${path.replace('/', '').replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}` : ''}</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <meta name="description" content="Professional corporate finance and accounting management system">
-          <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-          <style>
-            * { box-sizing: border-box; }
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; 
-              margin: 0; padding: 0; background: #f8fafc; color: #1e293b;
-            }
-            .header { background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
-            .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
-            .nav { display: flex; align-items: center; justify-content: space-between; }
-            .logo { font-size: 1.5rem; font-weight: 700; color: #2563eb; }
-            .nav-links { display: flex; gap: 2rem; }
-            .nav-links a { 
-              color: #64748b; text-decoration: none; font-weight: 500; 
-              transition: color 0.2s;
-            }
-            .nav-links a:hover, .nav-links a.active { color: #2563eb; }
-            .main { padding: 3rem 0; }
-            .status { 
-              background: #dcfce7; color: #166534; padding: 0.75rem 1rem; 
-              border-radius: 8px; margin-bottom: 2rem; font-weight: 500;
-            }
-            .card { 
-              background: white; border-radius: 12px; padding: 2rem; 
-              box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem;
-            }
-            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-            .endpoint { 
-              background: #f1f5f9; padding: 1rem; border-radius: 8px; 
-              border-left: 4px solid #2563eb;
-            }
-            .endpoint h4 { margin: 0 0 0.5rem 0; color: #2563eb; }
-            .endpoint p { margin: 0; color: #64748b; font-size: 0.9rem; }
-            .endpoint a { 
-              color: #2563eb; text-decoration: none; font-weight: 500;
-              display: inline-block; margin-top: 0.5rem;
-            }
-            .endpoint a:hover { text-decoration: underline; }
-            .footer { text-align: center; padding: 2rem; color: #64748b; }
-          </style>
-        </head>
-        <body>
-          <header class="header">
+  try {
+    // Import the static assets from the built Astro app
+    const { getAssetFromKV } = await import('@cloudflare/kv-asset-handler')
+    console.log('Successfully imported getAssetFromKV')
+    
+    // Create event object for getAssetFromKV
+    const event = {
+      request: c.req.raw,
+      waitUntil: () => {},
+      ...c.env
+    }
+    
+    console.log('Attempting to serve:', path)
+    
+    // Try to serve static assets first
+    if (path.includes('.') || path.startsWith('/_astro/')) {
+      try {
+        console.log('Serving static asset:', path)
+        return await getAssetFromKV(event)
+      } catch (e) {
+        console.log('Asset not found:', path, e instanceof Error ? e.message : String(e))
+        // Asset not found, continue to SPA routing
+      }
+    }
+    
+    // Handle SPA routing - serve index.html for all non-asset routes
+    try {
+      console.log('Serving SPA route, looking for index.html')
+      const indexRequest = new Request(new URL('/index.html', c.req.url).toString())
+      const event2 = {
+        request: indexRequest,
+        waitUntil: () => {},
+        ...c.env
+      }
+      return await getAssetFromKV(event2)
+    } catch (e) {
+      console.log('Index.html not found:', e instanceof Error ? e.message : String(e))
+      throw e
+    }
+    
+  } catch (e) {
+    // Fallback to development interface if assets are not available
+    console.log('Static assets not available, serving development fallback:', e instanceof Error ? e.message : String(e))
+    
+    // Handle specific front-end routes that would exist in production
+    const frontendRoutes = ['/', '/general-ledger', '/reports', '/search']
+    const isFrontendRoute = frontendRoutes.includes(path) || path === ''
+    
+    if (isFrontendRoute) {
+      return c.html(`
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <title>Corporate Finance Manager${path !== '/' ? ` - ${path.replace('/', '').replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}` : ''}</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="description" content="Professional corporate finance and accounting management system">
+            <style>
+              * { box-sizing: border-box; }
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                margin: 0; padding: 2rem; background: #f8fafc; color: #1e293b;
+              }
+              .container { max-width: 800px; margin: 0 auto; }
+              .card { background: white; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+              .status { background: #dcfce7; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; }
+              .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+              .nav a { color: #2563eb; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; background: #eff6ff; }
+              .nav a:hover { background: #dbeafe; }
+              .endpoint { background: #f1f5f9; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+              .endpoint a { color: #2563eb; text-decoration: none; font-weight: 500; }
+            </style>
+          </head>
+          <body>
             <div class="container">
-              <nav class="nav">
-                <div class="logo">Finance Manager</div>
-                <div class="nav-links">
-                  <a href="/" ${path === '/' ? 'class="active"' : ''}>Dashboard</a>
-                  <a href="/general-ledger" ${path === '/general-ledger' ? 'class="active"' : ''}>General Ledger</a>
-                  <a href="/reports" ${path === '/reports' ? 'class="active"' : ''}>Reports</a>
+              <div class="status">✅ Finance Manager API Online - Development Mode</div>
+              
+              <div class="nav">
+                <a href="/">Dashboard</a>
+                <a href="/general-ledger">General Ledger</a>
+                <a href="/reports">Reports</a>
+                <a href="/search">Search</a>
+              </div>
+              
+              <div class="card">
+                <h1>Corporate Finance Manager</h1>
+                <p>Professional double-entry bookkeeping system with comprehensive financial reporting.</p>
+                <p><strong>Note:</strong> The Astro frontend will be served here once properly configured with static assets.</p>
+              </div>
+              
+              <div class="card">
+                <h3>API Endpoints</h3>
+                <div class="endpoint">
+                  <strong>Chart of Accounts:</strong> <a href="/api/accounts">/api/accounts</a>
                 </div>
-              </nav>
-            </div>
-          </header>
-          
-          <main class="main">
-            <div class="container">
-              <div class="status">
-                ✅ System Online - API Server Running
-              </div>
-              
-              <div class="card">
-                <h2>Corporate Finance & Accounting Manager</h2>
-                <p>Professional-grade double-entry bookkeeping system with comprehensive financial reporting.</p>
-                <p><strong>Current Status:</strong> API fully operational with enhanced accounting engine integration.</p>
-                <p><strong>Note:</strong> This is a development fallback. The Astro front-end will replace this interface when built.</p>
-              </div>
-              
-              <div class="card">
-                <h3>Available API Endpoints</h3>
-                <div class="grid">
-                  <div class="endpoint">
-                    <h4>Chart of Accounts</h4>
-                    <p>Manage your company's chart of accounts with hierarchical structure and validation.</p>
-                    <a href="/api/accounts" target="_blank">→ /api/accounts</a>
-                  </div>
-                  <div class="endpoint">
-                    <h4>Transactions</h4>
-                    <p>Double-entry transaction processing with journal entry management.</p>
-                    <a href="/api/transactions" target="_blank">→ /api/transactions</a>
-                  </div>
-                  <div class="endpoint">
-                    <h4>Financial Reports</h4>
-                    <p>Trial balance, balance sheet, and income statement generation.</p>
-                    <a href="/api/reports/trial-balance" target="_blank">→ /api/reports</a>
-                  </div>
-                  <div class="endpoint">
-                    <h4>System Health</h4>
-                    <p>Monitor system status and performance metrics.</p>
-                    <a href="/health" target="_blank">→ /health</a>
-                  </div>
+                <div class="endpoint">
+                  <strong>Transactions:</strong> <a href="/api/transactions">/api/transactions</a>
+                </div>
+                <div class="endpoint">
+                  <strong>Reports:</strong> <a href="/api/reports">/api/reports</a>
+                </div>
+                <div class="endpoint">
+                  <strong>Health Check:</strong> <a href="/health">/health</a>
                 </div>
               </div>
-              
-              <div class="card">
-                <h3>Integration Ready</h3>
-                <p>The worker is configured to serve the Astro front-end when built assets are available:</p>
-                <ul>
-                  <li>✅ Enhanced API routing with core accounting logic</li>
-                  <li>✅ Double-entry bookkeeping validation</li>
-                  <li>✅ Professional financial reporting</li>
-                  <li>✅ SPA routing support for client-side navigation</li>
-                  <li>⏳ Astro static asset serving (pending build integration)</li>
-                </ul>
-              </div>
             </div>
-          </main>
-          
-          <footer class="footer">
-            <p>Corporate Finance Manager v1.0 • Powered by Cloudflare Workers</p>
-          </footer>
-        </body>
-      </html>
-    `)
+          </body>
+        </html>
+      `)
+    }
+    
+    // Fallback for any other routes
+    return c.redirect('/', 302)
   }
-  
-  // Handle other potential static assets (CSS, JS, images)
-  if (path.includes('.')) {
-    // This would be where static assets are served in production
-    // For now, return 404 for missing assets
-    return c.json({
-      error: 'Asset not found',
-      message: `Static asset ${path} is not available in development mode`,
-      note: 'Static assets will be served when Astro front-end is built'
-    }, 404)
-  }
-  
-  // Fallback for any other routes - redirect to home
-  return c.redirect('/', 302)
 })
 
 export default app

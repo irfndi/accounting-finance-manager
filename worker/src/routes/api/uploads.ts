@@ -1,32 +1,27 @@
 import { Hono } from 'hono';
-import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+import { authMiddleware } from '../../middleware/auth';
 import type { AppContext } from '../../types';
 import { processOCR, isOCRSupported, type OCRResult } from '../../utils/ocr';
-import { createDatabase } from '@finance-manager/db';
 import { 
+  createDatabase,
   createRawDoc, 
   updateRawDocOCR, 
-  updateRawDocLLM,
   getRawDocByFileId, 
-  generateSearchableText,
+  generateSearchableText, 
   parseTags,
   getUploadStats,
-  type CreateRawDocData,
-  type UpdateOCRData
-} from '../../utils/raw-docs';
+  updateRawDoc,
+  type NewRawDoc,
+  type UpdateRawDoc
+} from '@finance-manager/db';
 import { createOCRLogger } from '../../utils/logger';
-import { FinancialAIService } from '@finance-manager/ai';
-import { createVectorizeService, AIService } from '@finance-manager/ai';
-import { OpenRouterProvider } from '@finance-manager/ai';
+import { createFinancialAIService, createVectorizeServiceInstance } from '../../services';
 import type { DocumentClassification } from '@finance-manager/ai';
 
 
 
 const uploads = new Hono<AppContext>()
 
-uploads.use('/*', authMiddleware);
-
-// Apply authentication middleware to all upload routes
 uploads.use('*', authMiddleware);
 
 // File validation constants
@@ -50,46 +45,6 @@ function generateUUID(): string {
   return crypto.randomUUID();
 }
 
-// Helper function to create AI service
-function createFinancialAIService(c: AppContext): FinancialAIService | null {
-  const env = c.Bindings;
-  try {
-    if (!env.OPENROUTER_API_KEY) {
-      return null;
-    }
-
-    const provider = new OpenRouterProvider({
-      apiKey: env.OPENROUTER_API_KEY,
-      baseUrl: 'https://openrouter.ai/api/v1',
-      modelId: 'anthropic/claude-3.5-sonnet'
-    });
-
-    const aiService = new AIService({
-      primaryProvider: provider
-    });
-
-    return new FinancialAIService(aiService);
-  } catch (error) {
-    return null;
-  }
-}
-
-// Helper function to create vectorize service
-function createVectorizeServiceInstance(c: any, deps?: { ai?: any; vectorize?: any }): ReturnType<typeof createVectorizeService> {
-  const { DOCUMENT_EMBEDDINGS: envVectorize, AI: envAi } = c.env;
-  const ai = deps?.ai || envAi;
-  const vectorize = deps?.vectorize || envVectorize;
-
-  return createVectorizeService({
-    vectorize,
-    ai,
-    embeddingModel: '@cf/baai/bge-base-en-v1.5',
-    maxTextLength: 8000,
-    chunkSize: 1000,
-    chunkOverlap: 200
-  });
-}
-
 // Helper function to get file extension from filename
 function getFileExtension(filename: string): string {
   return filename.split('.').pop()?.toLowerCase() || '';
@@ -105,19 +60,7 @@ function isValidFileSize(file: File): boolean {
   return file.size <= MAX_FILE_SIZE;
 }
 
-// Helper function to create file metadata
-function createFileMetadata(file: File, fileId: string, userId: string) {
-  return {
-    id: fileId,
-    originalName: file.name,
-    mimeType: file.type,
-    size: file.size,
-    uploadedBy: userId,
-    uploadedAt: new Date().toISOString(),
-    tags: [] as string[],
-    description: ''
-  };
-}
+
 
 /**
  * @swagger
@@ -181,7 +124,7 @@ uploads.post('/', async (c) => {
     // Debug environment access
     
     
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) {
       return c.json({
         success: false,
@@ -224,14 +167,7 @@ uploads.post('/', async (c) => {
     const fileExtension = getFileExtension(file.name);
     const storedFileName = `${fileId}.${fileExtension}`;
 
-    // Create file metadata
-    const metadata = createFileMetadata(file, fileId, user.id);
-    if (tags) {
-      metadata.tags = tags.split(',').map(tag => tag.trim()).filter(Boolean);
-    }
-    if (description) {
-      metadata.description = description;
-    }
+
 
     // Process OCR if file type is supported
     let ocrResult: OCRResult | null = null;
@@ -254,7 +190,7 @@ uploads.post('/', async (c) => {
 
         // Process with LLM if OCR was successful
         if (ocrResult.success === true && ocrResult.text) {
-          const aiService = createFinancialAIService({ Bindings: c.env, Variables: c.var } as AppContext);
+                    const aiService = createFinancialAIService(c.env);
           if (aiService) {
             try {
               // Classify the document
@@ -281,49 +217,38 @@ uploads.post('/', async (c) => {
                 // Update database with LLM results
                 try {
                   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
-                  const llmUpdateResult = await updateRawDocLLM(
-                    db,
-                    fileId,
-                    {
-                      documentType: documentClassification?.type || 'unknown',
-                      structuredData: structuredData ? JSON.stringify(structuredData) : undefined,
-                      llmConfidence: documentClassification?.confidence || 0,
-                      llmProcessedAt: new Date()
-                    },
-                    user.id
-                  );
+                  
                   
                   // LLM data processing completed
-                } catch (dbError) {
+                } catch (_dbError) {
                   // Database update failed, continue processing
                 }
 
                 // Generate document embeddings for semantic search
                 try {
-                  const vectorizeService = createVectorizeServiceInstance(c);
+                                    const vectorizeService = createVectorizeServiceInstance(c.env);
                   const textForEmbedding = ocrResult.text || '';
                   const embeddingMetadata = {
                     documentType: documentClassification?.type || 'unknown',
                     confidence: documentClassification?.confidence || 0,
                     fileName: file.name,
-                    mimeType: file.type,
+                   mimeType: file.type,
                     userId: user.id,
-                    hasStructuredData: !!structuredData,
-                    tags: metadata.tags
+                    hasStructuredData: !!structuredData
                   };
 
-                  const embeddingResult = await vectorizeService.embedDocument(
+                  const _embeddingResult = await vectorizeService.embedDocument(
                     fileId,
                     textForEmbedding,
                     embeddingMetadata
                   );
 
                   // Embedding generation completed
-                } catch (embeddingError) {
+                } catch (_embeddingError) {
                   // Continue with upload even if embedding generation fails
                 }
               }
-            } catch (aiError) {
+            } catch (_aiError) {
               // Continue with upload even if LLM processing fails
             }
           }
@@ -343,6 +268,13 @@ uploads.post('/', async (c) => {
     const fileData = fileBuffer ? fileBuffer : await file.arrayBuffer();
 
     // Upload to R2
+    const metadata = {
+      uploadedAt: new Date().toISOString(),
+      tags: tags ? parseTags(tags) : [],
+      description: description || ''
+    };
+
+    // Upload to R2
     const uploadResult = await c.env.FINANCE_MANAGER_DOCUMENTS.put(storedFileName, fileData, {
       httpMetadata: {
         contentType: file.type,
@@ -350,7 +282,7 @@ uploads.post('/', async (c) => {
       },
       customMetadata: {
         originalName: file.name,
-        uploadedBy: user.id,
+        createdBy: user.id,
         uploadedAt: metadata.uploadedAt,
         tags: metadata.tags.join(','),
         description: metadata.description || '',
@@ -390,55 +322,50 @@ uploads.post('/', async (c) => {
       const db = createDatabase(c.env.FINANCE_MANAGER_DB);
       
       // Create raw document record
-      const createDocData: CreateRawDocData = {
-        fileId: fileId,
-        filename: file.name,
-        originalName: file.name,
-        mimeType: file.type,
-        size: file.size,
-        fileSize: file.size,
-        r2Key: storedFileName,
-        uploadedBy: user.id,
-        description: metadata.description,
-        tags: metadata.tags,
-        status: 'UPLOADED'
-      };
+      const createDocData: NewRawDoc = {
+          fileId: fileId,
+          originalName: file.name,
+          mimeType: file.type,
+          fileSize: file.size,
+          r2Key: storedFileName,
+          uploadedBy: user.id,
+          description: description || undefined,
+          tags: tags ? JSON.stringify(parseTags(tags)) : undefined,
+        };
 
-      const createResult = await createRawDoc(db, createDocData);
+      const [rawDoc] = await createRawDoc(db, createDocData);
       
-      if (createResult.success === false) {
-        logger.databaseOperation('create', fileId, false, createResult.error);
-        throw new Error(`Failed to create document record: ${createResult.error}`);
+      if (!rawDoc) {
+        logger.databaseOperation('create', fileId, false, 'No document returned after creation');
+        throw new Error(`Failed to create document record for file ID: ${fileId}`);
       }
 
       logger.databaseOperation('create', fileId, true);
 
       // Update with OCR results if processing was successful
       if (ocrResult) {
-        const updateData: UpdateOCRData = {
+        const updateData: Partial<UpdateRawDoc> = {
           ocrStatus: ocrResult.success === true ? 'COMPLETED' : 'FAILED',
           extractedText: ocrResult.text || undefined,
           textLength: ocrResult.text?.length || 0,
           ocrConfidence: ocrResult.confidence,
           ocrProcessingTime: ocrResult.processingTime,
           ocrErrorMessage: ocrResult.error || undefined,
+          ocrErrorCode: ocrResult.errorCode,
+          ocrFallbackUsed: ocrResult.fallbackUsed,
+          ocrRetryable: ocrResult.retryable,
+          ocrMaxRetries: ocrResult.maxRetries,
           ocrProcessedAt: new Date(),
           searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : undefined
         };
 
-        const updateResult = await updateRawDocOCR(db, fileId, updateData, user.id);
-        
-        if (updateResult.success === false) {
-          logger.databaseOperation('update_ocr', fileId, false, updateResult.error);
-          // Log warning but don't fail the upload
-          logger.warn('Failed to update OCR results in database', {
-            fileId,
-            operation: 'OCR_UPDATE_WARNING',
-            error: updateResult.error
-          });
+        const updateResult = await updateRawDocOCR(db, fileId, updateData);
+        if (!updateResult) {
+          logger.databaseOperation('update', fileId, false, 'No document returned after update');
         } else {
-          logger.databaseOperation('update_ocr', fileId, true);
+          logger.databaseOperation('update', fileId, true);
         }
+        
       }
 
       logger.info(`Stored document ${fileId} in database with ${ocrResult ? 'OCR' : 'no OCR'} processing`, {
@@ -506,8 +433,7 @@ uploads.post('/', async (c) => {
     }, 201);
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error during upload';
-    const errorStack = error instanceof Error ? error.stack : 'No stack trace';
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error during upload';
     // Upload error occurred
     return c.json({
       success: false,
@@ -545,7 +471,7 @@ uploads.post('/', async (c) => {
  */
 uploads.get('/:fileId', async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) {
       return c.json({
         success: false,
@@ -674,7 +600,7 @@ uploads.delete('/:fileId', async (c) => {
     }
 
     // Check if user owns the file (or is admin)
-    const uploadedBy = object.customMetadata?.uploadedBy;
+    const uploadedBy = object.customMetadata?.createdBy;
     if (uploadedBy !== user.id) {
       return c.json({
         success: false,
@@ -750,7 +676,7 @@ uploads.get('/', async (c) => {
   try {
     const user = c.get('user');
     const limit = parseInt(c.req.query('limit') || '50');
-    const cursor = c.req.query('cursor');
+    const _cursor = c.req.query('cursor');
     const tagFilter = c.req.query('tag');
 
     // List files from R2
@@ -758,28 +684,28 @@ uploads.get('/', async (c) => {
       limit: Math.min(limit, 100) // Cap at 100
     };
     
-    if (cursor) {
-      listOptions.cursor = cursor;
+    if (_cursor) {
+      listOptions.cursor = _cursor;
     }
 
-    const result = await c.env.FINANCE_MANAGER_DOCUMENTS.list(listOptions);
+    const _result = await c.env.FINANCE_MANAGER_DOCUMENTS.list(listOptions);
 
     // Process files and extract metadata
     const files = await Promise.all(
-      result.objects.map(async (obj) => {
-        const object = await c.env.FINANCE_MANAGER_DOCUMENTS.get(obj.key);
+      _result.objects.map(async (obj) => {
+        const _object = await c.env.FINANCE_MANAGER_DOCUMENTS.get(obj.key);
         
-        if (!object) return null;
+        if (!_object) return null;
 
         const metadata = {
           id: obj.key.split('.')[0], // Extract UUID from filename
-          originalName: object.customMetadata?.originalName || obj.key,
+          originalName: _object.customMetadata?.originalName || obj.key,
           size: obj.size,
-          mimeType: object.httpMetadata?.contentType || 'application/octet-stream',
-          uploadedBy: object.customMetadata?.uploadedBy || '',
-          uploadedAt: object.customMetadata?.uploadedAt || obj.uploaded.toISOString(),
-          tags: object.customMetadata?.tags ? object.customMetadata.tags.split(',').filter(Boolean) : [],
-          description: object.customMetadata?.description || '',
+          mimeType: _object.httpMetadata?.contentType || 'application/octet-stream',
+          uploadedBy: _object.customMetadata?.uploadedBy || '',
+          uploadedAt: _object.customMetadata?.uploadedAt || obj.uploaded.toISOString(),
+          tags: _object.customMetadata?.tags ? _object.customMetadata.tags.split(',').filter(Boolean) : [],
+          description: _object.customMetadata?.description || '',
           url: `/api/uploads/${obj.key.split('.')[0]}`
         };
 
@@ -798,13 +724,13 @@ uploads.get('/', async (c) => {
     );
 
     // Filter out null results
-    const validFiles = files.filter(file => file !== null);
+    const validFiles = files.filter((file) => file !== null);
 
     return c.json({
       success: true,
       data: {
         files: validFiles,
-        hasMore: result.truncated,
+        hasMore: _result.truncated,
         total: validFiles.length
       }
     });
@@ -902,7 +828,7 @@ uploads.get('/:fileId/metadata', async (c) => {
       data: metadata
     });
 
-  } catch (error) {
+  } catch (_error) {
     // Get metadata error occurred
     return c.json({
       success: false,
@@ -969,7 +895,7 @@ uploads.post('/:fileId/ocr', async (c) => {
   try {
     const user = c.get('user');
     const fileId = c.req.param('fileId');
-    const reprocess = c.req.query('reprocess') === 'true';
+    const _reprocess = c.req.query('reprocess') === 'true';
 
     if (!fileId) {
       return c.json({
@@ -979,13 +905,13 @@ uploads.post('/:fileId/ocr', async (c) => {
     }
 
     // Get processing options from request body
-    const body = c.req.header('content-type')?.includes('application/json') 
+    const _body = c.req.header('content-type')?.includes('application/json') 
       ? await c.req.json().catch(() => ({}))
       : {};
 
-    const options = {
-      maxTextLength: body.maxTextLength || 50000,
-      includeConfidence: body.includeConfidence !== false
+    const _options = {
+      maxTextLength: _body.maxTextLength || 50000,
+      includeConfidence: _body.includeConfidence !== false
     };
 
     // Find the file
@@ -1100,7 +1026,7 @@ uploads.post('/:fileId/ocr', async (c) => {
         searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : undefined
       };
 
-      await updateRawDocOCR(db, fileId, updateData, user.id);
+      await updateRawDocOCR(db, fileId, updateData);
 
       // OCR results updated in database
       
@@ -1337,7 +1263,7 @@ uploads.get('/:fileId/ocr', async (c) => {
  */
 uploads.get('/stats', async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) {
       return c.json({ error: 'Unauthorized' }, 401);
     }
@@ -1345,16 +1271,9 @@ uploads.get('/stats', async (c) => {
     const db = createDatabase(c.env.FINANCE_MANAGER_DB);
     const stats = await getUploadStats(db, user.id);
 
-    if (stats.success === false) {
-      return c.json({
-        error: 'Failed to get upload statistics',
-        details: stats.error
-      }, 500);
-    }
-
     return c.json({
       success: true,
-      data: stats.data
+      data: stats
     });
   } catch (error) {
     // Upload stats error occurred
@@ -1406,7 +1325,7 @@ uploads.get('/stats', async (c) => {
  */
 uploads.post('/search', async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) {
       return c.json({ 
         success: false,
@@ -1423,7 +1342,7 @@ uploads.post('/search', async (c) => {
     }
 
     // Create vectorize service and perform semantic search
-    const vectorizeService = createVectorizeServiceInstance(c);
+    const vectorizeService = createVectorizeServiceInstance(c.env);
     const searchResponse = await vectorizeService.searchByText(query, {
       topK: limit,
       threshold,
@@ -1443,13 +1362,11 @@ uploads.post('/search', async (c) => {
       const fileId = match.id.includes('_chunk_') ? match.id.split('_chunk_')[0] : match.id;
       
       const docResult = await getRawDocByFileId(db, fileId);
-      if (docResult.success === true && docResult.doc) {
+      if (docResult) {
         documents.push({
-          ...docResult.doc,
+          ...docResult,
           similarity: match.score,
           matchedText: match.metadata?.text || '',
-          chunkIndex: match.metadata?.chunkIndex,
-          totalChunks: match.metadata?.totalChunks
         });
       }
     }

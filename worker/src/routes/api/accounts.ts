@@ -11,19 +11,12 @@ import {
 } from '@finance-manager/core'
 import type { AccountType, NormalBalance, Account as CoreAccount } from '@finance-manager/types'
 import { authMiddleware } from '../../middleware/auth'
+import { AppContext, Env } from '../../types'
 
-// Environment bindings interface
-type Env = {
-  FINANCE_MANAGER_DB: D1Database
-  FINANCE_MANAGER_CACHE: KVNamespace
-  FINANCE_MANAGER_DOCUMENTS: R2Bucket
-  ENVIRONMENT?: string
-  JWT_SECRET: string
-  AUTH_SESSION_DURATION?: string
-}
+
 
 // Create accounts router
-const accounts = new Hono<{ Bindings: Env }>()
+const accounts = new Hono<AppContext>()
 
 accounts.use('/*', authMiddleware)
 
@@ -380,5 +373,100 @@ accounts.post('/', async (c) => {
     }, 500)
   }
 })
+
+// PUT /accounts/:id - Update an existing account
+accounts.put('/:id', async (c) => {
+  try {
+    const accountId = Number.parseInt(c.req.param('id'), 10);
+    if (Number.isNaN(accountId) || accountId <= 0) {
+      return c.json(
+        {
+          error: 'Invalid account ID',
+          message: 'Account ID must be a positive integer',
+          code: 'INVALID_ACCOUNT_ID',
+        },
+        400
+      );
+    }
+
+    const body = await c.req.json();
+    const { dbAdapter } = await createAccountingServices(c.env.FINANCE_MANAGER_DB);
+
+    // Validate input
+    const nameError = validateAccountName(body.name);
+    if (nameError) {
+      return c.json({ error: nameError, code: 'VALIDATION_ERROR' }, 400);
+    }
+
+    const typeError = validateAccountType(body.type);
+    if (typeError) {
+      return c.json({ error: typeError, code: 'VALIDATION_ERROR' }, 400);
+    }
+
+    // Check if account exists
+    const existingAccount = await dbAdapter.getAccount(accountId);
+    if (!existingAccount) {
+      return c.json(
+        {
+          error: 'Account not found',
+          message: `Account with ID ${accountId} not found`,
+          code: 'ACCOUNT_NOT_FOUND',
+        },
+        404
+      );
+    }
+
+    // Prepare update data
+    const updateData: Partial<CoreAccount> = {
+      name: body.name,
+      description: body.description,
+      type: body.type as AccountType,
+      subtype: body.subtype,
+      category: body.category,
+      parentId: body.parentId,
+      isActive: body.isActive,
+      allowTransactions: body.allowTransactions,
+      reportCategory: body.reportCategory,
+      reportOrder: body.reportOrder,
+    };
+
+    // Prevent changing system accounts' critical fields
+    if (existingAccount.isSystem) {
+      // For example, don't allow changing type or code of a system account
+      delete updateData.type;
+    }
+
+    const updatedAccount = await dbAdapter.updateAccount(accountId, updateData);
+
+    return c.json({
+      message: 'Account updated successfully',
+      account: updatedAccount,
+    });
+  } catch (error) {
+    if (error instanceof AccountingValidationError) {
+      return c.json(
+        {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          accountingError: true,
+        },
+        400
+      );
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return c.json(
+      {
+        error: 'Failed to update account',
+        message: errorMessage,
+        code: 'ACCOUNT_UPDATE_ERROR',
+      },
+      500
+    );
+  }
+});
+
+// DELETE /accounts/:id - Delete an account
 
 export default accounts

@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Chart of Accounts - Finance Manager">
+  <main class="container mx-auto px-4 py-8">
+    <div id="chart-of-accounts-root"></div>
+  </main>
+</Layout>
+
+<script>
+  import ChartOfAccounts from '../components/ChartOfAccounts.tsx';
+  import { createRoot } from 'react-dom/client';
+  import React from 'react';
+
+  const container = document.getElementById('chart-of-accounts-root');
+  if (container) {
+    const root = createRoot(container);
+    root.render(React.createElement(ChartOfAccounts));
+  }
+</script>

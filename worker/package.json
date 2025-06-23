@@ -8,7 +8,7 @@
     "dev": "wrangler dev --local",
     "deploy": "wrangler deploy",
     "deploy:prod": "wrangler deploy --env production",
-    "build": "tsc",
+    "build": "tsc --build",
     "build:prod": "wrangler deploy --dry-run --env production",
     "tail": "wrangler tail",
     "tail:prod": "wrangler tail --env production",
@@ -21,6 +21,7 @@
     "migrate:prod": "wrangler d1 migrations apply finance-manager-db-prod --env production"
   },
   "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.4.0",
     "@finance-manager/ai": "workspace:*",
     "@finance-manager/core": "workspace:*",
     "@finance-manager/db": "workspace:*",
@@ -28,6 +29,7 @@
     "@hono/node-server": "^1.11.1",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.5.1",
+    "@hono/zod-validator": "^0.2.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
