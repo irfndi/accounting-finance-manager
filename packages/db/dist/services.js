@@ -4,8 +4,8 @@
  */
 import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
-import { users } from "./schema";
-import * as schema from "./schema";
+import { users } from "./schema/index.js";
+import * as schema from "./schema/index.js";
 /**
  * Database service class with user management methods
  */

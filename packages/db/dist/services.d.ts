@@ -99,6 +99,12 @@ export declare class DatabaseService {
      */
     createUser(userData: CreateUserData): Promise<{
         id: string;
+        isActive: boolean;
+        entityId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
         email: string;
         emailVerified: boolean;
         passwordHash: string | null;
@@ -107,11 +113,9 @@ export declare class DatabaseService {
         displayName: string | null;
         timezone: string | null;
         locale: string | null;
-        isActive: boolean;
         isVerified: boolean;
         role: string;
         permissions: string | null;
-        entityId: string | null;
         entityAccess: string | null;
         lastLoginAt: Date | null;
         lastLoginIp: string | null;
@@ -120,16 +124,18 @@ export declare class DatabaseService {
         twoFactorEnabled: boolean;
         twoFactorSecret: string | null;
         backupCodes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
     }>;
     /**
      * Update user data
      */
     updateUser(id: string, userData: UpdateUserData): Promise<{
         id: string;
+        isActive: boolean;
+        entityId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
         email: string;
         emailVerified: boolean;
         passwordHash: string | null;
@@ -138,11 +144,9 @@ export declare class DatabaseService {
         displayName: string | null;
         timezone: string | null;
         locale: string | null;
-        isActive: boolean;
         isVerified: boolean;
         role: string;
         permissions: string | null;
-        entityId: string | null;
         entityAccess: string | null;
         lastLoginAt: Date | null;
         lastLoginIp: string | null;
@@ -151,16 +155,18 @@ export declare class DatabaseService {
         twoFactorEnabled: boolean;
         twoFactorSecret: string | null;
         backupCodes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
     }>;
     /**
      * Delete user by ID
      */
     deleteUser(id: string): Promise<{
         id: string;
+        isActive: boolean;
+        entityId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        createdBy: string | null;
+        updatedBy: string | null;
         email: string;
         emailVerified: boolean;
         passwordHash: string | null;
@@ -169,11 +175,9 @@ export declare class DatabaseService {
         displayName: string | null;
         timezone: string | null;
         locale: string | null;
-        isActive: boolean;
         isVerified: boolean;
         role: string;
         permissions: string | null;
-        entityId: string | null;
         entityAccess: string | null;
         lastLoginAt: Date | null;
         lastLoginIp: string | null;
@@ -182,10 +186,6 @@ export declare class DatabaseService {
         twoFactorEnabled: boolean;
         twoFactorSecret: string | null;
         backupCodes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        createdBy: string | null;
-        updatedBy: string | null;
     }>;
 }
 /**

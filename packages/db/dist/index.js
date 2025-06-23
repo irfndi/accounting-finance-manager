@@ -3,12 +3,12 @@
  * Corporate Finance Manager - Database operations and schema
  */
 // Schema exports
-export * from "./schema";
+export * from "./schema/index.js";
 // Service exports
-export * from "./services";
+export * from "./services.js";
 // Database connection utility
 import { drizzle } from "drizzle-orm/d1";
-import * as schema from "./schema";
+import * as schema from "./schema/index.js";
 /**
  * Create database connection for Cloudflare D1
  * @param d1Database - Cloudflare D1 database instance

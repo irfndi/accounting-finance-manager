@@ -2,7 +2,7 @@
  * JWT Utilities
  * Corporate Finance Manager - JWT token management with HS256 signing
  */
-import { UnauthorizedError } from './types';
+import { UnauthorizedError } from './types.js';
 /**
  * Default JWT configuration
  */

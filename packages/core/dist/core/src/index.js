@@ -1478,7 +1478,7 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
     }
 }
 // Re-export auth functionality
-export { createAuthService } from './auth/index';
-export { UserRole, MagicLinkPurpose, AuditEventType, AuthError, UnauthorizedError, ForbiddenError, NotFoundError, RateLimitError, ValidationError as AuthValidationError, AUTH_ERROR_CODES } from './auth/types';
+export { createAuthService } from './auth/index.js';
+export { UserRole, MagicLinkPurpose, AuditEventType, AuthError, UnauthorizedError, ForbiddenError, NotFoundError, RateLimitError, ValidationError as AuthValidationError, AUTH_ERROR_CODES } from './auth/types.js';
 // Re-export financial reports functionality
-export * from './financial-reports';
+export * from './financial-reports.js';
