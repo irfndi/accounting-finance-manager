@@ -18,7 +18,7 @@
     "@finance-manager/types": "workspace:*",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "astro": "^5.9.4",
+    "astro": "^5.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.517.0",
