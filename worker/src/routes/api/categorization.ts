@@ -157,7 +157,7 @@ categorization.post('/suggest', async (c) => {
       data: response
     })
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Categorization suggestion error:', error)
     
     if (error instanceof z.ZodError) {
@@ -281,7 +281,7 @@ categorization.post('/approve', async (c) => {
       }
     })
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Approval error:', error)
     
     if (error instanceof z.ZodError) {
