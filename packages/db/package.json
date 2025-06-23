@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.44.2",
-    "@cloudflare/workers-types": "^4.20250618.0",
+    "@cloudflare/workers-types": "^4.20250620.0",
     "@finance-manager/types": "workspace:*"
   },
   "devDependencies": {
