@@ -24,7 +24,7 @@ jobs:
     outputs:
       node-version: ${{ steps.setup.outputs.node-version }}
       pnpm-version: ${{ steps.setup.outputs.pnpm-version }}
-      cache-key: ${{ steps.setup.outputs.cache-key }}
+      cache-key: ${{ steps.cache-output.outputs.cache-key }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,7 +66,7 @@ jobs:
           echo "✓ Workspace validation complete"
 
       - name: Output cache key
-        id: cache-key
+        id: cache-output
         run: echo "cache-key=${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
 
   # ============================================================================
