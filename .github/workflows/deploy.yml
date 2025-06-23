@@ -61,7 +61,7 @@ jobs:
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "🎯 Deploying to: $ENVIRONMENT"
 
-       - name: Generate version
+      - name: Generate version
          id: version
          run: |
            if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
@@ -195,6 +195,10 @@ jobs:
         with:
           name: build-artifacts
 
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -254,6 +258,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
@@ -425,4 +433,4 @@ jobs:
       #       Version: ${{ needs.prepare.outputs.version }}
       #       Commit: ${{ github.sha }}
       #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
