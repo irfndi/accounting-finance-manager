@@ -25,6 +25,8 @@ jobs:
     name: E2E Tests (${{ matrix.browser }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.0-jammy
     strategy:
       fail-fast: false
       matrix:
@@ -66,12 +68,8 @@ jobs:
           pnpm build
           echo "✓ Application built successfully"
 
-      - name: Install Playwright browsers
-        working-directory: apps/web
-        run: |
-          echo "Installing Playwright browsers..."
-          pnpm exec playwright install ${{ matrix.browser }} --with-deps
-          echo "✓ Playwright browsers installed"
+      # Browsers are pre-installed in the Docker container
+      # No need to install browsers separately
 
       - name: Start preview server
         run: |
@@ -148,6 +146,8 @@ jobs:
     name: Visual Regression Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.0-jammy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -178,11 +178,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        run: |
-          echo "Installing Playwright browsers for visual testing..."
-          pnpm exec playwright install chromium --with-deps
-          echo "✓ Playwright browsers installed"
+      # Browsers are pre-installed in the Docker container
+      # No need to install browsers separately
 
       - name: Start application
         run: |
@@ -207,6 +204,7 @@ jobs:
           echo "✓ Application is running (PID: $DEV_PID)"
 
       - name: Run visual regression tests
+        working-directory: apps/web
         run: |
           echo "Running visual regression tests..."
           pnpm exec playwright test --project=visual-regression --grep="@visual"
@@ -242,6 +240,8 @@ jobs:
     name: Performance Tests
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.0-jammy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -333,6 +333,8 @@ jobs:
     name: Accessibility Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.0-jammy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -363,11 +365,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright browsers
-        run: |
-          echo "Installing Playwright browsers for accessibility testing..."
-          pnpm exec playwright install chromium --with-deps
-          echo "✓ Playwright browsers installed"
+      # Browsers are pre-installed in the Docker container
+      # No need to install browsers separately
 
       - name: Start application
         run: |
@@ -392,6 +391,7 @@ jobs:
           echo "✓ Application is running (PID: $DEV_PID)"
 
       - name: Run accessibility tests
+        working-directory: apps/web
         run: |
           echo "Running accessibility tests..."
           pnpm exec playwright test --project=accessibility --grep="@a11y"
