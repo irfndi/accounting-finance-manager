@@ -95,7 +95,19 @@ export const AI_USE_CASES = {
     prompt: 'Check this financial data for compliance and potential issues:',
     maxTokens: 2048,
     temperature: 0.05,
+  },
+
+  FRAUD_DETECTION: {
+    prompt: 'Analyze this financial data for potential fraud indicators:',
+    maxTokens: 2048,
+    temperature: 0.1,
+  },
+
+  DOCUMENT_ANALYSIS: {
+    prompt: 'Analyze this financial document and extract relevant information:',
+    maxTokens: 3072,
+    temperature: 0.2,
   }
 } as const;
 
-export type AIUseCase = keyof typeof AI_USE_CASES; 
+export type AIUseCase = keyof typeof AI_USE_CASES;

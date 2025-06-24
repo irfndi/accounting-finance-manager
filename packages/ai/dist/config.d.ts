@@ -43,6 +43,16 @@ export declare const AI_USE_CASES: {
         readonly maxTokens: 2048;
         readonly temperature: 0.05;
     };
+    readonly FRAUD_DETECTION: {
+        readonly prompt: "Analyze this financial data for potential fraud indicators:";
+        readonly maxTokens: 2048;
+        readonly temperature: 0.1;
+    };
+    readonly DOCUMENT_ANALYSIS: {
+        readonly prompt: "Analyze this financial document and extract relevant information:";
+        readonly maxTokens: 3072;
+        readonly temperature: 0.2;
+    };
 };
 export type AIUseCase = keyof typeof AI_USE_CASES;
 //# sourceMappingURL=config.d.ts.map

@@ -85,7 +85,7 @@ export const optionalAuthMiddleware = createMiddleware<AppContext>(async (c, nex
  * Role-based authorization middleware
  * Requires authMiddleware to be used first
  */
-export const requireRole = (_allowedRoles: string[]) => {
+export const requireRole = (allowedRoles: string[]) => {
   return createMiddleware<AppContext>(async (c, next) => {
     const user = c.get('user');
 
@@ -93,9 +93,13 @@ export const requireRole = (_allowedRoles: string[]) => {
       return c.json({ error: 'Unauthorized', message: 'Authentication required' }, 401);
     }
 
-    // TODO: Implement role checking when user roles are added to the database
-    // For now, all authenticated users have access
-    // In the future, you could check user roles from database or JWT payload
+    // Check if user's role is in the allowed roles
+    if (!allowedRoles.includes(user.role)) {
+      return c.json({ 
+        error: 'Forbidden', 
+        message: `Access denied. Required roles: ${allowedRoles.join(', ')}. Your role: ${user.role}` 
+      }, 403);
+    }
 
     await next();
   });

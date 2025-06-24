@@ -8,12 +8,16 @@ export * from "./accounts";
 export * from "./transactions";
 export * from "./auth";
 export * from "./documents";
+export * from "./categories";
+export * from "./budgets";
 
 // Re-export all tables for Drizzle relations
 import { accounts } from "./accounts";
 import { transactions, journalEntries } from "./transactions";
 import { users, sessions, magicLinks, auditLog } from "./auth";
 import { rawDocs } from "./documents";
+import { categories, categoryStats } from "./categories";
+import { budgets, budgetPeriods, budgetRevisions, budgetAllocations } from "./budgets";
 
 export const schema = {
   accounts,
@@ -24,6 +28,12 @@ export const schema = {
   magicLinks,
   auditLog,
   rawDocs,
+  categories,
+  categoryStats,
+  budgets,
+  budgetPeriods,
+  budgetRevisions,
+  budgetAllocations,
 };
 
 // Database relations

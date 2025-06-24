@@ -37,13 +37,11 @@ export const POST: APIRoute = async ({ request }) => {
         break;
 
       case 'analyze-document':
-        // TODO: Implement document analysis method
-        result = { error: 'Document analysis not yet implemented' };
+        result = await financialAI.analyzeDocument(data);
         break;
 
       case 'fraud-detection':
-        // TODO: Implement fraud detection method
-        result = { error: 'Fraud detection not yet implemented' };
+        result = await financialAI.detectFraud(data);
         break;
 
       default:

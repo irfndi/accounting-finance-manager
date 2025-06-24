@@ -3,11 +3,12 @@ import { NewRawDoc, UpdateRawDoc } from './schema/documents';
 export declare function getRawDocByFileId(db: Database, fileId: string): Promise<{
     id: number;
     description: string | null;
-    category: string | null;
-    entityId: string | null;
     createdAt: Date;
     updatedAt: Date;
     createdBy: string | null;
+    tags: string | null;
+    category: string | null;
+    entityId: string | null;
     updatedBy: string | null;
     fileId: string;
     originalName: string;
@@ -27,7 +28,6 @@ export declare function getRawDocByFileId(db: Database, fileId: string): Promise
     ocrMaxRetries: number | null;
     ocrProcessedAt: Date | null;
     documentType: string | null;
-    tags: string | null;
     structuredData: string | null;
     llmConfidence: number | null;
     llmProcessedAt: Date | null;
@@ -37,11 +37,12 @@ export declare function getRawDocByFileId(db: Database, fileId: string): Promise
 export declare function createRawDoc(db: Database, data: NewRawDoc): Promise<{
     id: number;
     description: string | null;
-    category: string | null;
-    entityId: string | null;
     createdAt: Date;
     updatedAt: Date;
     createdBy: string | null;
+    tags: string | null;
+    category: string | null;
+    entityId: string | null;
     updatedBy: string | null;
     fileId: string;
     originalName: string;
@@ -61,7 +62,6 @@ export declare function createRawDoc(db: Database, data: NewRawDoc): Promise<{
     ocrMaxRetries: number | null;
     ocrProcessedAt: Date | null;
     documentType: string | null;
-    tags: string | null;
     structuredData: string | null;
     llmConfidence: number | null;
     llmProcessedAt: Date | null;
@@ -71,11 +71,12 @@ export declare function createRawDoc(db: Database, data: NewRawDoc): Promise<{
 export declare function updateRawDocOCR(db: Database, fileId: string, data: Partial<UpdateRawDoc>): Promise<{
     id: number;
     description: string | null;
-    category: string | null;
-    entityId: string | null;
     createdAt: Date;
     updatedAt: Date;
     createdBy: string | null;
+    tags: string | null;
+    category: string | null;
+    entityId: string | null;
     updatedBy: string | null;
     fileId: string;
     originalName: string;
@@ -95,7 +96,6 @@ export declare function updateRawDocOCR(db: Database, fileId: string, data: Part
     ocrMaxRetries: number | null;
     ocrProcessedAt: Date | null;
     documentType: string | null;
-    tags: string | null;
     structuredData: string | null;
     llmConfidence: number | null;
     llmProcessedAt: Date | null;
@@ -105,11 +105,12 @@ export declare function updateRawDocOCR(db: Database, fileId: string, data: Part
 export declare function updateRawDoc(db: Database, fileId: string, data: Partial<UpdateRawDoc>): Promise<{
     id: number;
     description: string | null;
-    category: string | null;
-    entityId: string | null;
     createdAt: Date;
     updatedAt: Date;
     createdBy: string | null;
+    tags: string | null;
+    category: string | null;
+    entityId: string | null;
     updatedBy: string | null;
     fileId: string;
     originalName: string;
@@ -129,7 +130,6 @@ export declare function updateRawDoc(db: Database, fileId: string, data: Partial
     ocrMaxRetries: number | null;
     ocrProcessedAt: Date | null;
     documentType: string | null;
-    tags: string | null;
     structuredData: string | null;
     llmConfidence: number | null;
     llmProcessedAt: Date | null;

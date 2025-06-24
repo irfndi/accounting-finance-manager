@@ -73,6 +73,43 @@ export declare class FinancialAIService {
      */
     generateTransactionEntries(description: string, amount: number, availableAccounts: Account[]): Promise<TransactionEntry[]>;
     /**
+     * Analyze financial documents for data extraction and validation
+     */
+    analyzeDocument(documentData: {
+        content?: string;
+        ocrText?: string;
+        metadata?: any;
+        type?: string;
+    }): Promise<{
+        extractedData: any;
+        confidence: number;
+        documentType: string;
+        validation: {
+            isValid: boolean;
+            errors: string[];
+            warnings: string[];
+        };
+    }>;
+    /**
+     * Detect potential fraud in financial transactions and patterns
+     */
+    detectFraud(data: {
+        transactions?: Transaction[];
+        patterns?: any;
+        timeframe?: string;
+        context?: any;
+    }): Promise<{
+        riskScore: number;
+        riskLevel: 'low' | 'medium' | 'high' | 'critical';
+        findings: Array<{
+            type: string;
+            description: string;
+            severity: 'low' | 'medium' | 'high' | 'critical';
+            evidence: any;
+        }>;
+        recommendations: string[];
+    }>;
+    /**
      * Get the health status of the underlying AI service
      */
     getHealthStatus(): Promise<Record<string, {

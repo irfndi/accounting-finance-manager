@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { sign } from 'hono/jwt';
 import { eq } from 'drizzle-orm';
 import { users, createDatabase } from '@finance-manager/db';
+import type { InferInsertModel } from 'drizzle-orm';
 import { AppContext } from '../../types';
 import { authMiddleware } from '../../middleware/auth';
 
@@ -79,13 +80,14 @@ authRouter.post('/register', async (c) => {
     const hashedPassword = await hashPassword(password);
 
     // Inserting user into database
-    const [user] = await db.insert(users).values({
+    const userData: InferInsertModel<typeof users> = {
       id: crypto.randomUUID(),
       email,
       passwordHash: hashedPassword,
       displayName: name || null,
       emailVerified: false,
-    }).returning();
+    };
+    const [user] = await db.insert(users).values(userData).returning();
     // User inserted successfully
 
     const sessionDuration = getSessionDuration(c.env);

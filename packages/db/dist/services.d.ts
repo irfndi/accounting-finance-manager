@@ -143,10 +143,10 @@ export declare class DatabaseService {
     createUser(userData: CreateUserData): Promise<{
         id: string;
         isActive: boolean;
-        entityId: string | null;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
+        entityId: string | null;
         updatedBy: string | null;
         email: string;
         emailVerified: boolean;
@@ -174,10 +174,10 @@ export declare class DatabaseService {
     updateUser(id: string, userData: UpdateUserData): Promise<{
         id: string;
         isActive: boolean;
-        entityId: string | null;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
+        entityId: string | null;
         updatedBy: string | null;
         email: string;
         emailVerified: boolean;
@@ -205,10 +205,10 @@ export declare class DatabaseService {
     deleteUser(id: string): Promise<{
         id: string;
         isActive: boolean;
-        entityId: string | null;
         createdAt: Date;
         updatedAt: Date;
         createdBy: string | null;
+        entityId: string | null;
         updatedBy: string | null;
         email: string;
         emailVerified: boolean;

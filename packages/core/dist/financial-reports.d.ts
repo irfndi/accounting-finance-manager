@@ -2,6 +2,24 @@
  * Financial Reports Engine
  * Provides comprehensive financial reporting functionality
  */
+export declare function generateIncomeStatementPDF(incomeStatement: any, options: {
+    entityId: string;
+    fromDate: Date;
+    toDate: Date;
+}): Promise<ArrayBuffer>;
+export declare function generateIncomeStatementExcel(incomeStatement: any, options: {
+    entityId: string;
+    fromDate: Date;
+    toDate: Date;
+}): Promise<ArrayBuffer>;
+export declare function generateTrialBalancePDF(trialBalance: any, options: {
+    entityId: string;
+    asOfDate: Date;
+}): Promise<ArrayBuffer>;
+export declare function generateTrialBalanceExcel(trialBalance: any, options: {
+    entityId: string;
+    asOfDate: Date;
+}): Promise<ArrayBuffer>;
 export declare class FinancialReportsEngine {
     private dbAdapter;
     constructor(dbAdapter: any);

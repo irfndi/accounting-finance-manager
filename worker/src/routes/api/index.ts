@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import accountsRouter from './accounts'
 import authRouter from './auth'
+import categoriesRouter from './categories'
+import budgetsRouter from './budgets'
 import categorizationRouter from './categorization'
 import reportsRouter from './reports'
 import transactionsRouter from './transactions'
@@ -20,6 +22,8 @@ api.get('/', (c) => {
     endpoints: {
       auth: '/api/auth - Authentication and user management',
       accounts: '/api/accounts - Chart of accounts management',
+      categories: '/api/categories - Category management',
+      budgets: '/api/budgets - Budget management',
       categorization: '/api/categorization - AI-powered transaction categorization',
       transactions: '/api/transactions - Financial transactions',
       reports: '/api/reports - Financial reporting',
@@ -54,6 +58,8 @@ api.get('/', (c) => {
 // Mount route modules
 api.route('/auth', authRouter)
 api.route('/accounts', accountsRouter)
+api.route('/categories', categoriesRouter)
+api.route('/budgets', budgetsRouter)
 api.route('/categorization', categorizationRouter)
 api.route('/transactions', transactionsRouter)
 api.route('/reports', reportsRouter)

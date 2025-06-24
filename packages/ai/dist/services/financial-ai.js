@@ -382,6 +382,134 @@ Generate the appropriate journal entries.`
         }
     }
     /**
+     * Analyze financial documents for data extraction and validation
+     */
+    async analyzeDocument(documentData) {
+        const useCase = AI_USE_CASES.DOCUMENT_ANALYSIS || {
+            maxTokens: 2048,
+            temperature: 0.1
+        };
+        const messages = [
+            {
+                role: 'system',
+                content: `You are a financial document analysis expert. Analyze the provided document and extract relevant financial data.
+        
+Extract:
+- Document type (invoice, receipt, bank statement, etc.)
+- Key financial data (amounts, dates, parties, account numbers)
+- Validate data consistency and completeness
+        
+Respond with JSON:
+{
+  "extractedData": {...},
+  "confidence": 0.0-1.0,
+  "documentType": "...",
+  "validation": {
+    "isValid": boolean,
+    "errors": [...],
+    "warnings": [...]
+  }
+}`
+            },
+            {
+                role: 'user',
+                content: `Document to analyze:
+${JSON.stringify(documentData, null, 2)}`
+            }
+        ];
+        const response = await this.aiService.generateText(messages, {
+            maxTokens: useCase.maxTokens,
+            temperature: useCase.temperature
+        });
+        try {
+            const parsed = JSON.parse(response.content);
+            return {
+                extractedData: parsed.extractedData || {},
+                confidence: parsed.confidence || 0.7,
+                documentType: parsed.documentType || 'unknown',
+                validation: parsed.validation || {
+                    isValid: true,
+                    errors: [],
+                    warnings: []
+                }
+            };
+        }
+        catch {
+            return {
+                extractedData: {},
+                confidence: 0.3,
+                documentType: 'unknown',
+                validation: {
+                    isValid: false,
+                    errors: ['Failed to parse document'],
+                    warnings: []
+                }
+            };
+        }
+    }
+    /**
+     * Detect potential fraud in financial transactions and patterns
+     */
+    async detectFraud(data) {
+        const useCase = AI_USE_CASES.FRAUD_DETECTION || {
+            maxTokens: 2048,
+            temperature: 0.1
+        };
+        const messages = [
+            {
+                role: 'system',
+                content: `You are a financial fraud detection expert. Analyze the provided data for potential fraud indicators.
+        
+Look for:
+- Unusual transaction patterns
+- Duplicate transactions
+- Round number bias
+- Timing anomalies
+- Amount patterns
+- Vendor/payee irregularities
+        
+Respond with JSON:
+{
+  "riskScore": 0.0-1.0,
+  "riskLevel": "low|medium|high|critical",
+  "findings": [{
+    "type": "...",
+    "description": "...",
+    "severity": "...",
+    "evidence": {...}
+  }],
+  "recommendations": [...]
+}`
+            },
+            {
+                role: 'user',
+                content: `Data to analyze for fraud:
+${JSON.stringify(data, null, 2)}`
+            }
+        ];
+        const response = await this.aiService.generateText(messages, {
+            maxTokens: useCase.maxTokens,
+            temperature: useCase.temperature
+        });
+        try {
+            const parsed = JSON.parse(response.content);
+            return {
+                riskScore: parsed.riskScore || 0,
+                riskLevel: parsed.riskLevel || 'low',
+                findings: parsed.findings || [],
+                recommendations: parsed.recommendations || []
+            };
+        }
+        catch {
+            return {
+                riskScore: 0,
+                riskLevel: 'low',
+                findings: [],
+                recommendations: ['Unable to analyze data for fraud indicators']
+            };
+        }
+    }
+    /**
      * Get the health status of the underlying AI service
      */
     async getHealthStatus() {
