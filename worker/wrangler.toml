@@ -3,8 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
-[site]
-bucket = "../apps/web/dist/client"
+[assets]
+directory = "../apps/web/dist/client"
 
 # Worker configuration
 [env.production]
@@ -91,9 +91,9 @@ binding = "AI"
 
 
 # Vectorize bindings for document embeddings
-[[vectorize]]
-binding = "DOCUMENT_EMBEDDINGS"
-index_name = "finance-manager-documents"
+# [[vectorize]]
+# binding = "DOCUMENT_EMBEDDINGS"
+# index_name = "finance-manager-documents"
 
 # Test Vectorize
 [[env.test.vectorize]]
