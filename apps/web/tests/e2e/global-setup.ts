@@ -194,7 +194,9 @@ async function verifyCriticalPages(page: any, baseURL: string) {
       }
       
       // Verify page has basic content
-      const hasContent = await page.locator('main, body, [data-testid="main-content"]').isVisible();
+      const hasContent = await page.locator('main').first().isVisible() || 
+                        await page.locator('body').first().isVisible() || 
+                        await page.locator('[data-testid="main-content"]').first().isVisible();
       if (!hasContent) {
         throw new Error(`${name} page has no visible content`);
       }

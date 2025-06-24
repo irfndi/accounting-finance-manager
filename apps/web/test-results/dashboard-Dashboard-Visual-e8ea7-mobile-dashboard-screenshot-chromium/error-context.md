@@ -1,0 +1,98 @@
+# Page snapshot
+
+```yaml
+- navigation:
+  - heading "Finance Manager" [level=1]
+  - paragraph: Corporate Accounting
+  - button "Collapse navigation":
+    - img "Collapse navigation"
+  - link "Dashboard Dashboard Overview and key metrics":
+    - /url: /
+    - img "Dashboard"
+    - paragraph: Dashboard
+    - paragraph: Overview and key metrics
+  - link "Chart of Accounts Chart of Accounts Manage chart of accounts":
+    - /url: /chart-of-accounts
+    - img "Chart of Accounts"
+    - paragraph: Chart of Accounts
+    - paragraph: Manage chart of accounts
+  - link "General Ledger General Ledger Transactions and journal entries":
+    - /url: /general-ledger
+    - img "General Ledger"
+    - paragraph: General Ledger
+    - paragraph: Transactions and journal entries
+  - link "Financial Reports Financial Reports P&L, Balance Sheet, Cash Flow":
+    - /url: /reports
+    - img "Financial Reports"
+    - paragraph: Financial Reports
+    - paragraph: P&L, Balance Sheet, Cash Flow
+  - link "Budget & Forecast Budget & Forecast Planning and forecasting tools":
+    - /url: /budget
+    - img "Budget & Forecast"
+    - paragraph: Budget & Forecast
+    - paragraph: Planning and forecasting tools
+  - link "Audit Trail Audit Trail Compliance and audit logs":
+    - /url: /audit
+    - img "Audit Trail"
+    - paragraph: Audit Trail
+    - paragraph: Compliance and audit logs
+  - link "Document Search Document Search Semantic document search":
+    - /url: /search
+    - img "Document Search"
+    - paragraph: Document Search
+    - paragraph: Semantic document search
+  - link "Multi-Entity Multi-Entity Manage multiple companies":
+    - /url: /entities
+    - img "Multi-Entity"
+    - paragraph: Multi-Entity
+    - paragraph: Manage multiple companies
+  - text: CF
+  - paragraph: Corporate Finance
+  - paragraph: Administrator
+- main:
+  - heading "Dashboard - Corporate Finance Manager" [level=1]
+  - paragraph: Financial overview and key performance metrics
+  - button "Notifications":
+    - img "Notifications"
+  - button "Settings":
+    - img "Settings"
+  - heading "Corporate Finance Dashboard" [level=1]
+  - paragraph: AI-powered financial intelligence & corporate accounting
+  - combobox:
+    - option "Current Month" [selected]
+    - option "Current Quarter"
+    - option "Current Year"
+  - button "🤖 Refresh AI"
+  - button "Export Report"
+  - text: Q4 budget utilization at 87% with 2 months remaining 12:32:19 AM Monthly reconciliation completed successfully 12:32:19 AM 📊🤖 Overview 📋🤖 General Ledger 🎯🤖 AI Categorization 📈🤖 Financial Reports 💰🤖 Budget & Forecast 🔍🤖 Audit Trail 🏢 Multi-Entity 🤖🤖 AI Insights
+  - paragraph: Total Revenue
+  - paragraph: $2,847,392
+  - text: +12.3% 🤖
+  - paragraph: Revenue growth accelerating, on track to exceed Q4 targets by 8%
+  - paragraph: Operating Expenses
+  - paragraph: $1,923,847
+  - text: +5.7% 🤖
+  - paragraph: Expense growth within acceptable range, consider optimization in office supplies
+  - paragraph: Net Income
+  - paragraph: $923,545
+  - text: +18.9% 🤖
+  - paragraph: Strong profit margins, 15% above industry average
+  - paragraph: Cash Flow
+  - paragraph: $1,234,567
+  - text: "-2.1% 🤖"
+  - paragraph: Temporary dip due to inventory investment, expected to normalize next month
+  - button "Hide AI Insights"
+  - heading "Overview AI-Enhanced" [level=3]
+  - paragraph: Welcome to your AI-powered Corporate Finance Dashboard. Get intelligent insights and automated analysis.
+  - heading "📊 Recent Activity" [level=4]
+  - paragraph: 5 journal entries pending approval
+  - paragraph: 3 AI-flagged transactions for review
+  - heading "✅ Compliance Status" [level=4]
+  - paragraph: All reports up to date
+  - paragraph: "AI compliance check: 98% score"
+  - heading "Quick Actions" [level=3]
+  - button "📝 New Transaction"
+  - button "📊 Generate Report"
+  - button "🤖 AI Analysis"
+  - button "💰 Budget Review"
+```
