@@ -67,12 +67,28 @@ jobs:
         id: start-server
         run: |
           echo "Starting preview server..."
-          pnpm preview > preview.log 2>&1 &
+          cd apps/web
+          pnpm preview > ../../preview.log 2>&1 &
           PREVIEW_PID=$!
-          echo $PREVIEW_PID > preview.pid
-          timeout 120s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 2; done'
-          echo "app-url=http://localhost:4321" >> $GITHUB_OUTPUT
-          echo "✓ Preview server is running (PID: $PREVIEW_PID)"
+          echo $PREVIEW_PID > ../../preview.pid
+          echo "Preview server started with PID: $PREVIEW_PID"
+          
+          # Wait for server to be ready with better error handling
+          echo "Waiting for server to be ready..."
+          for i in {1..60}; do
+            if curl -f http://localhost:4321 >/dev/null 2>&1; then
+              echo "✓ Preview server is ready at http://localhost:4321"
+              echo "app-url=http://localhost:4321" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
+            sleep 2
+          done
+          
+          echo "❌ Server failed to start within 120 seconds"
+          echo "Preview server logs:"
+          cat ../../preview.log || echo "No logs available"
+          exit 1
 
       - name: Output cache key
         id: cache-key
@@ -146,7 +162,10 @@ jobs:
             PREVIEW_PID=$(cat preview.pid)
             echo "Stopping preview server (PID: $PREVIEW_PID)..."
             kill $PREVIEW_PID 2>/dev/null || true
-            rm -f preview.pid
+            rm -f preview.pid preview.log
+            echo "✓ Preview server stopped and cleanup completed"
+          else
+            echo "No preview server PID file found"
           fi
 
       - name: Upload test results
@@ -217,8 +236,20 @@ jobs:
           pnpm dev > dev.log 2>&1 &
           DEV_PID=$!
           echo $DEV_PID > dev.pid
-          timeout 120s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 2; done' || \
-          timeout 120s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 2; done'
+          # Wait for server to be ready
+          for i in {1..60}; do
+            if curl -f http://localhost:3000/health >/dev/null 2>&1 || curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✓ Development server is ready"
+              break
+            fi
+            echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
+            sleep 2
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start within 120 seconds"
+              cat dev.log || echo "No logs available"
+              exit 1
+            fi
+          done
           echo "✓ Application is running (PID: $DEV_PID)"
 
       - name: Run visual regression tests
@@ -227,7 +258,7 @@ jobs:
           pnpm exec playwright test --project=visual-regression --grep="@visual"
           echo "✓ Visual regression tests completed"
         env:
-          BASE_URL: http://localhost:4321
+          BASE_URL: http://localhost:3000
           CI: true
 
       - name: Stop application
@@ -300,8 +331,20 @@ jobs:
           pnpm dev > dev.log 2>&1 &
           DEV_PID=$!
           echo $DEV_PID > dev.pid
-          timeout 120s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 2; done' || \
-          timeout 120s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 2; done'
+          # Wait for server to be ready
+          for i in {1..60}; do
+            if curl -f http://localhost:3000/health >/dev/null 2>&1 || curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✓ Development server is ready"
+              break
+            fi
+            echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
+            sleep 2
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start within 120 seconds"
+              cat dev.log || echo "No logs available"
+              exit 1
+            fi
+          done
           echo "✓ Application is running (PID: $DEV_PID)"
 
       - name: Run Lighthouse CI
@@ -380,8 +423,20 @@ jobs:
           pnpm dev > dev.log 2>&1 &
           DEV_PID=$!
           echo $DEV_PID > dev.pid
-          timeout 120s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 2; done' || \
-          timeout 120s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 2; done'
+          # Wait for server to be ready
+          for i in {1..60}; do
+            if curl -f http://localhost:3000/health >/dev/null 2>&1 || curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✓ Development server is ready"
+              break
+            fi
+            echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
+            sleep 2
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start within 120 seconds"
+              cat dev.log || echo "No logs available"
+              exit 1
+            fi
+          done
           echo "✓ Application is running (PID: $DEV_PID)"
 
       - name: Run accessibility tests
@@ -390,7 +445,7 @@ jobs:
           pnpm exec playwright test --project=accessibility --grep="@a11y"
           echo "✓ Accessibility tests completed"
         env:
-          BASE_URL: http://localhost:4321
+          BASE_URL: http://localhost:3000
           CI: true
 
       - name: Stop application

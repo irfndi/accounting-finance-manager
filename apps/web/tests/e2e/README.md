@@ -95,7 +95,7 @@ The tests are automatically run in GitHub Actions:
 
 ### Environment Variables
 
-- `BASE_URL`: Application URL (default: http://localhost:4321)
+- `BASE_URL`: Application URL (default: http://localhost:3000 for dev, http://localhost:4321 for preview)
 - `CI`: Set to true in CI environment
 - `HEADLESS`: Run tests in headless mode (default: true)
 
