@@ -1,0 +1,1028 @@
+<testsuites id="" name="" tests="249" failures="0" skipped="249" errors="0" time="0.03937099999999998">
+<testsuite name="chart-of-accounts.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="chromium" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Chart of Accounts E2E Tests › should load chart of accounts page successfully" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should display accounts table with proper headers" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should display different account types" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should add a new account successfully" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should search for accounts" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should filter accounts by type" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should validate account form inputs" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should prevent duplicate account codes" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should edit existing account" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should delete account with confirmation" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should export accounts data" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should maintain account hierarchy" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should handle large number of accounts" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should meet accessibility standards" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should be responsive" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts Visual Regression Tests › should match accounts table screenshot" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts Visual Regression Tests › should match add account form screenshot" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="chromium" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="Dashboard E2E Tests › should load dashboard page successfully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should display main navigation" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should display dashboard content" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should navigate to different pages" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should be responsive across different screen sizes" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should meet accessibility standards" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should meet performance standards" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should handle errors gracefully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should maintain state during navigation" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should load within acceptable time limits" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should work with JavaScript disabled" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should handle network failures gracefully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard Visual Regression Tests › should match dashboard screenshot" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard Visual Regression Tests › should match mobile dashboard screenshot" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="financial-statements.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="chromium" tests="21" failures="0" skipped="21" time="0" errors="0">
+<testcase name="Financial Statements E2E Tests › should load financial statements page successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should display all statement types" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate balance sheet successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate income statement successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate cash flow statement successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate balance sheet accounting equation" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle different date ranges" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate statement accuracy and formatting" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should export statements in different formats" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should print statements" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle empty data gracefully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate date range inputs" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle concurrent statement generation" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should maintain statement formatting across browsers" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle large datasets efficiently" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should support comparative statements" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should meet accessibility standards" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should be responsive" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match balance sheet screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match income statement screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match cash flow statement screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="general-ledger.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="chromium" tests="20" failures="0" skipped="20" time="0" errors="0">
+<testcase name="General Ledger E2E Tests › should load general ledger page successfully" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should display transactions table with proper headers" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should add a new transaction successfully" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate double-entry bookkeeping" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should calculate running balances correctly" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should filter transactions by date range" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should filter transactions by account" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should search transactions by description" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate transaction form inputs" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate balanced journal entries" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should handle multi-entry transactions" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should edit existing transaction" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should delete transaction with confirmation" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should export transactions data" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should handle pagination for large datasets" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should maintain transaction chronological order" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should meet accessibility standards" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should be responsive" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger Visual Regression Tests › should match transactions table screenshot" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger Visual Regression Tests › should match add transaction form screenshot" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="integration.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="chromium" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="Finance Manager Integration Tests › should complete full accounting workflow" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should maintain data integrity across sessions" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle concurrent user operations" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle data validation across modules" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should support bulk operations" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle system errors gracefully" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should maintain performance under load" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should support keyboard navigation" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should work across different browsers" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Security Tests › should prevent XSS attacks" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Security Tests › should validate input lengths" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="chart-of-accounts.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="firefox" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Chart of Accounts E2E Tests › should load chart of accounts page successfully" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should display accounts table with proper headers" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should display different account types" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should add a new account successfully" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should search for accounts" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should filter accounts by type" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should validate account form inputs" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should prevent duplicate account codes" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should edit existing account" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should delete account with confirmation" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should export accounts data" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should maintain account hierarchy" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should handle large number of accounts" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should meet accessibility standards" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should be responsive" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts Visual Regression Tests › should match accounts table screenshot" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts Visual Regression Tests › should match add account form screenshot" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="firefox" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="Dashboard E2E Tests › should load dashboard page successfully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should display main navigation" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should display dashboard content" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should navigate to different pages" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should be responsive across different screen sizes" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should meet accessibility standards" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should meet performance standards" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should handle errors gracefully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should maintain state during navigation" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should load within acceptable time limits" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should work with JavaScript disabled" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should handle network failures gracefully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard Visual Regression Tests › should match dashboard screenshot" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard Visual Regression Tests › should match mobile dashboard screenshot" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="financial-statements.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="firefox" tests="21" failures="0" skipped="21" time="0" errors="0">
+<testcase name="Financial Statements E2E Tests › should load financial statements page successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should display all statement types" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate balance sheet successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate income statement successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate cash flow statement successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate balance sheet accounting equation" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle different date ranges" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate statement accuracy and formatting" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should export statements in different formats" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should print statements" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle empty data gracefully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate date range inputs" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle concurrent statement generation" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should maintain statement formatting across browsers" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle large datasets efficiently" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should support comparative statements" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should meet accessibility standards" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should be responsive" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match balance sheet screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match income statement screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match cash flow statement screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="general-ledger.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="firefox" tests="20" failures="0" skipped="20" time="0" errors="0">
+<testcase name="General Ledger E2E Tests › should load general ledger page successfully" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should display transactions table with proper headers" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should add a new transaction successfully" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate double-entry bookkeeping" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should calculate running balances correctly" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should filter transactions by date range" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should filter transactions by account" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should search transactions by description" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate transaction form inputs" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate balanced journal entries" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should handle multi-entry transactions" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should edit existing transaction" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should delete transaction with confirmation" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should export transactions data" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should handle pagination for large datasets" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should maintain transaction chronological order" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should meet accessibility standards" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should be responsive" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger Visual Regression Tests › should match transactions table screenshot" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger Visual Regression Tests › should match add transaction form screenshot" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="integration.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="firefox" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="Finance Manager Integration Tests › should complete full accounting workflow" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should maintain data integrity across sessions" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle concurrent user operations" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle data validation across modules" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should support bulk operations" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle system errors gracefully" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should maintain performance under load" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should support keyboard navigation" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should work across different browsers" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Security Tests › should prevent XSS attacks" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Security Tests › should validate input lengths" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="chart-of-accounts.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="webkit" tests="17" failures="0" skipped="17" time="0" errors="0">
+<testcase name="Chart of Accounts E2E Tests › should load chart of accounts page successfully" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should display accounts table with proper headers" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should display different account types" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should add a new account successfully" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should search for accounts" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should filter accounts by type" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should validate account form inputs" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should prevent duplicate account codes" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should edit existing account" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should delete account with confirmation" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should export accounts data" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should maintain account hierarchy" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should handle large number of accounts" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should meet accessibility standards" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts E2E Tests › should be responsive" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts Visual Regression Tests › should match accounts table screenshot" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chart of Accounts Visual Regression Tests › should match add account form screenshot" classname="chart-of-accounts.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="webkit" tests="14" failures="0" skipped="14" time="0" errors="0">
+<testcase name="Dashboard E2E Tests › should load dashboard page successfully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should display main navigation" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should display dashboard content" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should navigate to different pages" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should be responsive across different screen sizes" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should meet accessibility standards" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should meet performance standards" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should handle errors gracefully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should maintain state during navigation" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should load within acceptable time limits" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should work with JavaScript disabled" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard E2E Tests › should handle network failures gracefully" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard Visual Regression Tests › should match dashboard screenshot" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard Visual Regression Tests › should match mobile dashboard screenshot" classname="dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="financial-statements.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="webkit" tests="21" failures="0" skipped="21" time="0" errors="0">
+<testcase name="Financial Statements E2E Tests › should load financial statements page successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should display all statement types" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate balance sheet successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate income statement successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should generate cash flow statement successfully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate balance sheet accounting equation" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle different date ranges" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate statement accuracy and formatting" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should export statements in different formats" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should print statements" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle empty data gracefully" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should validate date range inputs" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle concurrent statement generation" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should maintain statement formatting across browsers" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should handle large datasets efficiently" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should support comparative statements" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should meet accessibility standards" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements E2E Tests › should be responsive" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match balance sheet screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match income statement screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Financial Statements Visual Regression Tests › should match cash flow statement screenshot" classname="financial-statements.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="general-ledger.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="webkit" tests="20" failures="0" skipped="20" time="0" errors="0">
+<testcase name="General Ledger E2E Tests › should load general ledger page successfully" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should display transactions table with proper headers" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should add a new transaction successfully" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate double-entry bookkeeping" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should calculate running balances correctly" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should filter transactions by date range" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should filter transactions by account" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should search transactions by description" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate transaction form inputs" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should validate balanced journal entries" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should handle multi-entry transactions" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should edit existing transaction" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should delete transaction with confirmation" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should export transactions data" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should handle pagination for large datasets" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should maintain transaction chronological order" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should meet accessibility standards" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger E2E Tests › should be responsive" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger Visual Regression Tests › should match transactions table screenshot" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="General Ledger Visual Regression Tests › should match add transaction form screenshot" classname="general-ledger.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="integration.spec.ts" timestamp="2025-06-24T17:02:10.204Z" hostname="webkit" tests="11" failures="0" skipped="11" time="0" errors="0">
+<testcase name="Finance Manager Integration Tests › should complete full accounting workflow" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should maintain data integrity across sessions" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle concurrent user operations" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle data validation across modules" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should support bulk operations" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should handle system errors gracefully" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should maintain performance under load" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should support keyboard navigation" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Integration Tests › should work across different browsers" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Security Tests › should prevent XSS attacks" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Finance Manager Security Tests › should validate input lengths" classname="integration.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>
