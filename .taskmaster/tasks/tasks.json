@@ -123,6 +123,15 @@
             "status": "done",
             "dependencies": [],
             "parentTaskId": 2
+          },
+          {
+            "id": 6,
+            "title": "Verify E2E Workflow Fix",
+            "description": "Create a pull request and ensure the updated E2E workflow runs successfully, using the production preview server.",
+            "details": "",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 2
           }
         ]
       },
@@ -1132,7 +1141,7 @@
     ],
     "metadata": {
       "created": "2025-06-18T14:16:21.370Z",
-      "updated": "2025-06-24T06:49:48.801Z",
+      "updated": "2025-06-24T17:02:18.204Z",
       "description": "Tasks for master context"
     }
   }

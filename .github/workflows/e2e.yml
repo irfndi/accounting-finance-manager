@@ -63,14 +63,16 @@ jobs:
           pnpm build
           echo "✓ Application built successfully"
 
-      - name: Deploy to preview environment
-        id: deploy
+      - name: Start preview server
+        id: start-server
         run: |
-          echo "Deploying to preview environment..."
-          # For now, we'll use local development server
-          # In production, this would deploy to a staging environment
+          echo "Starting preview server..."
+          pnpm preview > preview.log 2>&1 &
+          PREVIEW_PID=$!
+          echo $PREVIEW_PID > preview.pid
+          timeout 120s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 2; done'
           echo "app-url=http://localhost:4321" >> $GITHUB_OUTPUT
-          echo "✓ Preview deployment ready"
+          echo "✓ Preview server is running (PID: $PREVIEW_PID)"
 
       - name: Output cache key
         id: cache-key
@@ -125,16 +127,7 @@ jobs:
           pnpm exec playwright install ${{ matrix.browser }} --with-deps
           echo "✓ Playwright browsers installed"
 
-      - name: Start application
-        run: |
-          echo "Starting application for E2E testing..."
-          pnpm dev > dev.log 2>&1 &
-          DEV_PID=$!
-          echo $DEV_PID > dev.pid
-          # Wait for application to be ready
-          timeout 120s bash -c 'until curl -f http://localhost:4321/health 2>/dev/null; do sleep 2; done' || \
-          timeout 120s bash -c 'until curl -f http://localhost:4321 2>/dev/null; do sleep 2; done'
-          echo "✓ Application is running (PID: $DEV_PID)"
+
 
       - name: Run Playwright tests
         run: |
@@ -143,17 +136,17 @@ jobs:
           echo "✓ E2E tests completed"
         env:
           PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
-          BASE_URL: http://localhost:4321
+          BASE_URL: ${{ needs.e2e-setup.outputs.app-url }}
           CI: true
 
-      - name: Stop application
+      - name: Stop preview server
         if: always()
         run: |
-          if [ -f dev.pid ]; then
-            DEV_PID=$(cat dev.pid)
-            echo "Stopping application (PID: $DEV_PID)..."
-            kill $DEV_PID 2>/dev/null || true
-            rm -f dev.pid
+          if [ -f preview.pid ]; then
+            PREVIEW_PID=$(cat preview.pid)
+            echo "Stopping preview server (PID: $PREVIEW_PID)..."
+            kill $PREVIEW_PID 2>/dev/null || true
+            rm -f preview.pid
           fi
 
       - name: Upload test results
