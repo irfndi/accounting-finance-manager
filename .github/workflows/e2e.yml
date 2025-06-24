@@ -138,6 +138,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
+        working-directory: apps/web
         run: |
           echo "Installing Playwright browsers..."
           pnpm exec playwright install ${{ matrix.browser }} --with-deps
@@ -146,6 +147,7 @@ jobs:
 
 
       - name: Run Playwright tests
+        working-directory: apps/web
         run: |
           echo "Running E2E tests with ${{ matrix.browser }}..."
           pnpm exec playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
