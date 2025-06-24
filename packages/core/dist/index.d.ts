@@ -90,10 +90,10 @@ export declare class ErrorAggregator {
     };
 }
 export declare namespace AccountingErrorFactory {
-    function createValidationError(field: string, message: string, code: string, severity?: ErrorSeverity, category?: ErrorCategory, suggestions?: string[], context?: Record<string, unknown>): EnhancedValidationError;
-    function createBusinessRuleError(field: string, message: string, code: string, suggestions?: string[]): EnhancedValidationError;
-    function createComplianceError(field: string, message: string, code: string, severity?: ErrorSeverity): EnhancedValidationError;
-    function createSystemError(field: string, message: string, code: string, context?: Record<string, unknown>): EnhancedValidationError;
+    function createValidationError(baseError: BaseValidationError, severity?: ErrorSeverity, category?: ErrorCategory, suggestions?: string[], context?: Record<string, unknown>): EnhancedValidationError;
+    function createBusinessRuleError(baseError: BaseValidationError, suggestions?: string[]): EnhancedValidationError;
+    function createComplianceError(baseError: BaseValidationError, severity?: ErrorSeverity): EnhancedValidationError;
+    function createSystemError(baseError: BaseValidationError, context?: Record<string, unknown>): EnhancedValidationError;
 }
 export declare namespace ErrorRecoveryManager {
     function getSuggestions(errorCode: string): string[];
@@ -340,6 +340,7 @@ export declare class DatabaseAdapter {
     getAccount(accountId: number): Promise<Account | null>;
     getAllAccounts(): Promise<Account[]>;
     getAccountsByType(accountType: AccountType): Promise<Account[]>;
+    updateAccount(accountId: number, updates: Partial<Omit<Account, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Account | null>;
     createTransaction(transactionData: TransactionData): Promise<Transaction>;
     getTransaction(transactionId: number): Promise<Transaction | null>;
     updateTransactionStatus(transactionId: number, status: TransactionStatus, updatedBy?: string): Promise<void>;
@@ -350,6 +351,7 @@ export declare class DatabaseAdapter {
     private generateTransactionNumber;
     private mapDbAccountToAccount;
     private mapDbTransactionToTransaction;
+    private toSnakeCase;
     private mapDbJournalEntryToJournalEntry;
 }
 export declare class DatabaseAccountRegistry extends AccountRegistry {

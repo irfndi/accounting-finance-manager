@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/1948</span>
+                <span class='fraction'>0/1978</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/1948</span>
+                <span class='fraction'>0/1978</span>
             </div>
         
             
@@ -2010,7 +2010,67 @@
 <a name='L1945'></a><a href='#L1945'>1945</a>
 <a name='L1946'></a><a href='#L1946'>1946</a>
 <a name='L1947'></a><a href='#L1947'>1947</a>
-<a name='L1948'></a><a href='#L1948'>1948</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L1948'></a><a href='#L1948'>1948</a>
+<a name='L1949'></a><a href='#L1949'>1949</a>
+<a name='L1950'></a><a href='#L1950'>1950</a>
+<a name='L1951'></a><a href='#L1951'>1951</a>
+<a name='L1952'></a><a href='#L1952'>1952</a>
+<a name='L1953'></a><a href='#L1953'>1953</a>
+<a name='L1954'></a><a href='#L1954'>1954</a>
+<a name='L1955'></a><a href='#L1955'>1955</a>
+<a name='L1956'></a><a href='#L1956'>1956</a>
+<a name='L1957'></a><a href='#L1957'>1957</a>
+<a name='L1958'></a><a href='#L1958'>1958</a>
+<a name='L1959'></a><a href='#L1959'>1959</a>
+<a name='L1960'></a><a href='#L1960'>1960</a>
+<a name='L1961'></a><a href='#L1961'>1961</a>
+<a name='L1962'></a><a href='#L1962'>1962</a>
+<a name='L1963'></a><a href='#L1963'>1963</a>
+<a name='L1964'></a><a href='#L1964'>1964</a>
+<a name='L1965'></a><a href='#L1965'>1965</a>
+<a name='L1966'></a><a href='#L1966'>1966</a>
+<a name='L1967'></a><a href='#L1967'>1967</a>
+<a name='L1968'></a><a href='#L1968'>1968</a>
+<a name='L1969'></a><a href='#L1969'>1969</a>
+<a name='L1970'></a><a href='#L1970'>1970</a>
+<a name='L1971'></a><a href='#L1971'>1971</a>
+<a name='L1972'></a><a href='#L1972'>1972</a>
+<a name='L1973'></a><a href='#L1973'>1973</a>
+<a name='L1974'></a><a href='#L1974'>1974</a>
+<a name='L1975'></a><a href='#L1975'>1975</a>
+<a name='L1976'></a><a href='#L1976'>1976</a>
+<a name='L1977'></a><a href='#L1977'>1977</a>
+<a name='L1978'></a><a href='#L1978'>1978</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -3982,10 +4042,20 @@
 <span class="cstat-no" title="statement not covered" >} from '@finance-manager/types';</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Core financial constants</span>
-<span class="cstat-no" title="statement not covered" >export const FINANCIAL_CONSTANTS = {</span>
+<span class="cstat-no" title="statement not covered" >const SUPPORTED_CURRENCIES = ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'] as const;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export const FINANCIAL_CONSTANTS: {</span>
+<span class="cstat-no" title="statement not covered" >  DECIMAL_PLACES: number;</span>
+<span class="cstat-no" title="statement not covered" >  DEFAULT_CURRENCY: Currency;</span>
+<span class="cstat-no" title="statement not covered" >  SUPPORTED_CURRENCIES: readonly Currency[];</span>
+<span class="cstat-no" title="statement not covered" >  CURRENCY_SYMBOLS: { [key in Currency]: string };</span>
+<span class="cstat-no" title="statement not covered" >  CURRENCY_LOCALES: { [key in Currency]: string };</span>
+<span class="cstat-no" title="statement not covered" >  ACCOUNT_TYPES: { [key: string]: AccountType };</span>
+<span class="cstat-no" title="statement not covered" >  NORMAL_BALANCES: { [key in AccountType]: NormalBalance };</span>
+<span class="cstat-no" title="statement not covered" >} = {</span>
 <span class="cstat-no" title="statement not covered" >  DECIMAL_PLACES: 2,</span>
 <span class="cstat-no" title="statement not covered" >  DEFAULT_CURRENCY: 'IDR' as const,</span>
-<span class="cstat-no" title="statement not covered" >  SUPPORTED_CURRENCIES: ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'] as const,</span>
+<span class="cstat-no" title="statement not covered" >  SUPPORTED_CURRENCIES,</span>
 <span class="cstat-no" title="statement not covered" >  CURRENCY_SYMBOLS: {</span>
 <span class="cstat-no" title="statement not covered" >    IDR: 'Rp',</span>
 <span class="cstat-no" title="statement not covered" >    USD: '$',</span>
@@ -4016,7 +4086,7 @@
 <span class="cstat-no" title="statement not covered" >    EQUITY: 'CREDIT',</span>
 <span class="cstat-no" title="statement not covered" >    REVENUE: 'CREDIT'</span>
 <span class="cstat-no" title="statement not covered" >  } as const</span>
-<span class="cstat-no" title="statement not covered" >} as const;</span>
+<span class="cstat-no" title="statement not covered" >};</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Custom Error Classes</span>
 <span class="cstat-no" title="statement not covered" >export class AccountingValidationError extends Error implements AccountingError {</span>
@@ -4039,16 +4109,26 @@
 <span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Enhanced Error System - Severity and Categories</span>
-<span class="cstat-no" title="statement not covered" >export type ErrorSeverity = 'WARNING' | 'ERROR' | 'CRITICAL';</span>
-<span class="cstat-no" title="statement not covered" >export type ErrorCategory = 'VALIDATION' | 'BUSINESS_RULE' | 'SYSTEM' | 'COMPLIANCE';</span>
+<span class="cstat-no" title="statement not covered" >export enum ErrorSeverity {</span>
+<span class="cstat-no" title="statement not covered" >  WARNING = 'WARNING',</span>
+<span class="cstat-no" title="statement not covered" >  ERROR = 'ERROR',</span>
+<span class="cstat-no" title="statement not covered" >  CRITICAL = 'CRITICAL'</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export enum ErrorCategory {</span>
+<span class="cstat-no" title="statement not covered" >  VALIDATION = 'VALIDATION',</span>
+<span class="cstat-no" title="statement not covered" >  BUSINESS_RULE = 'BUSINESS_RULE',</span>
+<span class="cstat-no" title="statement not covered" >  SYSTEM = 'SYSTEM',</span>
+<span class="cstat-no" title="statement not covered" >  COMPLIANCE = 'COMPLIANCE'</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export interface EnhancedValidationError extends BaseValidationError {</span>
-<span class="cstat-no" title="statement not covered" >  severity: ErrorSeverity;</span>
-<span class="cstat-no" title="statement not covered" >  category: ErrorCategory;</span>
-<span class="cstat-no" title="statement not covered" >  suggestions?: string[];</span>
-<span class="cstat-no" title="statement not covered" >  context?: Record&lt;string, unknown&gt;;</span>
-<span class="cstat-no" title="statement not covered" >  timestamp?: Date;</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" >    severity: ErrorSeverity;</span>
+<span class="cstat-no" title="statement not covered" >    category: ErrorCategory;</span>
+<span class="cstat-no" title="statement not covered" >    suggestions?: string[];</span>
+<span class="cstat-no" title="statement not covered" >    context?: Record&lt;string, unknown&gt;;</span>
+<span class="cstat-no" title="statement not covered" >    timestamp?: Date;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Specialized Error Classes</span>
 <span class="cstat-no" title="statement not covered" >export class BalanceSheetError extends AccountingValidationError {</span>
@@ -4099,7 +4179,7 @@
 <span class="cstat-no" title="statement not covered" >  private warnings: EnhancedValidationError[] = [];</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  addError(error: EnhancedValidationError): void {</span>
-<span class="cstat-no" title="statement not covered" >    if (error.severity === 'WARNING') {</span>
+<span class="cstat-no" title="statement not covered" >    if (error.severity === ErrorSeverity.WARNING) {</span>
 <span class="cstat-no" title="statement not covered" >      this.warnings.push(error);</span>
 <span class="cstat-no" title="statement not covered" >    } else {</span>
 <span class="cstat-no" title="statement not covered" >      this.errors.push(error);</span>
@@ -4133,7 +4213,7 @@
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  getCriticalErrors(): EnhancedValidationError[] {</span>
-<span class="cstat-no" title="statement not covered" >    return this.errors.filter(error =&gt; error.severity === 'CRITICAL');</span>
+<span class="cstat-no" title="statement not covered" >    return this.errors.filter(error =&gt; error.severity === ErrorSeverity.CRITICAL);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  getErrorsByCategory(category: ErrorCategory): EnhancedValidationError[] {</span>
@@ -4156,19 +4236,14 @@
 <span class="cstat-no" title="statement not covered" >    issues: EnhancedValidationError[];</span>
 <span class="cstat-no" title="statement not covered" >  } {</span>
 <span class="cstat-no" title="statement not covered" >    const allIssues = this.getAllIssues();</span>
-<span class="cstat-no" title="statement not covered" >    </span>
-<span class="cstat-no" title="statement not covered" >    const byCategory: Record&lt;ErrorCategory, number&gt; = {</span>
-<span class="cstat-no" title="statement not covered" >      VALIDATION: 0,</span>
-<span class="cstat-no" title="statement not covered" >      BUSINESS_RULE: 0,</span>
-<span class="cstat-no" title="statement not covered" >      SYSTEM: 0,</span>
-<span class="cstat-no" title="statement not covered" >      COMPLIANCE: 0</span>
-<span class="cstat-no" title="statement not covered" >    };</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const bySeverity: Record&lt;ErrorSeverity, number&gt; = {</span>
-<span class="cstat-no" title="statement not covered" >      WARNING: 0,</span>
-<span class="cstat-no" title="statement not covered" >      ERROR: 0,</span>
-<span class="cstat-no" title="statement not covered" >      CRITICAL: 0</span>
-<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >    const byCategory = Object.fromEntries(</span>
+<span class="cstat-no" title="statement not covered" >      Object.values(ErrorCategory).map(cat =&gt; [cat, 0])</span>
+<span class="cstat-no" title="statement not covered" >    ) as Record&lt;ErrorCategory, number&gt;;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const bySeverity = Object.fromEntries(</span>
+<span class="cstat-no" title="statement not covered" >      Object.values(ErrorSeverity).map(sev =&gt; [sev, 0])</span>
+<span class="cstat-no" title="statement not covered" >    ) as Record&lt;ErrorSeverity, number&gt;;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    for (const issue of allIssues) {</span>
 <span class="cstat-no" title="statement not covered" >      byCategory[issue.category]++;</span>
@@ -4191,69 +4266,52 @@
 <span class="cstat-no" title="statement not covered" >// Enhanced Error Factory</span>
 <span class="cstat-no" title="statement not covered" >export namespace AccountingErrorFactory {</span>
 <span class="cstat-no" title="statement not covered" >  export function createValidationError(</span>
-<span class="cstat-no" title="statement not covered" >    field: string,</span>
-<span class="cstat-no" title="statement not covered" >    message: string,</span>
-<span class="cstat-no" title="statement not covered" >    code: string,</span>
-<span class="cstat-no" title="statement not covered" >    severity: ErrorSeverity = 'ERROR',</span>
-<span class="cstat-no" title="statement not covered" >    category: ErrorCategory = 'VALIDATION',</span>
+<span class="cstat-no" title="statement not covered" >    baseError: BaseValidationError,</span>
+<span class="cstat-no" title="statement not covered" >    severity: ErrorSeverity = ErrorSeverity.ERROR,</span>
+<span class="cstat-no" title="statement not covered" >    category: ErrorCategory = ErrorCategory.VALIDATION,</span>
 <span class="cstat-no" title="statement not covered" >    suggestions?: string[],</span>
 <span class="cstat-no" title="statement not covered" >    context?: Record&lt;string, unknown&gt;</span>
 <span class="cstat-no" title="statement not covered" >  ): EnhancedValidationError {</span>
 <span class="cstat-no" title="statement not covered" >    return {</span>
-<span class="cstat-no" title="statement not covered" >      field,</span>
-<span class="cstat-no" title="statement not covered" >      message,</span>
-<span class="cstat-no" title="statement not covered" >      code,</span>
+<span class="cstat-no" title="statement not covered" >      ...baseError,</span>
 <span class="cstat-no" title="statement not covered" >      severity,</span>
 <span class="cstat-no" title="statement not covered" >      category,</span>
 <span class="cstat-no" title="statement not covered" >      suggestions,</span>
-<span class="cstat-no" title="statement not covered" >      context,</span>
-<span class="cstat-no" title="statement not covered" >      timestamp: new Date()</span>
+<span class="cstat-no" title="statement not covered" >      context</span>
 <span class="cstat-no" title="statement not covered" >    };</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  export function createBusinessRuleError(</span>
-<span class="cstat-no" title="statement not covered" >    field: string,</span>
-<span class="cstat-no" title="statement not covered" >    message: string,</span>
-<span class="cstat-no" title="statement not covered" >    code: string,</span>
+<span class="cstat-no" title="statement not covered" >    baseError: BaseValidationError,</span>
 <span class="cstat-no" title="statement not covered" >    suggestions?: string[]</span>
 <span class="cstat-no" title="statement not covered" >  ): EnhancedValidationError {</span>
 <span class="cstat-no" title="statement not covered" >    return createValidationError(</span>
-<span class="cstat-no" title="statement not covered" >      field,</span>
-<span class="cstat-no" title="statement not covered" >      message,</span>
-<span class="cstat-no" title="statement not covered" >      code,</span>
-<span class="cstat-no" title="statement not covered" >      'ERROR',</span>
-<span class="cstat-no" title="statement not covered" >      'BUSINESS_RULE',</span>
+<span class="cstat-no" title="statement not covered" >      baseError,</span>
+<span class="cstat-no" title="statement not covered" >      ErrorSeverity.ERROR,</span>
+<span class="cstat-no" title="statement not covered" >      ErrorCategory.BUSINESS_RULE,</span>
 <span class="cstat-no" title="statement not covered" >      suggestions</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  export function createComplianceError(</span>
-<span class="cstat-no" title="statement not covered" >    field: string,</span>
-<span class="cstat-no" title="statement not covered" >    message: string,</span>
-<span class="cstat-no" title="statement not covered" >    code: string,</span>
-<span class="cstat-no" title="statement not covered" >    severity: ErrorSeverity = 'CRITICAL'</span>
+<span class="cstat-no" title="statement not covered" >    baseError: BaseValidationError,</span>
+<span class="cstat-no" title="statement not covered" >    severity: ErrorSeverity = ErrorSeverity.CRITICAL</span>
 <span class="cstat-no" title="statement not covered" >  ): EnhancedValidationError {</span>
 <span class="cstat-no" title="statement not covered" >    return createValidationError(</span>
-<span class="cstat-no" title="statement not covered" >      field,</span>
-<span class="cstat-no" title="statement not covered" >      message,</span>
-<span class="cstat-no" title="statement not covered" >      code,</span>
+<span class="cstat-no" title="statement not covered" >      baseError,</span>
 <span class="cstat-no" title="statement not covered" >      severity,</span>
-<span class="cstat-no" title="statement not covered" >      'COMPLIANCE'</span>
+<span class="cstat-no" title="statement not covered" >      ErrorCategory.COMPLIANCE</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  export function createSystemError(</span>
-<span class="cstat-no" title="statement not covered" >    field: string,</span>
-<span class="cstat-no" title="statement not covered" >    message: string,</span>
-<span class="cstat-no" title="statement not covered" >    code: string,</span>
+<span class="cstat-no" title="statement not covered" >    baseError: BaseValidationError,</span>
 <span class="cstat-no" title="statement not covered" >    context?: Record&lt;string, unknown&gt;</span>
 <span class="cstat-no" title="statement not covered" >  ): EnhancedValidationError {</span>
 <span class="cstat-no" title="statement not covered" >    return createValidationError(</span>
-<span class="cstat-no" title="statement not covered" >      field,</span>
-<span class="cstat-no" title="statement not covered" >      message,</span>
-<span class="cstat-no" title="statement not covered" >      code,</span>
-<span class="cstat-no" title="statement not covered" >      'CRITICAL',</span>
-<span class="cstat-no" title="statement not covered" >      'SYSTEM',</span>
+<span class="cstat-no" title="statement not covered" >      baseError,</span>
+<span class="cstat-no" title="statement not covered" >      ErrorSeverity.CRITICAL,</span>
+<span class="cstat-no" title="statement not covered" >      ErrorCategory.SYSTEM,</span>
 <span class="cstat-no" title="statement not covered" >      undefined,</span>
 <span class="cstat-no" title="statement not covered" >      context</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
@@ -4324,21 +4382,21 @@
 <span class="cstat-no" title="statement not covered" >    ];</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (criticalCodes.some(code =&gt; errorCode.includes(code))) {</span>
-<span class="cstat-no" title="statement not covered" >      return 'CRITICAL';</span>
+<span class="cstat-no" title="statement not covered" >      return ErrorSeverity.CRITICAL;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    </span>
 <span class="cstat-no" title="statement not covered" >    if (warningCodes.some(code =&gt; errorCode.includes(code))) {</span>
-<span class="cstat-no" title="statement not covered" >      return 'WARNING';</span>
+<span class="cstat-no" title="statement not covered" >      return ErrorSeverity.WARNING;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    return 'ERROR';</span>
+<span class="cstat-no" title="statement not covered" >    return ErrorSeverity.ERROR;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  function determineCategory(errorCode: string): ErrorCategory {</span>
-<span class="cstat-no" title="statement not covered" >    if (errorCode.includes('COMPLIANCE')) return 'COMPLIANCE';</span>
-<span class="cstat-no" title="statement not covered" >    if (errorCode.includes('SYSTEM')) return 'SYSTEM';</span>
-<span class="cstat-no" title="statement not covered" >    if (errorCode.includes('BUSINESS_RULE')) return 'BUSINESS_RULE';</span>
-<span class="cstat-no" title="statement not covered" >    return 'VALIDATION';</span>
+<span class="cstat-no" title="statement not covered" >    if (errorCode.includes('COMPLIANCE')) return ErrorCategory.COMPLIANCE;</span>
+<span class="cstat-no" title="statement not covered" >    if (errorCode.includes('SYSTEM')) return ErrorCategory.SYSTEM;</span>
+<span class="cstat-no" title="statement not covered" >    if (errorCode.includes('BUSINESS_RULE')) return ErrorCategory.BUSINESS_RULE;</span>
+<span class="cstat-no" title="statement not covered" >    return ErrorCategory.VALIDATION;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -4367,7 +4425,7 @@
 <span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export function getNormalBalance(accountType: AccountType): NormalBalance {</span>
-<span class="cstat-no" title="statement not covered" >  return FINANCIAL_CONSTANTS.NORMAL_BALANCES[accountType] as NormalBalance;</span>
+<span class="cstat-no" title="statement not covered" >  return FINANCIAL_CONSTANTS.NORMAL_BALANCES[accountType];</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >// Transaction Validator Class</span>
@@ -5540,6 +5598,34 @@
 <span class="cstat-no" title="statement not covered" >    return (result.results as Record&lt;string, unknown&gt;[]).map(row =&gt; this.mapDbAccountToAccount(row));</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  async updateAccount(accountId: number, updates: Partial&lt;Omit&lt;Account, 'id' | 'createdAt' | 'updatedAt'&gt;&gt;): Promise&lt;Account | null&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    const fields = Object.keys(updates).filter(key =&gt; key !== 'id' &amp;&amp; key !== 'createdAt' &amp;&amp; key !== 'updatedAt' &amp;&amp; (updates as any)[key] !== undefined);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (fields.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >      return this.getAccount(accountId);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const now = new Date();</span>
+<span class="cstat-no" title="statement not covered" >    const setClause = fields.map(key =&gt; `${this.toSnakeCase(key)} = ?`).join(', ');</span>
+<span class="cstat-no" title="statement not covered" >    const values = fields.map(key =&gt; (updates as any)[key]);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const query = `</span>
+<span class="cstat-no" title="statement not covered" >      UPDATE accounts</span>
+<span class="cstat-no" title="statement not covered" >      SET ${setClause}, updated_at = ?</span>
+<span class="cstat-no" title="statement not covered" >      WHERE id = ? AND entity_id = ?</span>
+<span class="cstat-no" title="statement not covered" >      RETURNING *</span>
+<span class="cstat-no" title="statement not covered" >    `;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const result = await this.db.prepare(query).bind(</span>
+<span class="cstat-no" title="statement not covered" >      ...values,</span>
+<span class="cstat-no" title="statement not covered" >      now.getTime(),</span>
+<span class="cstat-no" title="statement not covered" >      accountId,</span>
+<span class="cstat-no" title="statement not covered" >      this.entityId</span>
+<span class="cstat-no" title="statement not covered" >    ).first() as Record&lt;string, unknown&gt; | null;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    return result ? this.mapDbAccountToAccount(result) : null;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  // Transaction Operations</span>
 <span class="cstat-no" title="statement not covered" >  async createTransaction(transactionData: TransactionData): Promise&lt;Transaction&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const now = new Date();</span>
@@ -5554,7 +5640,7 @@
 <span class="cstat-no" title="statement not covered" >      RETURNING *</span>
 <span class="cstat-no" title="statement not covered" >    `;</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const totalAmount = transactionData.entries.reduce((sum, entry) =&gt; </span>
+<span class="cstat-no" title="statement not covered" >    const totalAmount = transactionData.entries.reduce((sum: number, entry: TransactionEntry) =&gt; </span>
 <span class="cstat-no" title="statement not covered" >      sum + (entry.debitAmount || 0) + (entry.creditAmount || 0), 0</span>
 <span class="cstat-no" title="statement not covered" >    ) / 2; // Divide by 2 since each amount is counted twice (debit and credit)</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -5723,6 +5809,10 @@
 <span class="cstat-no" title="statement not covered" >      createdAt: new Date(row.created_at as number).toISOString(), // Convert to ISO string</span>
 <span class="cstat-no" title="statement not covered" >      updatedAt: new Date(row.updated_at as number).toISOString() // Convert to ISO string</span>
 <span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  private toSnakeCase(str: string): string {</span>
+<span class="cstat-no" title="statement not covered" >    return str.replace(/[A-Z]/g, letter =&gt; `_${letter.toLowerCase()}`);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  private mapDbJournalEntryToJournalEntry(row: Record&lt;string, unknown&gt;): JournalEntry {</span>
@@ -5911,7 +6001,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-23T06:48:32.272Z
+                at 2025-06-24T05:16:12.285Z
             </div>
         <script src="../prettify.js"></script>
         <script>

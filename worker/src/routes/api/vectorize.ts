@@ -308,7 +308,7 @@ vectorize.get('/document/:fileId', async (c: Context<AppContext>) => {
     }
 
     const fileId = c.req.param('fileId');
-    const doc = c.get('doc');
+    const _doc = c.get('doc');
 
     const vectorizeService = createVectorizeServiceInstance(c.env);
     const embeddings = await vectorizeService.getDocumentEmbeddings(fileId);
@@ -367,7 +367,7 @@ vectorize.delete('/document/:fileId', async (c: Context<AppContext>) => {
     }
 
     const fileId = c.req.param('fileId');
-    const doc = c.get('doc');
+    const _doc = c.get('doc');
 
     const vectorizeService = createVectorizeServiceInstance(c.env);
     const result = await vectorizeService.deleteDocument(fileId);

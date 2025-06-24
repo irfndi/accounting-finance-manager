@@ -2,8 +2,8 @@
  * Financial AI Service
  * Specialized AI service for financial operations and analysis
  */
-import { AIService } from './ai-service.js';
 import type { FinancialAnalysisResponse, OCRResult, DocumentClassification } from '../types.js';
+import type { AIService } from './ai-service.js';
 interface Transaction {
     id: string;
     amount: number;

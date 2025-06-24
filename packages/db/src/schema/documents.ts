@@ -104,3 +104,4 @@ export const updateRawDocSchema = insertRawDocSchema.partial().omit({
 export type RawDoc = typeof rawDocs.$inferSelect;
 export type NewRawDoc = typeof rawDocs.$inferInsert;
 export type UpdateRawDoc = z.infer<typeof updateRawDocSchema>;
+export type UpdateOCRData = Pick<RawDoc, 'ocrStatus' | 'extractedText' | 'textLength' | 'ocrConfidence' | 'ocrProcessingTime' | 'ocrErrorMessage' | 'ocrErrorCode' | 'ocrFallbackUsed' | 'ocrRetryable' | 'ocrProcessedAt' | 'searchableText' | 'ocrMaxRetries'>;

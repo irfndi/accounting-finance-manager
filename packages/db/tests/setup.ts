@@ -7,7 +7,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { accounts, users, transactions, journalEntries, rawDocs } from '../src/schema';
 import * as schema from '../src/schema';
 import Database from 'better-sqlite3';
-import { readFileSync, existsSync } from 'fs';
+
 import { eq } from 'drizzle-orm';
 
 // Mock D1 database for testing

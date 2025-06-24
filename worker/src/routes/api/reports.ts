@@ -5,7 +5,7 @@ import {
   formatCurrency,
   FINANCIAL_CONSTANTS,
 } from '@finance-manager/core';
-import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+import { authMiddleware } from '../../middleware/auth';
 import { AppContext } from '../../types';
 import { createMiddleware } from 'hono/factory';
 
@@ -25,7 +25,7 @@ reportsRouter.use('*', authMiddleware);
 
 // Middleware to create and inject dbAdapter and reportsEngine
 const setupReportsContext = createMiddleware<AppContext & ReportsContext>(async (c, next) => {
-  const user = getCurrentUser(c);
+  const user = c.get('user');
   if (!user) {
     return c.json({ success: false, error: 'Unauthorized' }, 401);
   }
@@ -75,7 +75,7 @@ reportsRouter.get('/trial-balance', async (c) => {
         ...trialBalance,
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c)?.id || 'unknown',
+          generatedBy: c.get('user')?.id || 'unknown',
           reportType: 'trial-balance',
           parameters: { asOfDate: asOfDate.toISOString(), entityId },
         },
@@ -126,7 +126,7 @@ reportsRouter.get('/balance-sheet', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c)?.id || 'unknown',
+          generatedBy: c.get('user')?.id || 'unknown',
           reportType: 'balance-sheet',
           format: format || 'detailed',
           parameters: { asOfDate: asOfDate.toISOString(), entityId },
@@ -186,7 +186,7 @@ reportsRouter.get('/income-statement', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c)?.id || 'unknown',
+          generatedBy: c.get('user')?.id || 'unknown',
           reportType: 'income-statement',
           period: period || 'custom',
           parameters: {
@@ -237,7 +237,7 @@ reportsRouter.get('/cash-flow', async (c) => {
         ...cashFlow,
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c)?.id || 'unknown',
+          generatedBy: c.get('user')?.id || 'unknown',
           reportType: 'cash-flow',
           method: method || 'indirect',
           parameters: {
@@ -315,7 +315,7 @@ reportsRouter.get('/financial-metrics', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c)?.id || 'unknown',
+          generatedBy: c.get('user')?.id || 'unknown',
           reportType: 'financial-metrics',
           parameters: { asOfDate: asOfDate.toISOString(), entityId },
         },
@@ -363,7 +363,7 @@ reportsRouter.get('/account-balance/:accountId', async (c) => {
         formattedBalance: formatCurrency(balance),
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c)?.id || 'unknown',
+          generatedBy: c.get('user')?.id || 'unknown',
           reportType: 'account-balance',
           parameters: { accountId, asOfDate: asOfDate.toISOString(), entityId },
         },
@@ -443,7 +443,7 @@ reportsRouter.get('/summary', async (c) => {
         },
         metadata: {
           generatedAt: new Date().toISOString(),
-          generatedBy: getCurrentUser(c)?.id || 'unknown',
+          generatedBy: c.get('user')?.id || 'unknown',
           reportType: 'financial-summary',
           parameters: { entityId },
         },
@@ -481,7 +481,7 @@ reportsRouter.get('/export/balance-sheet', async (c) => {
     const metrics = await reportsEngine.getFinancialMetrics(asOfDate)
     
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     
     switch (format.toLowerCase()) {
       case 'csv': {
@@ -700,7 +700,7 @@ reportsRouter.get('/export/income-statement', async (c) => {
     const incomeStatement = await reportsEngine.generateIncomeStatement(startDate, endDate, entityId)
     
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
-    const user = getCurrentUser(c)
+    const user = c.get('user')
     
     switch (format.toLowerCase()) {
       case 'csv': {
@@ -774,7 +774,7 @@ reportsRouter.get('/export/trial-balance', async (c) => {
     const trialBalance = await reportsEngine.generateTrialBalance(asOfDate, entityId)
     
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
-    const user = getCurrentUser(c)
+    const user = c.get('user')
     
     switch (format.toLowerCase()) {
       case 'csv': {

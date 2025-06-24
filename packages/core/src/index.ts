@@ -104,12 +104,12 @@ export enum ErrorCategory {
 }
 
 export interface EnhancedValidationError extends BaseValidationError {
-  severity: ErrorSeverity;
-  category: ErrorCategory;
-  suggestions?: string[];
-  context?: Record<string, unknown>;
-  timestamp?: Date;
-}
+    severity: ErrorSeverity;
+    category: ErrorCategory;
+    suggestions?: string[];
+    context?: Record<string, unknown>;
+    timestamp?: Date;
+  }
 
 // Specialized Error Classes
 export class BalanceSheetError extends AccountingValidationError {
@@ -247,18 +247,14 @@ export class ErrorAggregator {
 // Enhanced Error Factory
 export namespace AccountingErrorFactory {
   export function createValidationError(
-    field: string,
-    message: string,
-    code: string,
+    baseError: BaseValidationError,
     severity: ErrorSeverity = ErrorSeverity.ERROR,
     category: ErrorCategory = ErrorCategory.VALIDATION,
     suggestions?: string[],
     context?: Record<string, unknown>
   ): EnhancedValidationError {
     return {
-      field,
-      message,
-      code,
+      ...baseError,
       severity,
       category,
       suggestions,
@@ -267,15 +263,11 @@ export namespace AccountingErrorFactory {
   }
 
   export function createBusinessRuleError(
-    field: string,
-    message: string,
-    code: string,
+    baseError: BaseValidationError,
     suggestions?: string[]
   ): EnhancedValidationError {
     return createValidationError(
-      field,
-      message,
-      code,
+      baseError,
       ErrorSeverity.ERROR,
       ErrorCategory.BUSINESS_RULE,
       suggestions
@@ -283,30 +275,22 @@ export namespace AccountingErrorFactory {
   }
 
   export function createComplianceError(
-    field: string,
-    message: string,
-    code: string,
+    baseError: BaseValidationError,
     severity: ErrorSeverity = ErrorSeverity.CRITICAL
   ): EnhancedValidationError {
     return createValidationError(
-      field,
-      message,
-      code,
+      baseError,
       severity,
       ErrorCategory.COMPLIANCE
     );
   }
 
   export function createSystemError(
-    field: string,
-    message: string,
-    code: string,
+    baseError: BaseValidationError,
     context?: Record<string, unknown>
   ): EnhancedValidationError {
     return createValidationError(
-      field,
-      message,
-      code,
+      baseError,
       ErrorSeverity.CRITICAL,
       ErrorCategory.SYSTEM,
       undefined,
@@ -1595,6 +1579,34 @@ export class DatabaseAdapter {
     return (result.results as Record<string, unknown>[]).map(row => this.mapDbAccountToAccount(row));
   }
 
+  async updateAccount(accountId: number, updates: Partial<Omit<Account, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Account | null> {
+    const fields = Object.keys(updates).filter(key => key !== 'id' && key !== 'createdAt' && key !== 'updatedAt' && (updates as any)[key] !== undefined);
+
+    if (fields.length === 0) {
+      return this.getAccount(accountId);
+    }
+
+    const now = new Date();
+    const setClause = fields.map(key => `${this.toSnakeCase(key)} = ?`).join(', ');
+    const values = fields.map(key => (updates as any)[key]);
+
+    const query = `
+      UPDATE accounts
+      SET ${setClause}, updated_at = ?
+      WHERE id = ? AND entity_id = ?
+      RETURNING *
+    `;
+
+    const result = await this.db.prepare(query).bind(
+      ...values,
+      now.getTime(),
+      accountId,
+      this.entityId
+    ).first() as Record<string, unknown> | null;
+
+    return result ? this.mapDbAccountToAccount(result) : null;
+  }
+
   // Transaction Operations
   async createTransaction(transactionData: TransactionData): Promise<Transaction> {
     const now = new Date();
@@ -1778,6 +1790,10 @@ export class DatabaseAdapter {
       createdAt: new Date(row.created_at as number).toISOString(), // Convert to ISO string
       updatedAt: new Date(row.updated_at as number).toISOString() // Convert to ISO string
     };
+  }
+
+  private toSnakeCase(str: string): string {
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
   }
 
   private mapDbJournalEntryToJournalEntry(row: Record<string, unknown>): JournalEntry {

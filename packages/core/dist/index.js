@@ -173,11 +173,9 @@ export class ErrorAggregator {
 // Enhanced Error Factory
 export var AccountingErrorFactory;
 (function (AccountingErrorFactory) {
-    function createValidationError(field, message, code, severity = ErrorSeverity.ERROR, category = ErrorCategory.VALIDATION, suggestions, context) {
+    function createValidationError(baseError, severity = ErrorSeverity.ERROR, category = ErrorCategory.VALIDATION, suggestions, context) {
         return {
-            field,
-            message,
-            code,
+            ...baseError,
             severity,
             category,
             suggestions,
@@ -185,16 +183,16 @@ export var AccountingErrorFactory;
         };
     }
     AccountingErrorFactory.createValidationError = createValidationError;
-    function createBusinessRuleError(field, message, code, suggestions) {
-        return createValidationError(field, message, code, ErrorSeverity.ERROR, ErrorCategory.BUSINESS_RULE, suggestions);
+    function createBusinessRuleError(baseError, suggestions) {
+        return createValidationError(baseError, ErrorSeverity.ERROR, ErrorCategory.BUSINESS_RULE, suggestions);
     }
     AccountingErrorFactory.createBusinessRuleError = createBusinessRuleError;
-    function createComplianceError(field, message, code, severity = ErrorSeverity.CRITICAL) {
-        return createValidationError(field, message, code, severity, ErrorCategory.COMPLIANCE);
+    function createComplianceError(baseError, severity = ErrorSeverity.CRITICAL) {
+        return createValidationError(baseError, severity, ErrorCategory.COMPLIANCE);
     }
     AccountingErrorFactory.createComplianceError = createComplianceError;
-    function createSystemError(field, message, code, context) {
-        return createValidationError(field, message, code, ErrorSeverity.CRITICAL, ErrorCategory.SYSTEM, undefined, context);
+    function createSystemError(baseError, context) {
+        return createValidationError(baseError, ErrorSeverity.CRITICAL, ErrorCategory.SYSTEM, undefined, context);
     }
     AccountingErrorFactory.createSystemError = createSystemError;
 })(AccountingErrorFactory || (AccountingErrorFactory = {}));
@@ -1248,6 +1246,23 @@ export class DatabaseAdapter {
         const result = await this.db.prepare(query).bind(accountType, this.entityId).all();
         return result.results.map(row => this.mapDbAccountToAccount(row));
     }
+    async updateAccount(accountId, updates) {
+        const fields = Object.keys(updates).filter(key => key !== 'id' && key !== 'createdAt' && key !== 'updatedAt' && updates[key] !== undefined);
+        if (fields.length === 0) {
+            return this.getAccount(accountId);
+        }
+        const now = new Date();
+        const setClause = fields.map(key => `${this.toSnakeCase(key)} = ?`).join(', ');
+        const values = fields.map(key => updates[key]);
+        const query = `
+      UPDATE accounts
+      SET ${setClause}, updated_at = ?
+      WHERE id = ? AND entity_id = ?
+      RETURNING *
+    `;
+        const result = await this.db.prepare(query).bind(...values, now.getTime(), accountId, this.entityId).first();
+        return result ? this.mapDbAccountToAccount(result) : null;
+    }
     // Transaction Operations
     async createTransaction(transactionData) {
         const now = new Date();
@@ -1372,6 +1387,9 @@ export class DatabaseAdapter {
             createdAt: new Date(row.created_at).toISOString(), // Convert to ISO string
             updatedAt: new Date(row.updated_at).toISOString() // Convert to ISO string
         };
+    }
+    toSnakeCase(str) {
+        return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     }
     mapDbJournalEntryToJournalEntry(row) {
         return {

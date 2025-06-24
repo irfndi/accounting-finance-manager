@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { SELF } from 'cloudflare:test';
-import worker from '../src/index';
+
 import type { Env } from '../src/types';
 
 describe('Basic Worker Tests', () => {

@@ -215,7 +215,7 @@ export async function withOCRErrorBoundary(operation, fn, logger, context) {
             ...context,
             duration,
             metadata: {
-                ...(context?.metadata || {}),
+                ...(context?.metadata),
                 operation: `${operation.toUpperCase().replace(/\s+/g, '_')}_FAILURE`
             }
         });

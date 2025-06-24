@@ -12,7 +12,8 @@ import {
   getUploadStats,
   updateRawDoc,
   type NewRawDoc,
-  type UpdateRawDoc
+  type UpdateRawDoc,
+  type UpdateOCRData
 } from '@finance-manager/db';
 import { createOCRLogger } from '../../utils/logger';
 import { createFinancialAIService, createVectorizeServiceInstance } from '../../services';
@@ -333,9 +334,9 @@ uploads.post('/', async (c) => {
           tags: tags ? JSON.stringify(parseTags(tags)) : undefined,
         };
 
-      const [rawDoc] = await createRawDoc(db, createDocData);
+      const [newRawDoc] = await createRawDoc(db, createDocData);
       
-      if (!rawDoc) {
+      if (!newRawDoc) {
         logger.databaseOperation('create', fileId, false, 'No document returned after creation');
         throw new Error(`Failed to create document record for file ID: ${fileId}`);
       }
@@ -344,8 +345,9 @@ uploads.post('/', async (c) => {
 
       // Update with OCR results if processing was successful
       if (ocrResult) {
-        const updateData: Partial<UpdateRawDoc> = {
-          ocrStatus: ocrResult.success === true ? 'COMPLETED' : 'FAILED',
+        const ocrStatus = ocrResult.success ? ('COMPLETED' as const) : ('FAILED' as const);
+        const ocrData: Partial<UpdateRawDoc> = {
+          ocrStatus,
           extractedText: ocrResult.text || undefined,
           textLength: ocrResult.text?.length || 0,
           ocrConfidence: ocrResult.confidence,
@@ -359,7 +361,7 @@ uploads.post('/', async (c) => {
           searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : undefined
         };
 
-        const updateResult = await updateRawDocOCR(db, fileId, updateData);
+        const updateResult = await updateRawDocOCR(db, fileId, ocrData);
         if (!updateResult) {
           logger.databaseOperation('update', fileId, false, 'No document returned after update');
         } else {
@@ -895,7 +897,7 @@ uploads.post('/:fileId/ocr', async (c) => {
   try {
     const user = c.get('user');
     const fileId = c.req.param('fileId');
-    const _reprocess = c.req.query('reprocess') === 'true';
+    const reprocess = c.req.query('reprocess') === 'true';
 
     if (!fileId) {
       return c.json({
@@ -905,13 +907,13 @@ uploads.post('/:fileId/ocr', async (c) => {
     }
 
     // Get processing options from request body
-    const _body = c.req.header('content-type')?.includes('application/json') 
+    const body = c.req.header('content-type')?.includes('application/json') 
       ? await c.req.json().catch(() => ({}))
       : {};
 
-    const _options = {
-      maxTextLength: _body.maxTextLength || 50000,
-      includeConfidence: _body.includeConfidence !== false
+    const options = {
+      maxTextLength: body.maxTextLength || 50000,
+      includeConfidence: body.includeConfidence !== false
     };
 
     // Find the file
@@ -989,30 +991,31 @@ uploads.post('/:fileId/ocr', async (c) => {
       const db = createDatabase(c.env.FINANCE_MANAGER_DB);
       
       // Check if document exists in database
-      let rawDoc = await getRawDocByFileId(db, fileId);
+      let existingRawDoc = await getRawDocByFileId(db, fileId);
       
-      if (!rawDoc) {
+      if (!existingRawDoc) {
         // Create document record if it doesn't exist
-        const createDocData: CreateRawDocData = {
+        const createDocData: NewRawDoc = {
           fileId: fileId,
-          filename: object.customMetadata?.originalName || fileObject.key,
           originalName: object.customMetadata?.originalName || fileObject.key,
           mimeType: object.httpMetadata?.contentType || 'application/octet-stream',
-          size: fileObject.size,
           fileSize: fileObject.size,
           r2Key: fileObject.key,
           uploadedBy: user.id,
-          description: object.customMetadata?.description,
-          tags: object.customMetadata?.tags ? parseTags(object.customMetadata.tags) : [],
-          status: 'UPLOADED'
+          description: object.customMetadata?.description || undefined,
+          tags: object.customMetadata?.tags ? JSON.stringify(parseTags(object.customMetadata.tags)) : undefined,
         };
 
-        rawDoc = await createRawDoc(db, createDocData);
+        const [newDoc] = await createRawDoc(db, createDocData);
+        if (newDoc) {
+          existingRawDoc = newDoc;
+        }
       }
 
       // Update with OCR results
-      const updateData: UpdateOCRData = {
-        ocrStatus: ocrResult.success === true ? 'COMPLETED' : 'FAILED',
+      const ocrStatus = ocrResult.success ? ('COMPLETED' as const) : ('FAILED' as const);
+      const ocrData: Partial<UpdateRawDoc> = {
+        ocrStatus,
         extractedText: ocrResult.text || undefined,
         textLength: ocrResult.text?.length || 0,
         ocrConfidence: ocrResult.confidence,
@@ -1026,7 +1029,7 @@ uploads.post('/:fileId/ocr', async (c) => {
         searchableText: ocrResult.text ? generateSearchableText(ocrResult.text) : undefined
       };
 
-      await updateRawDocOCR(db, fileId, updateData);
+      await updateRawDocOCR(db, fileId, ocrData);
 
       // OCR results updated in database
       

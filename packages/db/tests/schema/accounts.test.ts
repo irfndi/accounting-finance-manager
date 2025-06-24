@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { accounts, NewAccount } from '../../src/schema/accounts';
+import { accounts, InsertAccount } from '../../src/schema/accounts';
 
 // Mock database adapter with Drizzle-like interface
-let mockData: NewAccount[] = [];
+let mockData: InsertAccount[] = [];
 
-const createMockAccount = (overrides: Partial<NewAccount> = {}): NewAccount => {
+const createMockAccount = (overrides: Partial<InsertAccount> = {}): InsertAccount => {
   const defaults = {
     id: 1,
     code: '1000',
@@ -113,7 +113,11 @@ const mockDbAdapter = {
         limit: vi.fn((count: number) => createChain(chainData.slice(0, count))),
         orderBy: vi.fn(() => createChain(chainData)),
         get: vi.fn(async () => chainData[0] || null),
-        catch: vi.fn((callback: (reason: any) => void) => Promise.resolve(chainData).catch(callback))
+        catch: vi.fn((callback: (reason: any) => void) => Promise.resolve(chainData).catch(callback)),
+        // Make the chain thenable so it can be awaited
+        then: vi.fn((onFulfilled?: (value: NewAccount[]) => any, onRejected?: (reason: any) => any) => {
+          return Promise.resolve(chainData).then(onFulfilled, onRejected);
+        })
       };
       
 

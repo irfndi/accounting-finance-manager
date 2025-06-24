@@ -1,4 +1,4 @@
-import { eq, sql, and } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { Database } from './index';
 import { rawDocs, NewRawDoc, UpdateRawDoc } from './schema/documents';
 

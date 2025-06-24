@@ -3,7 +3,7 @@ import { sign } from 'hono/jwt';
 import { eq } from 'drizzle-orm';
 import { users, createDatabase } from '@finance-manager/db';
 import { AppContext } from '../../types';
-import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+import { authMiddleware } from '../../middleware/auth';
 
 // Simple email validation function
 function validateEmail(email: string): boolean {
@@ -168,7 +168,7 @@ authRouter.post('/login', async (c) => {
 // Logout endpoint
 authRouter.post('/logout', authMiddleware, async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) {
       return c.json({ error: 'User not authenticated' }, 401);
     }
@@ -184,7 +184,7 @@ authRouter.post('/logout', authMiddleware, async (c) => {
 
 // Get current user profile
 authRouter.get('/profile', authMiddleware, async (c) => {
-  const user = getCurrentUser(c);
+  const user = c.get('user');
   if (!user) {
     return c.json({ error: 'User not authenticated' }, 401);
   }
@@ -194,7 +194,7 @@ authRouter.get('/profile', authMiddleware, async (c) => {
 // Update user profile
 authRouter.put('/profile', authMiddleware, async (c) => {
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
-  const user = getCurrentUser(c);
+  const user = c.get('user');
   if (!user) {
     return c.json({ error: 'User not authenticated' }, 401);
   }
@@ -218,7 +218,7 @@ authRouter.put('/profile', authMiddleware, async (c) => {
 authRouter.put('/password', authMiddleware, async (c) => {
   // Password change attempt started
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
-  const user = getCurrentUser(c);
+  const user = c.get('user');
   if (!user) {
     return c.json({ error: 'User not authenticated' }, 401);
   }
@@ -262,7 +262,7 @@ authRouter.put('/password', authMiddleware, async (c) => {
 
 // Validate session endpoint
 authRouter.get('/validate', authMiddleware, async (c) => {
-  const user = getCurrentUser(c);
+  const user = c.get('user');
   if (!user) {
     return c.json({ error: 'Unauthorized', message: 'Invalid session' }, 401);
   }

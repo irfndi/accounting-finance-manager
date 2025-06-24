@@ -252,7 +252,7 @@ export async function withOCRErrorBoundary<T>(
       ...context,
       duration,
       metadata: {
-        ...(context?.metadata || {}),
+        ...(context?.metadata),
         operation: `${operation.toUpperCase().replace(/\s+/g, '_')}_FAILURE`
       }
     });

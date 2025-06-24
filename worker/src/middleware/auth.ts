@@ -41,7 +41,7 @@ export const authMiddleware = createMiddleware<AppContext>(async (c, next) => {
     c.set('jwtPayload', decodedPayload);
 
     await next();
-  } catch (e) {
+  } catch (_e) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 });
@@ -72,7 +72,7 @@ export const optionalAuthMiddleware = createMiddleware<AppContext>(async (c, nex
             c.set('jwtPayload', decodedPayload);
           }
         }
-      } catch (e) {
+      } catch (_e) {
         // Invalid token, but we continue without setting the user
       }
     }

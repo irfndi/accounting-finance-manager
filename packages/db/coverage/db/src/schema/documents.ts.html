@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/102</span>
+                <span class='fraction'>0/107</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/102</span>
+                <span class='fraction'>0/107</span>
             </div>
         
             
@@ -164,7 +164,12 @@
 <a name='L99'></a><a href='#L99'>99</a>
 <a name='L100'></a><a href='#L100'>100</a>
 <a name='L101'></a><a href='#L101'>101</a>
-<a name='L102'></a><a href='#L102'>102</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -265,7 +270,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";</span></span></span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
 <span class="cstat-no" title="statement not covered" >import { createInsertSchema } from "drizzle-zod";</span>
 <span class="cstat-no" title="statement not covered" >import { z } from "zod";</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -288,13 +298,17 @@
 <span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >  // OCR processing results</span>
 <span class="cstat-no" title="statement not covered" >  extractedText: text("extracted_text"), // Full OCR extracted text</span>
-<span class="cstat-no" title="statement not covered" >  textLength: integer("text_length").default(0), // Length of extracted text</span>
+<span class="cstat-no" title="statement not covered" >  textLength: integer("text_length").default(0).notNull(), // Length of extracted text</span>
 <span class="cstat-no" title="statement not covered" >  ocrConfidence: real("ocr_confidence"), // OCR confidence score (0-1)</span>
 <span class="cstat-no" title="statement not covered" >  ocrProcessingTime: real("ocr_processing_time"), // Processing time in milliseconds</span>
 <span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >  // Processing status</span>
 <span class="cstat-no" title="statement not covered" >  ocrStatus: text("ocr_status").notNull().default("PENDING"), // PENDING, PROCESSING, COMPLETED, FAILED</span>
 <span class="cstat-no" title="statement not covered" >  ocrErrorMessage: text("ocr_error_message"), // Error details if processing failed</span>
+<span class="cstat-no" title="statement not covered" >  ocrErrorCode: text("ocr_error_code"), // Error code if processing failed</span>
+<span class="cstat-no" title="statement not covered" >  ocrFallbackUsed: integer("ocr_fallback_used", { mode: "boolean" }).default(false), // Whether a fallback OCR engine was used</span>
+<span class="cstat-no" title="statement not covered" >  ocrRetryable: integer("ocr_retryable", { mode: "boolean" }).default(true), // Whether the OCR error is retryable</span>
+<span class="cstat-no" title="statement not covered" >  ocrMaxRetries: integer("ocr_max_retries").default(3), // Maximum number of retries for OCR processing</span>
 <span class="cstat-no" title="statement not covered" >  ocrProcessedAt: integer("ocr_processed_at", { mode: "timestamp" }), // When OCR was completed</span>
 <span class="cstat-no" title="statement not covered" >  </span>
 <span class="cstat-no" title="statement not covered" >  // Document classification</span>
@@ -366,14 +380,15 @@
 <span class="cstat-no" title="statement not covered" >// Types</span>
 <span class="cstat-no" title="statement not covered" >export type RawDoc = typeof rawDocs.$inferSelect;</span>
 <span class="cstat-no" title="statement not covered" >export type NewRawDoc = typeof rawDocs.$inferInsert;</span>
-<span class="cstat-no" title="statement not covered" >export type UpdateRawDoc = z.infer&lt;typeof updateRawDocSchema&gt;;</span></pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >export type UpdateRawDoc = z.infer&lt;typeof updateRawDocSchema&gt;;</span>
+<span class="cstat-no" title="statement not covered" >export type UpdateOCRData = Pick&lt;RawDoc, 'ocrStatus' | 'extractedText' | 'textLength' | 'ocrConfidence' | 'ocrProcessingTime' | 'ocrErrorMessage' | 'ocrErrorCode' | 'ocrFallbackUsed' | 'ocrRetryable' | 'ocrProcessedAt' | 'searchableText' | 'ocrMaxRetries'&gt;;</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-23T06:48:30.612Z
+                at 2025-06-24T05:17:48.889Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

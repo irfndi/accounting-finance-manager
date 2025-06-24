@@ -16,9 +16,9 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"],
-      "@finance-manager/types": ["../../packages/types/src"],
-      "@finance-manager/db": ["../../packages/db/src"],
-      "@finance-manager/core": ["../../packages/core/src"]
+      "@finance-manager/types": ["@finance-manager/types"],
+      "@finance-manager/db": ["@finance-manager/db"],
+      "@finance-manager/core": ["@finance-manager/core"]
     }
   },
   "include": [

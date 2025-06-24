@@ -10,7 +10,7 @@ import {
   DoubleEntryError,
 } from '@finance-manager/core';
 import type { Currency } from '@finance-manager/types';
-import { authMiddleware, getCurrentUser } from '../../middleware/auth';
+import { authMiddleware } from '../../middleware/auth';
 import { FinancialAIService, createAIService } from '@finance-manager/ai';
 import { AppContext } from '../../types';
 
@@ -62,7 +62,7 @@ function validateCurrency(currency: string): string | null {
 // GET /transactions - List all transactions with enhanced functionality
 transactionsRouter.get('/', async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
 
@@ -179,7 +179,7 @@ transactionsRouter.get('/:id', async (c) => {
       );
     }
 
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
     const dbAdapter = new DatabaseAdapter({
@@ -283,7 +283,7 @@ transactionsRouter.post('/', async (c) => {
       return c.json({ error: currencyError, code: 'VALIDATION_ERROR' }, 400);
     }
 
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
     const dbAdapter = new DatabaseAdapter({
@@ -510,7 +510,7 @@ transactionsRouter.post('/', async (c) => {
 // GET /transactions/categorization-suggestions - Get all pending categorization suggestions
 transactionsRouter.get('/categorization-suggestions', async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
     const kvStore = c.env.FINANCE_MANAGER_CACHE;
@@ -542,7 +542,7 @@ transactionsRouter.get('/categorization-suggestions', async (c) => {
 // POST /transactions/categorization-suggestions/:suggestionId/apply - Apply a suggestion
 transactionsRouter.post('/categorization-suggestions/:suggestionId/apply', async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
     const suggestionId = c.req.param('suggestionId');
@@ -623,7 +623,7 @@ transactionsRouter.post('/categorization-suggestions/:suggestionId/apply', async
 // DELETE /transactions/categorization-suggestions/:suggestionId - Reject a suggestion
 transactionsRouter.delete('/categorization-suggestions/:suggestionId', async (c) => {
   try {
-    const user = getCurrentUser(c);
+    const user = c.get('user');
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
     const suggestionId = c.req.param('suggestionId');

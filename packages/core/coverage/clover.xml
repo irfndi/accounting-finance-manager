@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1750661312299" clover="3.2.0">
-  <project timestamp="1750661312299" name="All files">
-    <metrics statements="3604" coveredstatements="963" conditionals="63" coveredconditionals="49" methods="71" coveredmethods="23" elements="3738" coveredelements="1035" complexity="0" loc="3604" ncloc="3604" packages="2" files="7" classes="7"/>
+<coverage generated="1750742172325" clover="3.2.0">
+  <project timestamp="1750742172325" name="All files">
+    <metrics statements="3634" coveredstatements="963" conditionals="63" coveredconditionals="49" methods="71" coveredmethods="23" elements="3768" coveredelements="1035" complexity="0" loc="3634" ncloc="3634" packages="2" files="7" classes="7"/>
     <package name="src">
-      <metrics statements="2052" coveredstatements="98" conditionals="9" coveredconditionals="8" methods="8" coveredmethods="6"/>
+      <metrics statements="2082" coveredstatements="98" conditionals="9" coveredconditionals="8" methods="8" coveredmethods="6"/>
       <file name="financial-reports.ts" path="/Users/irfandi/Coding/2025/finance-manager/packages/core/src/financial-reports.ts">
         <metrics statements="104" coveredstatements="98" conditionals="8" coveredconditionals="8" methods="7" coveredmethods="6"/>
         <line num="1" count="1" type="stmt"/>
@@ -112,7 +112,7 @@
         <line num="104" count="1" type="stmt"/>
       </file>
       <file name="index.ts" path="/Users/irfandi/Coding/2025/finance-manager/packages/core/src/index.ts">
-        <metrics statements="1948" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <metrics statements="1978" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="1" count="0" type="cond" truecount="0" falsecount="1"/>
         <line num="2" count="0" type="stmt"/>
         <line num="3" count="0" type="stmt"/>
@@ -2061,6 +2061,36 @@
         <line num="1946" count="0" type="stmt"/>
         <line num="1947" count="0" type="stmt"/>
         <line num="1948" count="0" type="stmt"/>
+        <line num="1949" count="0" type="stmt"/>
+        <line num="1950" count="0" type="stmt"/>
+        <line num="1951" count="0" type="stmt"/>
+        <line num="1952" count="0" type="stmt"/>
+        <line num="1953" count="0" type="stmt"/>
+        <line num="1954" count="0" type="stmt"/>
+        <line num="1955" count="0" type="stmt"/>
+        <line num="1956" count="0" type="stmt"/>
+        <line num="1957" count="0" type="stmt"/>
+        <line num="1958" count="0" type="stmt"/>
+        <line num="1959" count="0" type="stmt"/>
+        <line num="1960" count="0" type="stmt"/>
+        <line num="1961" count="0" type="stmt"/>
+        <line num="1962" count="0" type="stmt"/>
+        <line num="1963" count="0" type="stmt"/>
+        <line num="1964" count="0" type="stmt"/>
+        <line num="1965" count="0" type="stmt"/>
+        <line num="1966" count="0" type="stmt"/>
+        <line num="1967" count="0" type="stmt"/>
+        <line num="1968" count="0" type="stmt"/>
+        <line num="1969" count="0" type="stmt"/>
+        <line num="1970" count="0" type="stmt"/>
+        <line num="1971" count="0" type="stmt"/>
+        <line num="1972" count="0" type="stmt"/>
+        <line num="1973" count="0" type="stmt"/>
+        <line num="1974" count="0" type="stmt"/>
+        <line num="1975" count="0" type="stmt"/>
+        <line num="1976" count="0" type="stmt"/>
+        <line num="1977" count="0" type="stmt"/>
+        <line num="1978" count="0" type="stmt"/>
       </file>
     </package>
     <package name="src.auth">
