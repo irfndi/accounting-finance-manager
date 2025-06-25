@@ -24,14 +24,13 @@ jobs:
   e2e-test:
     name: E2E Tests (${{ matrix.browser }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     container:
       image: mcr.microsoft.com/playwright:v1.53.1-jammy
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
-        shard: [1, 2]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -101,7 +100,7 @@ jobs:
         working-directory: apps/web
         run: |
           echo "Running E2E tests with ${{ matrix.browser }}..."
-          pnpm exec playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
+          pnpm exec playwright test --project=${{ matrix.browser }}
           echo "✓ E2E tests completed"
         env:
           PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
@@ -145,7 +144,7 @@ jobs:
   visual-regression:
     name: Visual Regression Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     container:
       image: mcr.microsoft.com/playwright:v1.53.1-jammy
     steps:
@@ -239,7 +238,7 @@ jobs:
   performance:
     name: Performance Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     container:
       image: mcr.microsoft.com/playwright:v1.53.1-jammy
     steps:
@@ -332,7 +331,7 @@ jobs:
   accessibility:
     name: Accessibility Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     container:
       image: mcr.microsoft.com/playwright:v1.53.1-jammy
     steps:
