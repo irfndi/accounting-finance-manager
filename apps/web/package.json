@@ -43,6 +43,7 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.48.0",
     "@tailwindcss/vite": "^4.1.10",
     "@types/node": "^22.10.8",
