@@ -32,3 +32,9 @@ coverage/
 
 test-result
 playwright-report
+coverage/
+
+# TypeScript compiled output
+worker/src/**/*.js
+worker/src/**/*.js.map
+worker/dist/

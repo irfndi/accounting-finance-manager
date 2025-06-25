@@ -16,6 +16,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "baseUrl": ".",
+    "outDir": "./dist",
+    "noEmit": false,
     "types": [
       "@cloudflare/workers-types"
     ],
