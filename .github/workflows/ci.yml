@@ -65,7 +65,8 @@ jobs:
       - name: Validate workspace
         run: |
           echo "Validating workspace configuration..."
-          pnpm -r exec pwd
+          echo "Current directory: $(pwd)"
+          echo "Package.json exists: $(test -f package.json && echo 'yes' || echo 'no')"
           echo "✓ Workspace validation complete"
 
       - name: Output cache key
@@ -187,9 +188,6 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     needs: setup
-    strategy:
-      matrix:
-        package: ['core', 'ai', 'db']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -223,35 +221,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build dependencies
-        timeout-minutes: 5
-        run: |
-          echo "Building package dependencies..."
-          pnpm -r --filter "./packages/${{ matrix.package }}^..." build
-
-      - name: Run tests for ${{ matrix.package }}
+      - name: Run unit tests
         timeout-minutes: 10
         run: |
-          echo "Running tests for ${{ matrix.package }}..."
-          cd packages/${{ matrix.package }}
+          echo "Running unit tests..."
           pnpm test
-          echo "✓ Tests passed for ${{ matrix.package }}"
+          echo "✓ Unit tests passed"
 
-      - name: Generate coverage for ${{ matrix.package }}
+      - name: Generate coverage
         timeout-minutes: 10
         run: |
-          echo "Generating coverage for ${{ matrix.package }}..."
-          cd packages/${{ matrix.package }}
-          pnpm test:coverage || echo "Coverage not configured for ${{ matrix.package }}"
+          echo "Generating test coverage..."
+          pnpm test:coverage
+          echo "✓ Coverage generated"
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: packages/${{ matrix.package }}/coverage
-          flags: ${{ matrix.package }}
-          name: ${{ matrix.package }}-coverage
+          directory: coverage
+          flags: unit-tests
+          name: unit-test-coverage
           fail_ci_if_error: false
 
   # ============================================================================
@@ -294,10 +285,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright browsers
+        run: |
+          echo "Installing Playwright browsers..."
+          pnpm test:e2e:install
+          echo "✓ Playwright browsers installed"
+
       - name: Build all packages
         timeout-minutes: 5
         run: |
-          echo "Building all packages..."
+          echo "Building application..."
           pnpm build
           echo "✓ Build complete"
 
@@ -305,7 +302,7 @@ jobs:
         timeout-minutes: 15
         run: |
           echo "Running integration tests..."
-          pnpm test:integration
+          pnpm test:e2e
           echo "✓ Integration tests passed"
 
   # ============================================================================

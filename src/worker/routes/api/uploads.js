@@ -174,7 +174,7 @@ uploads.post('/', async (c) => {
                                     void __db;
                                     // LLM data processing completed
                                 }
-                                catch (_dbError) {
+                                catch {
                                     // Database update failed, continue processing (non-critical)
                                 }
                                 // Generate document embeddings for semantic search
@@ -193,18 +193,18 @@ uploads.post('/', async (c) => {
                                     void __embeddingResult;
                                     // Embedding generation completed
                                 }
-                                catch (_embeddingError) {
+                                catch {
                                     // Continue with upload even if embedding generation fails (non-critical)
                                 }
                             }
                         }
-                        catch (_aiError) {
+                        catch {
                             // Continue with upload even if LLM processing fails (non-critical)
                         }
                     }
                 }
             }
-            catch (_error) {
+            catch {
                 // Continue with upload even if OCR fails (non-critical)
                 ocrResult = {
                     success: false,
@@ -723,7 +723,7 @@ uploads.get('/:fileId/metadata', async (c) => {
             data: metadata
         });
     }
-    catch (_error) {
+    catch {
         // Get metadata error occurred (non-critical)
         return c.json({
             success: false,
@@ -928,12 +928,12 @@ uploads.post('/:fileId/ocr', async (c) => {
                     customMetadata: updatedMetadata
                 });
             }
-            catch (_r2Error) {
+            catch {
                 // Failed to update R2 metadata (non-critical)
                 // Continue - database update was successful
             }
         }
-        catch (_dbError) {
+        catch {
             // Failed to update OCR results in database (fallback to R2)
             // Fallback to R2 metadata only
             try {
@@ -955,7 +955,7 @@ uploads.post('/:fileId/ocr', async (c) => {
                     customMetadata: updatedMetadata
                 });
             }
-            catch (_error) {
+            catch {
                 // Failed to update both database and R2 metadata (non-critical)
             }
         }
@@ -1093,7 +1093,7 @@ uploads.get('/:fileId/ocr', async (c) => {
             }
         });
     }
-    catch (_error) {
+    catch {
         // Get OCR error occurred (non-critical)
         return c.json({
             success: false,

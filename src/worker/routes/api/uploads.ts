@@ -220,7 +220,7 @@ uploads.post('/', async (c) => {
                   
                   
                   // LLM data processing completed
-                } catch (_dbError) {
+                } catch {
                   // Database update failed, continue processing
                 }
 

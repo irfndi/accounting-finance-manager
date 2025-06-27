@@ -32,7 +32,7 @@ const parseDate = (dateStr, defaultDate) => {
     return isNaN(parsed.getTime()) ? defaultDate : parsed;
 };
 // Financial calculation helpers
-async function calculateCashRatio(dbAdapter, entityId, asOfDate) {
+async function calculateCashRatio(dbAdapter, _entityId, _asOfDate) {
     try {
         // Get cash and cash equivalent accounts
         const cashAccounts = await dbAdapter.getAccountsByType('ASSET');
@@ -50,7 +50,7 @@ async function calculateCashRatio(dbAdapter, entityId, asOfDate) {
 async function calculateTimesInterestEarned(dbAdapter, entityId, asOfDate) {
     try {
         // Calculate EBIT (Earnings Before Interest and Taxes)
-        const startOfYear = new Date(asOfDate.getFullYear(), 0, 1);
+        const _startOfYear = new Date(asOfDate.getFullYear(), 0, 1);
         // Calculate net income, interest expense, and tax expense from account balances
         const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
         const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
@@ -70,7 +70,7 @@ async function calculateTimesInterestEarned(dbAdapter, entityId, asOfDate) {
 }
 async function calculateReturnOnAssets(dbAdapter, entityId, asOfDate) {
     try {
-        const startOfYear = new Date(asOfDate.getFullYear(), 0, 1);
+        const _startOfYear = new Date(asOfDate.getFullYear(), 0, 1);
         // Calculate net income and total assets from account balances
         const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
         const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
@@ -88,7 +88,7 @@ async function calculateReturnOnAssets(dbAdapter, entityId, asOfDate) {
 }
 async function calculateReturnOnEquity(dbAdapter, entityId, asOfDate) {
     try {
-        const startOfYear = new Date(asOfDate.getFullYear(), 0, 1);
+        const _startOfYear = new Date(asOfDate.getFullYear(), 0, 1);
         // Calculate net income and total equity from account balances
         const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
         const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
@@ -192,12 +192,12 @@ async function calculateReceivablesTurnover(dbAdapter, entityId, asOfDate) {
  */
 reportsRouter.get('/trial-balance', async (c) => {
     try {
-        const { entityId, reportsEngine } = c.var;
+        const { entityId, reportsEngine: _reportsEngine } = c.var;
         // Parse query parameters
         const asOfDateStr = c.req.query('asOfDate');
         const asOfDate = parseDate(asOfDateStr, new Date());
         // Generate trial balance
-        const trialBalance = await reportsEngine.generateTrialBalance(asOfDate, entityId);
+        const trialBalance = await _reportsEngine.generateTrialBalance(asOfDate, entityId);
         return c.json({
             success: true,
             data: {
@@ -275,7 +275,7 @@ reportsRouter.get('/balance-sheet', async (c) => {
  */
 reportsRouter.get('/income-statement', async (c) => {
     try {
-        const { reportsEngine, entityId } = c.var;
+        const { reportsEngine: _reportsEngine, entityId } = c.var;
         // Parse query parameters
         const startDateStr = c.req.query('startDate');
         const endDateStr = c.req.query('endDate');
@@ -287,7 +287,7 @@ reportsRouter.get('/income-statement', async (c) => {
         const startDate = parseDate(startDateStr, defaultStartDate);
         const endDate = parseDate(endDateStr, defaultEndDate);
         // Generate income statement
-        const incomeStatement = await reportsEngine.generateIncomeStatement(startDate, endDate, entityId);
+        const incomeStatement = await _reportsEngine.generateIncomeStatement(startDate, endDate, entityId);
         // Calculate additional metrics
         const grossRevenue = incomeStatement.revenue.total;
         const totalExpenses = incomeStatement.expenses.total;
@@ -332,7 +332,7 @@ reportsRouter.get('/income-statement', async (c) => {
  */
 reportsRouter.get('/cash-flow', async (c) => {
     try {
-        const { reportsEngine, entityId } = c.var;
+        const { reportsEngine: _reportsEngine, entityId } = c.var;
         // Parse query parameters
         const startDateStr = c.req.query('startDate');
         const endDateStr = c.req.query('endDate');
@@ -447,7 +447,7 @@ reportsRouter.get('/financial-metrics', async (c) => {
  */
 reportsRouter.get('/account-balance/:accountId', async (c) => {
     try {
-        const { reportsEngine, entityId } = c.var;
+        const { reportsEngine: _reportsEngine, entityId } = c.var;
         const accountId = parseInt(c.req.param('accountId'), 10);
         const asOfDateStr = c.req.query('asOfDate');
         const asOfDate = parseDate(asOfDateStr, new Date());
@@ -503,7 +503,7 @@ reportsRouter.get('/account-balance/:accountId', async (c) => {
  */
 reportsRouter.get('/summary', async (c) => {
     try {
-        const { reportsEngine, entityId } = c.var;
+        const { reportsEngine: _reportsEngine, entityId } = c.var;
         const today = new Date();
         // Get current month data
         const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -513,10 +513,10 @@ reportsRouter.get('/summary', async (c) => {
         const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
         // Generate reports in parallel
         const [balanceSheet, currentIncome, previousIncome, metrics] = await Promise.all([
-            reportsEngine.generateBalanceSheet(today, entityId),
-            reportsEngine.generateIncomeStatement(currentMonthStart, currentMonthEnd, entityId),
-            reportsEngine.generateIncomeStatement(previousMonthStart, previousMonthEnd, entityId),
-            reportsEngine.getFinancialMetrics(today)
+            _reportsEngine.generateBalanceSheet(today, entityId),
+            _reportsEngine.generateIncomeStatement(currentMonthStart, currentMonthEnd, entityId),
+            _reportsEngine.generateIncomeStatement(previousMonthStart, previousMonthEnd, entityId),
+            _reportsEngine.getFinancialMetrics(today)
         ]);
         // Calculate month-over-month changes
         const revenueChange = currentIncome.revenue.total - previousIncome.revenue.total;
@@ -580,14 +580,14 @@ reportsRouter.get('/summary', async (c) => {
  */
 reportsRouter.get('/export/balance-sheet', async (c) => {
     try {
-        const { reportsEngine, entityId } = c.var;
+        const { reportsEngine: _reportsEngine, entityId } = c.var;
         // Parse query parameters
         const asOfDateStr = c.req.query('asOfDate');
         const format = c.req.query('format') || 'csv'; // csv, pdf, excel
         const asOfDate = parseDate(asOfDateStr, new Date());
         // Generate balance sheet data
-        const balanceSheet = await reportsEngine.generateBalanceSheet(asOfDate, entityId);
-        const metrics = await reportsEngine.getFinancialMetrics(asOfDate);
+        const balanceSheet = await _reportsEngine.generateBalanceSheet(asOfDate, entityId);
+        const metrics = await _reportsEngine.getFinancialMetrics(asOfDate);
         const formatDate = (date) => date.toISOString().split('T')[0];
         const user = c.get('user');
         switch (format.toLowerCase()) {
@@ -770,7 +770,7 @@ reportsRouter.get('/export/balance-sheet', async (c) => {
  */
 reportsRouter.get('/export/income-statement', async (c) => {
     try {
-        const { reportsEngine, entityId } = c.var;
+        const { reportsEngine: _reportsEngine, entityId } = c.var;
         // Parse query parameters
         const startDateStr = c.req.query('startDate');
         const endDateStr = c.req.query('endDate');
@@ -782,7 +782,7 @@ reportsRouter.get('/export/income-statement', async (c) => {
         const startDate = parseDate(startDateStr, defaultStartDate);
         const endDate = parseDate(endDateStr, defaultEndDate);
         // Generate income statement
-        const incomeStatement = await reportsEngine.generateIncomeStatement(startDate, endDate, entityId);
+        const incomeStatement = await _reportsEngine.generateIncomeStatement(startDate, endDate, entityId);
         const formatDate = (date) => date.toISOString().split('T')[0];
         const user = c.get('user');
         switch (format.toLowerCase()) {
@@ -881,13 +881,13 @@ reportsRouter.get('/export/income-statement', async (c) => {
  */
 reportsRouter.get('/export/trial-balance', async (c) => {
     try {
-        const { reportsEngine, entityId } = c.var;
+        const { reportsEngine: _reportsEngine, entityId } = c.var;
         // Parse query parameters
         const asOfDateStr = c.req.query('asOfDate');
         const format = c.req.query('format') || 'csv';
         const asOfDate = parseDate(asOfDateStr, new Date());
         // Generate trial balance
-        const trialBalance = await reportsEngine.generateTrialBalance(asOfDate, entityId);
+        const trialBalance = await _reportsEngine.generateTrialBalance(asOfDate, entityId);
         const formatDate = (date) => date.toISOString().split('T')[0];
         const user = c.get('user');
         switch (format.toLowerCase()) {

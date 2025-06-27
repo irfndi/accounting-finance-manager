@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types'
+import type { D1Database } from '@cloudflare/workers-types'
 
 import { 
   DatabaseAdapter, 
@@ -25,7 +25,7 @@ function handleAccountingError(error: unknown) {
 }
 import type { AccountType, NormalBalance, Account as CoreAccount } from '../../../types/index.js'
 import { authMiddleware } from '../../middleware/auth'
-import type { AppContext, Env } from '../../types'
+import type { AppContext } from '../../types'
 
 
 

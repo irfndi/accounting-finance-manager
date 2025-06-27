@@ -57,7 +57,7 @@ notificationsRouter.post('/send-bulk', authMiddleware, zValidator('json', sendBu
         const emailService = createEmailService(c.env);
         const bulkData = c.req.valid('json');
         const results = [];
-        const errors = [];
+        const _errors = [];
         // Process emails in batches to avoid overwhelming SES
         const batchSize = 10;
         for (let i = 0; i < bulkData.recipients.length; i += batchSize) {
@@ -312,7 +312,7 @@ Description: ${transaction.description || 'N/A'}
     };
 }
 function generateBudgetWarningEmail(data) {
-    const { budget, currentAmount, threshold } = data;
+    const { budget, currentAmount, threshold: _threshold } = data;
     const percentage = Math.round((currentAmount / budget.amount) * 100);
     return {
         subject: `Budget Warning: ${budget.name} at ${percentage}% of limit`,
