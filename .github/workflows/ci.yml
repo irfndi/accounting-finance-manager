@@ -67,7 +67,7 @@ jobs:
 
       - name: Output cache key
         id: cache-output
-        run: echo "cache-key=${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+        run: echo "cache-key=${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
 
   # ============================================================================
   # CODE QUALITY

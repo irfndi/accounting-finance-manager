@@ -94,7 +94,7 @@ jobs:
 
       - name: Setup cache key
         id: cache
-        run: echo "cache-key=${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+        run: echo "cache-key=${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
 
   # ============================================================================
   # BUILD FOR DEPLOYMENT
