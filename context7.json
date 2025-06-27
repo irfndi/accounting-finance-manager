@@ -1,0 +1,15 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Accounting & Finance Manager",
+  "description": "Accounting & Finance Manager is a system that can manage accounting and finance data with help AI features to easy to use by end user",
+  "folders": ["src","script","migrations"],
+  "excludeFolders": [".temporary-code"],
+  "excludeFiles": [],
+  "rules": ["Use Cloudflare Workers" , "D1, KV, R2 as a database","Prioritize use cloudflare features as needs", "Use single workers set up", "Use Makefiles for automated script on local/CI"],
+  "previousVersions": [
+    {
+      "tag": "v1.0.0",
+      "title": "version 1.0.0"
+    }
+  ]
+}

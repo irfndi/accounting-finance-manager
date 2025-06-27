@@ -3,6 +3,7 @@ description: Comprehensive reference for Taskmaster MCP tools and CLI commands.
 globs: **/*
 alwaysApply: true
 ---
+
 # Taskmaster Tool & Command Reference
 
 This document provides a detailed reference for interacting with Taskmaster, covering both the recommended MCP tools, suitable for integrations like Roo Code, and the corresponding `task-master` CLI commands, designed for direct user interaction or fallback.
@@ -554,4 +555,4 @@ Environment variables are used **only** for sensitive API keys related to AI pro
 
 ---
 
-For details on how these commands fit into the development process, see the [Development Workflow Guide](mdc:.roo/rules/dev_workflow.md).
+For details on how these commands fit into the development process, see the [dev_workflow.md](.roo/rules/dev_workflow.md).

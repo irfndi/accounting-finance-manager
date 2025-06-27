@@ -83,7 +83,7 @@ jobs:
             echo "🚀 Manual deployment requested"
           else
             # Check if there were changes to deployable code
-            if git diff --quiet HEAD~1 -- worker/ packages/ apps/web/ || [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            if git diff --quiet HEAD~1 -- src/ || [[ "${{ github.ref }}" == refs/tags/v* ]]; then
               echo "should-deploy=true" >> $GITHUB_OUTPUT
               echo "✅ Deployment changes detected"
             else
@@ -134,34 +134,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
+      - name: Build application
         run: |
-          echo "🔨 Building packages for deployment..."
-          pnpm -r --filter "./packages/*" build
-          echo "✅ Packages built successfully"
-
-      - name: Build web application
-        run: |
-          echo "🔨 Building web application..."
-          cd apps/web
+          echo "🔨 Building application for deployment..."
           pnpm build
-          echo "✅ Web application built successfully"
-
-      - name: Build worker
-        run: |
-          echo "🔨 Building worker..."
-          cd worker
-          pnpm build
-          echo "✅ Worker built successfully"
+          echo "✅ Application built successfully"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
-            packages/*/dist/
-            apps/web/dist/
-            worker/dist/
+            dist/
+            functions/
           retention-days: 7
 
   # ============================================================================
@@ -213,8 +198,7 @@ jobs:
       - name: Deploy to Cloudflare Workers (Staging)
         run: |
           echo "🚀 Deploying to staging environment..."
-          cd worker
-          pnpm wrangler deploy --env staging --compatibility-date 2024-12-20
+          pnpm deploy --env staging
           echo "✅ Staging deployment completed"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -284,8 +268,7 @@ jobs:
       - name: Deploy to Cloudflare Workers (Production)
         run: |
           echo "🚀 Deploying to production environment..."
-          cd worker
-          pnpm wrangler deploy --env production --compatibility-date 2024-12-20
+          pnpm deploy --env production
           echo "✅ Production deployment completed"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -356,8 +339,7 @@ jobs:
       - name: Rollback deployment
         run: |
           echo "🔄 Rolling back deployment..."
-          cd worker
-          pnpm wrangler deploy --env ${{ needs.prepare.outputs.environment }} --compatibility-date 2024-12-20
+          pnpm deploy --env ${{ needs.prepare.outputs.environment }}
           echo "✅ Rollback completed"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Alert</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: #dc2626;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+        .header.warning {
+            background: #f59e0b;
+        }
+        .content {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+        .budget-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #dc2626;
+        }
+        .budget-details.warning {
+            border-left-color: #f59e0b;
+        }
+        .progress-bar {
+            background: #e5e7eb;
+            border-radius: 10px;
+            height: 20px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #dc2626;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .progress-fill.warning {
+            background: #f59e0b;
+        }
+        .amount {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header {{alertType}}">
+        <h1>🚨 Budget Alert</h1>
+        <p>{{alertTitle}}</p>
+    </div>
+    
+    <div class="content">
+        <p>Hello,</p>
+        
+        <p>{{alertMessage}}</p>
+        
+        <div class="budget-details {{alertType}}">
+            <h3>Budget Overview</h3>
+            <p><strong>Budget Category:</strong> {{budgetCategory}}</p>
+            <p><strong>Budget Period:</strong> {{budgetPeriod}}</p>
+            <p><strong>Budget Limit:</strong> <span class="amount">{{budgetLimit}}</span></p>
+            <p><strong>Current Spending:</strong> <span class="amount">{{currentSpending}}</span></p>
+            <p><strong>Remaining:</strong> <span class="amount">{{remaining}}</span></p>
+            
+            <div class="progress-bar">
+                <div class="progress-fill {{alertType}}" style="width: {{progressPercentage}}%"></div>
+            </div>
+            <p style="text-align: center; margin: 5px 0;"><strong>{{progressPercentage}}% of budget used</strong></p>
+        </div>
+        
+        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #92400e;">💡 Recommendations:</h4>
+            <ul style="color: #92400e; margin-bottom: 0;">
+                <li>Review recent transactions in this category</li>
+                <li>Consider adjusting spending for the remainder of the period</li>
+                <li>Evaluate if budget limits need to be updated</li>
+                {{#if hasUpcomingExpenses}}
+                <li>Account for any upcoming planned expenses</li>
+                {{/if}}
+            </ul>
+        </div>
+        
+        <p>You can view detailed budget reports and transaction history in your Finance Manager dashboard.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Finance Manager System | Budget Monitoring</p>
+        <p>This alert was sent to {{recipientEmail}}</p>
+        <p style="font-size: 12px; margin-top: 10px;">To modify alert settings, please contact your system administrator.</p>
+    </div>
+</body>
+</html>

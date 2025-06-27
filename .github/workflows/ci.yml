@@ -157,26 +157,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check packages
+      - name: Type check application
         timeout-minutes: 5
         run: |
-          echo "Type checking packages..."
-          pnpm -r --filter "./packages/*" exec tsc --noEmit --skipLibCheck
-          echo "✓ Package type checking passed"
+          echo "Type checking application..."
+          pnpm typecheck
+          echo "✓ Application type checking passed"
 
-      - name: Type check worker
+      - name: Astro check
         timeout-minutes: 5
         run: |
-          echo "Type checking worker..."
-          cd worker && pnpm exec tsc --noEmit --skipLibCheck
-          echo "✓ Worker type checking passed"
-
-      - name: Type check web app
-        timeout-minutes: 5
-        run: |
-          echo "Type checking web app..."
-          cd apps/web && pnpm exec astro check
-          echo "✓ Web app type checking passed"
+          echo "Running Astro check..."
+          pnpm exec astro check
+          echo "✓ Astro check passed"
 
   # ============================================================================
   # UNIT TESTING
@@ -293,12 +286,12 @@ jobs:
           pnpm build
           echo "✓ Build complete"
 
-      - name: Start Miniflare for testing
-        timeout-minutes: 10
+      - name: Run integration tests
+        timeout-minutes: 15
         run: |
-          echo "Starting Miniflare for integration tests..."
-          cd worker
-          pnpm test || echo "Integration tests not yet implemented"
+          echo "Running integration tests..."
+          pnpm test:integration
+          echo "✓ Integration tests passed"
 
   # ============================================================================
   # BUILD VALIDATION
@@ -337,28 +330,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
-        timeout-minutes: 5
+      - name: Run unit tests
+        timeout-minutes: 10
         run: |
-          echo "Building packages..."
-          pnpm -r --filter "./packages/*" build
-          echo "✓ Packages built successfully"
+          echo "Running unit tests..."
+          pnpm test
+          echo "✓ Unit tests passed"
 
-      - name: Build web application
-        timeout-minutes: 5
+      - name: Build application
+        timeout-minutes: 15
         run: |
-          echo "Building web application..."
-          cd apps/web
+          echo "Building application..."
           pnpm build
-          echo "✓ Web application built successfully"
-
-      - name: Build worker
-        timeout-minutes: 5
-        run: |
-          echo "Building worker..."
-          cd worker
-          pnpm build
-          echo "✓ Worker built successfully"
+          echo "✓ Application built successfully"
 
       - name: Verify build artifacts
         run: |

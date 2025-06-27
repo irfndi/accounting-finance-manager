@@ -73,17 +73,16 @@ jobs:
       - name: Start preview server
         run: |
           echo "Starting preview server..."
-          cd apps/web
-          pnpm preview > ../../preview.log 2>&1 &
+          pnpm preview > preview.log 2>&1 &
           PREVIEW_PID=$!
-          echo $PREVIEW_PID > ../../preview.pid
+          echo $PREVIEW_PID > preview.pid
           echo "Preview server started with PID: $PREVIEW_PID"
           
           # Wait for server to be ready
           echo "Waiting for server to be ready..."
           for i in {1..60}; do
-            if curl -f http://localhost:3000 >/dev/null 2>&1; then
-              echo "✓ Preview server is ready at http://localhost:3000"
+            if curl -f http://localhost:4321 >/dev/null 2>&1; then
+              echo "✓ Preview server is ready at http://localhost:4321"
               break
             fi
             echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
@@ -91,20 +90,19 @@ jobs:
             if [ $i -eq 60 ]; then
               echo "❌ Server failed to start within 120 seconds"
               echo "Preview server logs:"
-              cat ../../preview.log || echo "No logs available"
+              cat preview.log || echo "No logs available"
               exit 1
             fi
           done
 
       - name: Run Playwright tests
-        working-directory: apps/web
         run: |
-          echo "Running E2E tests with ${{ matrix.browser }}..."
+          echo "Running E2E tests..."
           pnpm exec playwright test --project=${{ matrix.browser }}
           echo "✓ E2E tests completed"
         env:
           PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
-          BASE_URL: http://localhost:3000
+          BASE_URL: http://localhost:4321
           CI: true
           HOME: /root
 
@@ -125,18 +123,18 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-results-${{ matrix.browser }}-${{ matrix.shard }}
+          name: e2e-results-${{ matrix.browser }}
           path: |
-            apps/web/test-results/
-            apps/web/playwright-report/
+            test-results/
+            playwright-report/
           retention-days: 7
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: e2e-screenshots-${{ matrix.browser }}-${{ matrix.shard }}
-          path: apps/web/test-results/
+          name: e2e-screenshots-${{ matrix.browser }}
+          path: test-results/
           retention-days: 7
 
   # ============================================================================
@@ -184,13 +182,12 @@ jobs:
       # Server will be started automatically by Playwright webServer configuration
 
       - name: Run visual regression tests
-        working-directory: apps/web
         run: |
           echo "Running visual regression tests..."
           pnpm exec playwright test --project=visual-regression --grep="@visual"
           echo "✓ Visual regression tests completed"
         env:
-          BASE_URL: http://localhost:3000
+          BASE_URL: http://localhost:4321
           CI: true
           HOME: /root
 
@@ -202,8 +199,8 @@ jobs:
         with:
           name: visual-regression-diffs
           path: |
-            apps/web/test-results/
-            apps/web/visual-diffs/
+            test-results/
+            visual-diffs/
           retention-days: 7
 
   # ============================================================================
@@ -259,7 +256,7 @@ jobs:
           echo $DEV_PID > dev.pid
           # Wait for server to be ready
           for i in {1..60}; do
-            if curl -f http://localhost:3000/health >/dev/null 2>&1 || curl -f http://localhost:3000 >/dev/null 2>&1; then
+            if curl -f http://localhost:4321/health >/dev/null 2>&1 || curl -f http://localhost:4321 >/dev/null 2>&1; then
               echo "✓ Development server is ready"
               break
             fi
