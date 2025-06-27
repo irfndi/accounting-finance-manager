@@ -1,3 +1,6 @@
+packages:
+  - '.'
+
 overrides:
   undici@>=4.5.0 <5.28.5: '>=5.28.5'
   dompurify@<3.2.4: '>=3.2.4'
