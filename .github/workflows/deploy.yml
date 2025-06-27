@@ -62,8 +62,8 @@ jobs:
           echo "🎯 Deploying to: $ENVIRONMENT"
 
       - name: Generate version
-         id: version
-         run: |
+        id: version
+        run: |
            if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
              VERSION="${{ github.ref_name }}"
            else
