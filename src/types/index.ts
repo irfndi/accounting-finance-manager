@@ -174,6 +174,25 @@ export interface BalanceSheet {
   currency: Currency;
 }
 
+export interface FinancialReportsBalanceSheet {
+  asOfDate: string;
+  entityId: string;
+  assets: {
+    current: AccountBalance[];
+    nonCurrent: AccountBalance[];
+    total: number;
+  };
+  liabilities: {
+    current: AccountBalance[];
+    nonCurrent: AccountBalance[];
+    total: number;
+  };
+  equity: {
+    accounts: AccountBalance[];
+    total: number;
+  };
+}
+
 export interface IncomeStatement {
   revenues: AccountBalance[];
   expenses: AccountBalance[];

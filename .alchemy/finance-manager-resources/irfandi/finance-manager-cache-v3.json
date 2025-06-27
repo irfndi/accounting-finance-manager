@@ -1,0 +1,25 @@
+{
+  "kind": "cloudflare::KVNamespace",
+  "id": "finance-manager-cache-v3",
+  "fqn": "finance-manager-resources/irfandi/finance-manager-cache-v3",
+  "seq": 0,
+  "data": {},
+  "status": "updated",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+    "Symbol(alchemy::ResourceID)": "finance-manager-cache-v3",
+    "Symbol(alchemy::ResourceFQN)": "finance-manager-resources/irfandi/finance-manager-cache-v3",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 0,
+    "type": "kv_namespace",
+    "namespaceId": "83425d4749cb4fd090cf6b0cbfb3f6b4",
+    "title": "finance-manager-cache-v3",
+    "createdAt": 1751013581764,
+    "modifiedAt": 1751013696528
+  },
+  "props": {
+    "title": "finance-manager-cache-v3"
+  }
+}

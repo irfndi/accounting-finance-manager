@@ -144,7 +144,7 @@ budgetsRouter.get('/periods', async (c) => {
       : await baseQuery.orderBy(desc(budgetPeriods.fiscalYear), desc(budgetPeriods.startDate))
     
     return c.json({ periods: result })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching budget periods:', error)
     return c.json({ 
       error: 'Failed to fetch budget periods', 
@@ -200,7 +200,7 @@ budgetsRouter.post('/periods', async (c) => {
       message: 'Budget period created successfully',
       period: result[0]
     }, 201)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating budget period:', error)
     return c.json({ 
       error: 'Failed to create budget period', 
@@ -274,7 +274,7 @@ budgetsRouter.get('/', async (c) => {
     }
     
     return c.json({ budgets: result })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching budgets:', error)
     return c.json({ 
       error: 'Failed to fetch budgets', 
@@ -334,7 +334,7 @@ budgetsRouter.get('/:id', async (c) => {
         revisions
       }
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching budget:', error)
     return c.json({ 
       error: 'Failed to fetch budget', 
@@ -397,7 +397,7 @@ budgetsRouter.post('/', async (c) => {
       message: 'Budget created successfully',
       budget: result[0]
     }, 201)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating budget:', error)
     return c.json({ 
       error: 'Failed to create budget', 
@@ -500,7 +500,7 @@ budgetsRouter.put('/:id', async (c) => {
       message: 'Budget updated successfully',
       budget: result[0]
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating budget:', error)
     return c.json({ 
       error: 'Failed to update budget', 
@@ -550,7 +550,7 @@ budgetsRouter.delete('/:id', async (c) => {
     return c.json({ 
       message: 'Budget deleted successfully'
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error deleting budget:', error)
     return c.json({ 
       error: 'Failed to delete budget', 
@@ -628,7 +628,7 @@ budgetsRouter.post('/:id/allocations', async (c) => {
       message: 'Budget allocation created successfully',
       allocation: result[0]
     }, 201)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating budget allocation:', error)
     return c.json({ 
       error: 'Failed to create budget allocation', 
@@ -690,7 +690,7 @@ budgetsRouter.get('/summary', async (c) => {
       budgetSummary,
       allocationSummary
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching budget summary:', error)
     return c.json({ 
       error: 'Failed to fetch budget summary', 

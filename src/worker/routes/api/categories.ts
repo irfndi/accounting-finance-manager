@@ -130,7 +130,7 @@ categoriesRouter.get('/', async (c) => {
     }
     
     return c.json({ categories: result })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching categories:', error)
     return c.json({ 
       error: 'Failed to fetch categories', 
@@ -178,7 +178,7 @@ categoriesRouter.get('/:id', async (c) => {
         stats
       }
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching category:', error)
     return c.json({ 
       error: 'Failed to fetch category', 
@@ -260,7 +260,7 @@ categoriesRouter.post('/', async (c) => {
       message: 'Category created successfully',
       category: result[0]
     }, 201)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating category:', error)
     return c.json({ 
       error: 'Failed to create category', 
@@ -361,7 +361,7 @@ categoriesRouter.put('/:id', async (c) => {
       message: 'Category updated successfully',
       category: result[0]
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating category:', error)
     return c.json({ 
       error: 'Failed to update category', 
@@ -427,7 +427,7 @@ categoriesRouter.delete('/:id', async (c) => {
     return c.json({ 
       message: 'Category deleted successfully'
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error deleting category:', error)
     return c.json({ 
       error: 'Failed to delete category', 
@@ -485,7 +485,7 @@ categoriesRouter.get('/tree', async (c) => {
     const tree = rootCategories.map(id => categoryMap.get(id))
     
     return c.json({ tree })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching category tree:', error)
     return c.json({ 
       error: 'Failed to fetch category tree', 

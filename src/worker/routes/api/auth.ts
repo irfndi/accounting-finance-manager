@@ -109,6 +109,7 @@ authRouter.post('/register', async (c) => {
     }, 201);
   } catch (error) {
     // Registration error occurred
+    console.error('Registration error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Registration error occurred
     return c.json({ error: 'Registration failed', message: errorMessage }, 500);
@@ -161,6 +162,7 @@ authRouter.post('/login', async (c) => {
       expiresIn: sessionDuration,
     });
   } catch (error) {
+    console.error('Login error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Login error occurred
     return c.json({ error: 'Login failed', message: errorMessage }, 500);
@@ -210,6 +212,7 @@ authRouter.put('/profile', authMiddleware, async (c) => {
       user: { id: updatedUser.id, email: updatedUser.email, name: updatedUser.displayName, emailVerified: updatedUser.emailVerified, updatedAt: updatedUser.updatedAt },
     });
   } catch (error) {
+    console.error('Profile update error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Profile update error occurred
     return c.json({ error: 'Profile update failed', message: errorMessage }, 500);
@@ -256,6 +259,7 @@ authRouter.put('/password', authMiddleware, async (c) => {
     // Password change successful
     return c.json({ message: 'Password updated successfully' });
   } catch (error) {
+    console.error('Password change error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Password change error occurred
     return c.json({ error: 'Password change failed', message: errorMessage }, 500);

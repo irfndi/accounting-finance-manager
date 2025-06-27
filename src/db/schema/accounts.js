@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
-import { z } from "zod";
+
 import { createInsertSchema } from "drizzle-zod";
 /**
  * Chart of Accounts - Core financial accounts structure

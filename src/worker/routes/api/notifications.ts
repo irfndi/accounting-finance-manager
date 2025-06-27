@@ -67,7 +67,6 @@ notificationsRouter.post('/send-bulk', authMiddleware, zValidator('json', sendBu
     const bulkData = c.req.valid('json');
     
     const results = [];
-    const errors = [];
     
     // Process emails in batches to avoid overwhelming SES
     const batchSize = 10;
@@ -106,6 +105,7 @@ notificationsRouter.post('/send-bulk', authMiddleware, zValidator('json', sendBu
             error: result.error
           };
         } catch (error) {
+          console.error('Error sending email to recipient:', error instanceof Error ? error.message : String(error));
           return {
             email: recipient.email,
             success: false,
@@ -349,7 +349,7 @@ Description: ${transaction.description || 'N/A'}
 }
 
 function generateBudgetWarningEmail(data: any) {
-  const { budget, currentAmount, threshold } = data;
+  const { budget, currentAmount } = data;
   const percentage = Math.round((currentAmount / budget.amount) * 100);
   
   return {

@@ -8,7 +8,21 @@ import {
   getNormalBalance,
   formatCurrency,
   AccountingValidationError
-} from '../../../lib/index.js'
+} from '../../../lib/index.worker'
+
+// Helper function to handle error responses
+function handleAccountingError(error: unknown) {
+  if (error instanceof AccountingValidationError) {
+    const validationError = error as AccountingValidationError;
+    return {
+      error: validationError.message,
+      code: validationError.code,
+      details: validationError.details,
+      accountingError: true
+    };
+  }
+  return null;
+}
 import type { AccountType, NormalBalance, Account as CoreAccount } from '../../../types/index.js'
 import { authMiddleware } from '../../middleware/auth'
 import type { AppContext, Env } from '../../types'
@@ -124,18 +138,18 @@ accounts.get('/', async (c) => {
     // Apply additional filters
     if (active !== undefined) {
       const isActive = active === 'true'
-      allAccounts = allAccounts.filter(account => account.isActive === isActive)
+      allAccounts = allAccounts.filter((account: CoreAccount) => account.isActive === isActive)
     }
     
     if (parent) {
       const parentId = Number.parseInt(parent, 10)
       if (!Number.isNaN(parentId)) {
-        allAccounts = allAccounts.filter(account => account.parentId === parentId)
+        allAccounts = allAccounts.filter((account: CoreAccount) => account.parentId === parentId)
       }
     }
     
     // Enhance response with accounting information
-    const enhancedAccounts = allAccounts.map(account => ({
+    const enhancedAccounts = allAccounts.map((account: CoreAccount) => ({
       ...account,
       normalBalance: getNormalBalance(account.type),
       formattedBalance: account.currentBalance ? formatCurrency(account.currentBalance, 'USD') : null,
@@ -157,17 +171,14 @@ accounts.get('/', async (c) => {
         supportedCurrencies: FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES
       }
     })
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Error fetching accounts:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     // Error fetching accounts
     
-    if (error instanceof AccountingValidationError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true
-      }, 400)
+    const accountingError = handleAccountingError(error);
+    if (accountingError) {
+      return c.json(accountingError, 400);
     }
     
     return c.json({
@@ -204,14 +215,14 @@ accounts.get('/:id', async (c) => {
     }
     
     // Get children accounts if this is a parent
-    const childAccounts = accountRegistry.getAllAccounts().filter(acc => acc.parentId === accountId)
+    const childAccounts = accountRegistry.getAllAccounts().filter((acc: CoreAccount) => acc.parentId === accountId)
     
     // Enhanced account information
     const enhancedAccount = {
       ...account,
       normalBalance: getNormalBalance(account.type),
       formattedBalance: account.currentBalance ? formatCurrency(account.currentBalance, 'USD') : null,
-      children: childAccounts.map(child => ({
+      children: childAccounts.map((child: CoreAccount) => ({
         id: child.id,
         code: child.code,
         name: child.name,
@@ -232,17 +243,14 @@ accounts.get('/:id', async (c) => {
     return c.json({
       account: enhancedAccount
     })
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Error fetching account:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     // Error fetching account
     
-    if (error instanceof AccountingValidationError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true
-      }, 400)
+    const accountingError = handleAccountingError(error);
+    if (accountingError) {
+      return c.json(accountingError, 400);
     }
     
     return c.json({
@@ -283,7 +291,7 @@ accounts.post('/', async (c) => {
     
     // Check if account code already exists using account registry
     const existingAccounts = accountRegistry.getAllAccounts()
-    const duplicateAccount = existingAccounts.find(acc => acc.code === body.code)
+    const duplicateAccount = existingAccounts.find((acc: CoreAccount) => acc.code === body.code)
     if (duplicateAccount) {
       return c.json({
         error: 'Account code already exists',
@@ -353,17 +361,14 @@ accounts.post('/', async (c) => {
       },
       message: 'Account created successfully'
     }, 201)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Error creating account:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     // Error creating account
     
-    if (error instanceof AccountingValidationError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true
-      }, 400)
+    const accountingError = handleAccountingError(error);
+    if (accountingError) {
+      return c.json(accountingError, 400);
     }
     
     return c.json({
@@ -442,17 +447,11 @@ accounts.put('/:id', async (c) => {
       message: 'Account updated successfully',
       account: updatedAccount,
     });
-  } catch (error) {
-    if (error instanceof AccountingValidationError) {
-      return c.json(
-        {
-          error: error.message,
-          code: error.code,
-          details: error.details,
-          accountingError: true,
-        },
-        400
-      );
+  } catch (error: unknown) {
+    console.error('Error updating account:', error instanceof Error ? error.message : String(error));
+    const accountingError = handleAccountingError(error);
+    if (accountingError) {
+      return c.json(accountingError, 400);
     }
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

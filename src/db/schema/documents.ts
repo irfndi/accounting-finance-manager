@@ -1,5 +1,5 @@
 import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
-import { createInsertSchema } from "drizzle-zod";
+// import { createInsertSchema } from "drizzle-zod"; // TODO: Fix compatibility issue
 import { z } from "zod";
 
 /**
@@ -81,23 +81,31 @@ export const DocumentType = {
 } as const;
 
 // Schema validation
-export const insertRawDocSchema = createInsertSchema(rawDocs, {
+export const insertRawDocSchema = z.object({
   fileId: z.string().min(1).max(50),
   originalName: z.string().min(1).max(255),
   mimeType: z.string().min(1).max(100),
   fileSize: z.number().positive(),
   ocrStatus: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED"]),
   ocrConfidence: z.number().min(0).max(1).optional(),
-  uploadedBy: z.string().min(1)
+  uploadedBy: z.string().min(1),
+  // Optional fields that can be provided during insert
+  extractedText: z.string().optional(),
+  textLength: z.number().optional(),
+  ocrProcessingTime: z.number().optional(),
+  ocrErrorMessage: z.string().optional(),
+  ocrErrorCode: z.string().optional(),
+  ocrFallbackUsed: z.boolean().optional(),
+  ocrRetryable: z.boolean().optional(),
+  ocrProcessedAt: z.date().optional(),
+  searchableText: z.string().optional(),
+  ocrMaxRetries: z.number().optional()
 });
 
 
 
 export const updateRawDocSchema = insertRawDocSchema.partial().omit({ 
-  id: true, 
-  fileId: true, 
-  createdAt: true,
-  createdBy: true
+  fileId: true
 });
 
 // Types

@@ -175,7 +175,7 @@ uploads.post('/', async (c) => {
                                     // LLM data processing completed
                                 }
                                 catch (_dbError) {
-                                    // Database update failed, continue processing
+                                    // Database update failed, continue processing (non-critical)
                                 }
                                 // Generate document embeddings for semantic search
                                 try {
@@ -194,18 +194,18 @@ uploads.post('/', async (c) => {
                                     // Embedding generation completed
                                 }
                                 catch (_embeddingError) {
-                                    // Continue with upload even if embedding generation fails
+                                    // Continue with upload even if embedding generation fails (non-critical)
                                 }
                             }
                         }
                         catch (_aiError) {
-                            // Continue with upload even if LLM processing fails
+                            // Continue with upload even if LLM processing fails (non-critical)
                         }
                     }
                 }
             }
-            catch (error) {
-                // Continue with upload even if OCR fails
+            catch (_error) {
+                // Continue with upload even if OCR fails (non-critical)
                 ocrResult = {
                     success: false,
                     error: 'OCR processing failed but file was uploaded successfully',
@@ -459,6 +459,7 @@ uploads.get('/:fileId', async (c) => {
     }
     catch (error) {
         // Download error occurred
+        console.error('Download error:', error);
         return c.json({
             success: false,
             error: 'Internal server error during download'
@@ -534,6 +535,7 @@ uploads.delete('/:fileId', async (c) => {
     }
     catch (error) {
         // Delete error occurred
+        console.error('Delete error:', error);
         return c.json({
             success: false,
             error: 'Internal server error during deletion'
@@ -722,7 +724,7 @@ uploads.get('/:fileId/metadata', async (c) => {
         });
     }
     catch (_error) {
-        // Get metadata error occurred
+        // Get metadata error occurred (non-critical)
         return c.json({
             success: false,
             error: 'Internal server error while getting metadata'
@@ -926,13 +928,13 @@ uploads.post('/:fileId/ocr', async (c) => {
                     customMetadata: updatedMetadata
                 });
             }
-            catch (r2Error) {
-                // Failed to update R2 metadata
+            catch (_r2Error) {
+                // Failed to update R2 metadata (non-critical)
                 // Continue - database update was successful
             }
         }
-        catch (dbError) {
-            // Failed to update OCR results in database
+        catch (_dbError) {
+            // Failed to update OCR results in database (fallback to R2)
             // Fallback to R2 metadata only
             try {
                 const existingMetadata = { ...object.customMetadata };
@@ -953,8 +955,8 @@ uploads.post('/:fileId/ocr', async (c) => {
                     customMetadata: updatedMetadata
                 });
             }
-            catch (error) {
-                // Failed to update both database and R2 metadata
+            catch (_error) {
+                // Failed to update both database and R2 metadata (non-critical)
             }
         }
         return c.json({
@@ -978,6 +980,7 @@ uploads.post('/:fileId/ocr', async (c) => {
     }
     catch (error) {
         // OCR processing error occurred
+        console.error('OCR processing error:', error);
         return c.json({
             success: false,
             error: 'Internal server error during OCR processing'
@@ -1091,7 +1094,7 @@ uploads.get('/:fileId/ocr', async (c) => {
         });
     }
     catch (_error) {
-        // Get OCR error occurred
+        // Get OCR error occurred (non-critical)
         return c.json({
             success: false,
             error: 'Internal server error while getting OCR results'

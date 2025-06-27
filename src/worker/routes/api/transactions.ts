@@ -8,11 +8,40 @@ import {
   FINANCIAL_CONSTANTS,
   DatabaseJournalEntryManager,
   DoubleEntryError,
-} from '../../../lib/index.js';
-import type { Currency } from '../../../types/index.js';
+} from '../../../lib/index.worker.js';
+import type { Currency, JournalEntry, Account } from '../../../types/index.js';
 import { authMiddleware } from '../../middleware/auth';
 import { FinancialAIService, createAIService } from '../../../ai/index.js';
 import type { AppContext } from '../../types';
+
+// Helper function to handle error responses
+function handleAccountingError(error: unknown) {
+  if (error instanceof AccountingValidationError) {
+    const validationError = error as AccountingValidationError;
+    return {
+      error: validationError.message,
+      code: validationError.code,
+      details: validationError.details,
+      accountingError: true
+    };
+  }
+  return null;
+}
+
+// Helper function to handle double entry errors
+function handleDoubleEntryError(error: unknown) {
+  if (error instanceof DoubleEntryError) {
+    const doubleEntryError = error as DoubleEntryError;
+    return {
+      error: doubleEntryError.message,
+      code: doubleEntryError.code,
+      details: doubleEntryError.details,
+      accountingError: true,
+      errorType: 'DOUBLE_ENTRY_VIOLATION'
+    };
+  }
+  return null;
+}
 
 const transactionsRouter = new Hono<AppContext>();
 
@@ -138,20 +167,16 @@ transactionsRouter.get('/', async (c) => {
       filters: { entityId, dateFrom, dateTo, status, currency },
       metadata: {
         supportedCurrencies: FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES,
-        defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+        defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY as Currency,
         supportedStatuses: ['PENDING', 'POSTED', 'CANCELLED', 'REVERSED']
       }
     })
-  } catch (error) {
+  } catch (error: unknown) {
     // Error fetching transactions
     
-    if (error instanceof AccountingValidationError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true
-      }, 400)
+    const accountingError = handleAccountingError(error);
+    if (accountingError) {
+      return c.json(accountingError, 400);
     }
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -185,7 +210,7 @@ transactionsRouter.get('/:id', async (c) => {
     const dbAdapter = new DatabaseAdapter({
       database: c.env.FINANCE_MANAGER_DB,
       entityId: user.id,
-      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY as Currency,
     });
     const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
     await accountRegistry.loadAccountsFromDatabase();
@@ -218,7 +243,7 @@ transactionsRouter.get('/:id', async (c) => {
     const enhancedTransaction = {
       ...transaction,
       formattedAmount: formatCurrency(transactionAmount, transactionCurrency),
-      journalEntries: journalEntries.map(entry => ({
+      journalEntries: journalEntries.map((entry: JournalEntry) => ({
         ...entry,
         formattedAmount: formatCurrency(entry.debitAmount || entry.creditAmount, entry.currency)
       })),
@@ -236,16 +261,12 @@ transactionsRouter.get('/:id', async (c) => {
     return c.json({
       transaction: enhancedTransaction
     })
-  } catch (error) {
+  } catch (error: unknown) {
     // Error fetching transaction
     
-    if (error instanceof AccountingValidationError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true
-      }, 400)
+    const accountingError = handleAccountingError(error);
+    if (accountingError) {
+      return c.json(accountingError, 400);
     }
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -289,7 +310,7 @@ transactionsRouter.post('/', async (c) => {
     const dbAdapter = new DatabaseAdapter({
       database: c.env.FINANCE_MANAGER_DB,
       entityId: user.id,
-      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY as Currency,
     });
     const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
     await accountRegistry.loadAccountsFromDatabase();
@@ -395,14 +416,14 @@ transactionsRouter.post('/', async (c) => {
         let suggestedAccountId: string | undefined
         try {
           const accounts = await dbAdapter.getAllAccounts()
-          const matchingAccount = accounts.find(account => 
+          const matchingAccount = accounts.find((account: Account) => 
             account.category?.toLowerCase().includes(suggestion.category.toLowerCase()) ||
             account.name.toLowerCase().includes(suggestion.category.toLowerCase())
           )
           if (matchingAccount) {
             suggestedAccountId = matchingAccount.id?.toString()
           }
-        } catch (error) {
+        } catch (error: unknown) {
           console.warn('Failed to find matching account:', error)
         }
         
@@ -453,7 +474,7 @@ transactionsRouter.post('/', async (c) => {
     const enhancedTransaction = {
       ...result.transaction,
       formattedAmount: formatCurrency(transactionAmount, transactionCurrency),
-      journalEntries: result.journalEntries.map(entry => ({
+      journalEntries: result.journalEntries.map((entry: JournalEntry) => ({
         ...entry,
         formattedAmount: formatCurrency(entry.debitAmount || entry.creditAmount, entry.currency)
       })),
@@ -476,26 +497,17 @@ transactionsRouter.post('/', async (c) => {
     }
     
     return c.json(response, 201)
-  } catch (error) {
+  } catch (error: unknown) {
     // Error creating transaction
     
-    if (error instanceof DoubleEntryError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true,
-        errorType: 'DOUBLE_ENTRY_VIOLATION'
-      }, 400)
+    const doubleEntryError = handleDoubleEntryError(error);
+    if (doubleEntryError) {
+      return c.json(doubleEntryError, 400);
     }
     
-    if (error instanceof AccountingValidationError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true
-      }, 400)
+    const accountingError = handleAccountingError(error);
+    if (accountingError) {
+      return c.json(accountingError, 400);
     }
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -529,7 +541,7 @@ transactionsRouter.get('/categorization-suggestions', async (c) => {
       suggestions: validSuggestions,
       count: validSuggestions.length,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return c.json({
       error: 'Failed to fetch categorization suggestions',
@@ -564,7 +576,7 @@ transactionsRouter.post('/categorization-suggestions/:suggestionId/apply', async
     const dbAdapter = new DatabaseAdapter({
       database: c.env.FINANCE_MANAGER_DB,
       entityId: user.id,
-      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
+      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY as Currency,
     });
     const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
     await accountRegistry.loadAccountsFromDatabase();
@@ -600,15 +612,10 @@ transactionsRouter.post('/categorization-suggestions/:suggestionId/apply', async
       message: 'Suggestion applied successfully. A new re-classification transaction has been created.',
       transaction: result.transaction,
     });
-  } catch (error) {
-    if (error instanceof DoubleEntryError) {
-      return c.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        accountingError: true,
-        errorType: 'DOUBLE_ENTRY_VIOLATION'
-      }, 400);
+  } catch (error: unknown) {
+    const doubleEntryError = handleDoubleEntryError(error);
+    if (doubleEntryError) {
+      return c.json(doubleEntryError, 400);
     }
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -632,7 +639,7 @@ transactionsRouter.delete('/categorization-suggestions/:suggestionId', async (c)
     await c.env.FINANCE_MANAGER_CACHE.delete(kvKey);
 
     return c.json({ message: 'Suggestion rejected successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return c.json({
       error: 'Failed to reject suggestion',

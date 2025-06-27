@@ -5,7 +5,7 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../../middleware/auth';
 import { FinancialAIService, AIService, createProvider } from '../../../ai/index.js';
-import { DatabaseAdapter } from '../../../lib/index.js';
+import { DatabaseAdapter } from '../../../lib/index.worker.js';
 import { z } from 'zod';
 // Validation schemas
 const categorizationRequestSchema = z.object({
@@ -187,7 +187,6 @@ categorization.post('/approve', async (c) => {
         // If approved and has transaction ID, update the transaction
         if (approved && suggestion.transactionId && suggestion.suggestedAccountId) {
             try {
-                const db = new DatabaseAdapter({ database: c.env.FINANCE_MANAGER_DB });
                 // Note: This would require implementing transaction update in core
                 // For now, we'll just store the approval
                 console.log(`Transaction ${suggestion.transactionId} categorized as ${suggestion.suggestedCategory}`);

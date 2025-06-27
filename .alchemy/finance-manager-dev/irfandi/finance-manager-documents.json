@@ -1,0 +1,23 @@
+{
+  "kind": "cloudflare::R2Bucket",
+  "id": "finance-manager-documents",
+  "fqn": "finance-manager-dev/irfandi/finance-manager-documents",
+  "seq": 1,
+  "status": "creating",
+  "data": {},
+  "output": {
+    "Symbol(alchemy::ResourceID)": "finance-manager-documents",
+    "Symbol(alchemy::ResourceFQN)": "finance-manager-dev/irfandi/finance-manager-documents",
+    "Symbol(alchemy::ResourceKind)": "cloudflare::R2Bucket",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 1
+  },
+  "props": {
+    "name": "finance-manager-documents"
+  },
+  "oldProps": {
+    "name": "finance-manager-documents"
+  }
+}

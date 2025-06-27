@@ -7,7 +7,7 @@ import { Hono } from 'hono'
 import type { AppContext } from '../../types'
 import { authMiddleware } from '../../middleware/auth'
 import { FinancialAIService, AIService, createProvider } from '../../../ai/index.js'
-import { DatabaseAdapter } from '../../../lib/index.js'
+import { DatabaseAdapter } from '../../../lib/index.worker.js'
 import type { Account } from '../../../types/index.js'
 import { z } from 'zod'
 
@@ -211,8 +211,8 @@ categorization.get('/pending', async (c) => {
       data: pendingSuggestions
     })
     
-  } catch (error) {
-    console.error('Failed to fetch pending suggestions:', error)
+  } catch (error: unknown) {
+    console.error('Failed to fetch pending suggestions:', error instanceof Error ? error.message : String(error))
     return c.json({
       success: false,
       error: 'Failed to fetch pending suggestions'
@@ -263,12 +263,12 @@ categorization.post('/approve', async (c) => {
     // If approved and has transaction ID, update the transaction
     if (approved && suggestion.transactionId && suggestion.suggestedAccountId) {
       try {
-        const db = new DatabaseAdapter({ database: c.env.FINANCE_MANAGER_DB })
+        const _db = new DatabaseAdapter({ database: c.env.FINANCE_MANAGER_DB })
         // Note: This would require implementing transaction update in core
         // For now, we'll just store the approval
         console.log(`Transaction ${suggestion.transactionId} categorized as ${suggestion.suggestedCategory}`)
       } catch (error) {
-        console.warn('Failed to update transaction with approved category:', error)
+        console.warn('Failed to update transaction with approved category:', error instanceof Error ? error.message : String(error))
       }
     }
     
@@ -357,7 +357,7 @@ categorization.get('/history', async (c) => {
     })
     
   } catch (error) {
-    console.error('Failed to fetch categorization history:', error)
+    console.error('Failed to fetch categorization history:', error instanceof Error ? error.message : String(error))
     return c.json({
       success: false,
       error: 'Failed to fetch categorization history'
@@ -394,7 +394,7 @@ categorization.delete('/suggestion/:id', async (c) => {
     })
     
   } catch (error) {
-    console.error('Failed to delete suggestion:', error)
+    console.error('Failed to delete suggestion:', error instanceof Error ? error.message : String(error))
     return c.json({
       success: false,
       error: 'Failed to delete suggestion'

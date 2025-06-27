@@ -4,7 +4,7 @@
  */
 import { Hono } from 'hono';
 import { eq, and, isNull, desc, asc, count } from 'drizzle-orm';
-import { categories, categoryStats, journalEntries, transactions, createDatabase } from '../../../db/index.js';
+import { categories, categoryStats, transactions, createDatabase } from '../../../db/index.js';
 import { authMiddleware } from '../../middleware/auth';
 // Create categories router
 const categoriesRouter = new Hono();

@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
-import { createInsertSchema } from "drizzle-zod";
+// import { createInsertSchema } from "drizzle-zod"; // TODO: Fix compatibility issue
 
 /**
  * Chart of Accounts - Core financial accounts structure
@@ -67,5 +67,29 @@ export const NormalBalance = {
 export type NormalBalance = typeof NormalBalance[keyof typeof NormalBalance];
 
 // Zod schemas for validation
-export const insertAccountSchema = createInsertSchema(accounts);
+// TODO: Fix drizzle-zod compatibility issue with Zod 3.25.x
+// export const insertAccountSchema = createInsertSchema(accounts);
+// export type InsertAccount = z.infer<typeof insertAccountSchema>;
+
+// Manual Zod schema as temporary workaround
+export const insertAccountSchema = z.object({
+  id: z.number().optional(),
+  code: z.string(),
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  type: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
+  subtype: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  parentId: z.number().nullable().optional(),
+  level: z.number().default(0),
+  path: z.string().nullable().optional(),
+  normalBalance: z.enum(["DEBIT", "CREDIT"]),
+  currentBalance: z.number().default(0),
+  isActive: z.boolean().default(true),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  createdBy: z.string().nullable().optional(),
+  updatedBy: z.string().nullable().optional(),
+});
+
 export type InsertAccount = z.infer<typeof insertAccountSchema>;

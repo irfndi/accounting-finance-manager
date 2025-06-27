@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { DatabaseAdapter, DatabaseAccountRegistry, TransactionBuilder, formatCurrency, AccountingValidationError, FINANCIAL_CONSTANTS, DatabaseJournalEntryManager, DoubleEntryError, } from '../../../lib/index.js';
+import { DatabaseAdapter, DatabaseAccountRegistry, TransactionBuilder, formatCurrency, AccountingValidationError, FINANCIAL_CONSTANTS, DatabaseJournalEntryManager, DoubleEntryError, } from '../../../lib/index.worker.js';
 import { authMiddleware } from '../../middleware/auth';
 import { FinancialAIService, createAIService } from '../../../ai/index.js';
 const transactionsRouter = new Hono();

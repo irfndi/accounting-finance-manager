@@ -4,7 +4,25 @@
  */
 
 import { jsPDF } from 'jspdf';
-import ExcelJS from 'exceljs';
+import { init } from 'excelize-wasm';
+
+interface RevenueData {
+  category: string;
+  amount: number;
+  date: string;
+}
+
+interface ExpenseData {
+  category: string;
+  amount: number;
+  date: string;
+}
+
+interface TrialBalanceEntry {
+  account: string;
+  debit: number;
+  credit: number;
+}
 
 // PDF and Excel generation functions
 export async function generateIncomeStatementPDF(incomeStatement: any, options: { entityId: string; fromDate: Date; toDate: Date }): Promise<ArrayBuffer> {
@@ -71,109 +89,144 @@ export async function generateIncomeStatementPDF(incomeStatement: any, options: 
     doc.text(`Generated on ${new Date().toISOString().split('T')[0]}`, 20, 280);
     
     return doc.output('arraybuffer');
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error generating Income Statement PDF:', error);
     throw new Error('Failed to generate Income Statement PDF');
   }
 }
 
-export async function generateIncomeStatementExcel(incomeStatement: any, options: { entityId: string; fromDate: Date; toDate: Date }): Promise<ArrayBuffer> {
+export async function generateIncomeStatementExcel(
+  revenue: RevenueData[],
+  expenses: ExpenseData[]
+): Promise<Buffer> {
   try {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Income Statement');
+    // Initialize excelize-wasm with the WASM file path
+    const excelize = await init('./node_modules/excelize-wasm/excelize.wasm.gz');
     
-    // Set column widths
-    worksheet.columns = [
-      { header: 'Account', key: 'account', width: 30 },
-      { header: 'Amount', key: 'amount', width: 15 }
-    ];
-    
-    // Header
-    worksheet.mergeCells('A1:B1');
-    worksheet.getCell('A1').value = 'Income Statement';
-    worksheet.getCell('A1').font = { size: 16, bold: true };
-    worksheet.getCell('A1').alignment = { horizontal: 'center' };
-    
-    worksheet.mergeCells('A2:B2');
-    worksheet.getCell('A2').value = `Entity: ${options.entityId}`;
-    
-    worksheet.mergeCells('A3:B3');
-    worksheet.getCell('A3').value = `Period: ${options.fromDate.toISOString().split('T')[0]} to ${options.toDate.toISOString().split('T')[0]}`;
-    
-    let currentRow = 5;
-    
-    // Revenue Section
-    worksheet.getCell(`A${currentRow}`).value = 'REVENUE';
-    worksheet.getCell(`A${currentRow}`).font = { bold: true };
-    currentRow++;
-    
-    if (incomeStatement.revenue && Array.isArray(incomeStatement.revenue)) {
-      incomeStatement.revenue.forEach((item: any) => {
-        worksheet.getCell(`A${currentRow}`).value = item.name || 'Revenue Item';
-        worksheet.getCell(`B${currentRow}`).value = item.amount || 0;
-        worksheet.getCell(`B${currentRow}`).numFmt = '$#,##0.00';
-        currentRow++;
-      });
+    // Create a new workbook
+    const f = excelize.NewFile();
+    if (f.error) {
+      throw new Error(`Failed to create workbook: ${f.error}`);
     }
-    
-    // Total Revenue
-    worksheet.getCell(`A${currentRow}`).value = 'Total Revenue';
-    worksheet.getCell(`A${currentRow}`).font = { bold: true };
-    worksheet.getCell(`B${currentRow}`).value = incomeStatement.totalRevenue || 0;
-    worksheet.getCell(`B${currentRow}`).numFmt = '$#,##0.00';
-    worksheet.getCell(`B${currentRow}`).font = { bold: true };
-    currentRow += 2;
-    
-    // Expenses Section
-    worksheet.getCell(`A${currentRow}`).value = 'EXPENSES';
-    worksheet.getCell(`A${currentRow}`).font = { bold: true };
-    currentRow++;
-    
-    if (incomeStatement.expenses && Array.isArray(incomeStatement.expenses)) {
-      incomeStatement.expenses.forEach((item: any) => {
-        worksheet.getCell(`A${currentRow}`).value = item.name || 'Expense Item';
-        worksheet.getCell(`B${currentRow}`).value = item.amount || 0;
-        worksheet.getCell(`B${currentRow}`).numFmt = '$#,##0.00';
-        currentRow++;
-      });
-    }
-    
-    // Total Expenses
-    worksheet.getCell(`A${currentRow}`).value = 'Total Expenses';
-    worksheet.getCell(`A${currentRow}`).font = { bold: true };
-    worksheet.getCell(`B${currentRow}`).value = incomeStatement.totalExpenses || 0;
-    worksheet.getCell(`B${currentRow}`).numFmt = '$#,##0.00';
-    worksheet.getCell(`B${currentRow}`).font = { bold: true };
-    currentRow += 2;
-    
+
+    const sheetName = 'Income Statement';
+    const { index } = f.NewSheet(sheetName);
+    f.SetActiveSheet(index);
+
+    // Set cell values for title
+    f.SetCellValue(sheetName, 'A1', 'Income Statement');
+
+    let row = 3;
+
+    // Revenue section
+    f.SetCellValue(sheetName, `A${row}`, 'REVENUE');
+    row++;
+
+    let totalRevenue = 0;
+    revenue.forEach((item) => {
+      f.SetCellValue(sheetName, `A${row}`, item.category);
+      f.SetCellValue(sheetName, `B${row}`, item.amount);
+      totalRevenue += item.amount;
+      row++;
+    });
+
+    f.SetCellValue(sheetName, `A${row}`, 'Total Revenue');
+    f.SetCellValue(sheetName, `B${row}`, totalRevenue);
+    row += 2;
+
+    // Expenses section
+    f.SetCellValue(sheetName, `A${row}`, 'EXPENSES');
+    row++;
+
+    let totalExpenses = 0;
+    expenses.forEach((item) => {
+      f.SetCellValue(sheetName, `A${row}`, item.category);
+      f.SetCellValue(sheetName, `B${row}`, item.amount);
+      totalExpenses += item.amount;
+      row++;
+    });
+
+    f.SetCellValue(sheetName, `A${row}`, 'Total Expenses');
+    f.SetCellValue(sheetName, `B${row}`, totalExpenses);
+    row += 2;
+
     // Net Income
-    worksheet.getCell(`A${currentRow}`).value = 'NET INCOME';
-    worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
-    worksheet.getCell(`B${currentRow}`).value = incomeStatement.netIncome || 0;
-    worksheet.getCell(`B${currentRow}`).numFmt = '$#,##0.00';
-    worksheet.getCell(`B${currentRow}`).font = { bold: true, size: 14 };
-    
-    // Add borders
-    const borderStyle = { style: 'thin' as const };
-    for (let row = 1; row <= currentRow; row++) {
-      for (let col = 1; col <= 2; col++) {
-        const cell = worksheet.getCell(row, col);
-        cell.border = {
-          top: borderStyle,
-          left: borderStyle,
-          bottom: borderStyle,
-          right: borderStyle
-        };
-      }
+    const netIncome = totalRevenue - totalExpenses;
+    f.SetCellValue(sheetName, `A${row}`, 'Net Income');
+    f.SetCellValue(sheetName, `B${row}`, netIncome);
+
+    // Save to buffer
+    const { buffer, error } = f.WriteToBuffer();
+    if (error) {
+      throw new Error(`Failed to generate Excel: ${error}`);
     }
-    
-    const buffer = await workbook.xlsx.writeBuffer();
-    return buffer as ArrayBuffer;
-  } catch (error) {
-    console.error('Error generating Income Statement Excel:', error);
-    throw new Error('Failed to generate Income Statement Excel');
+
+    return Buffer.from(buffer as Uint8Array);
+  } catch (error: unknown) {
+    console.error('Error generating income statement Excel:', error);
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
+
+export async function generateTrialBalanceExcel(
+  entries: TrialBalanceEntry[]
+): Promise<Buffer> {
+  try {
+    // Initialize excelize-wasm with the WASM file path
+    const excelize = await init('./node_modules/excelize-wasm/excelize.wasm.gz');
+    
+    // Create a new workbook
+    const f = excelize.NewFile();
+    if (f.error) {
+      throw new Error(`Failed to create workbook: ${f.error}`);
+    }
+
+    const sheetName = 'Trial Balance';
+    const { index } = f.NewSheet(sheetName);
+    f.SetActiveSheet(index);
+
+    // Set title
+    f.SetCellValue(sheetName, 'A1', 'Trial Balance');
+
+    // Headers
+    f.SetCellValue(sheetName, 'A3', 'Account');
+    f.SetCellValue(sheetName, 'B3', 'Debit');
+    f.SetCellValue(sheetName, 'C3', 'Credit');
+
+    let row = 4;
+    let totalDebits = 0;
+    let totalCredits = 0;
+
+    // Add entries
+    entries.forEach((entry) => {
+      f.SetCellValue(sheetName, `A${row}`, entry.account);
+      f.SetCellValue(sheetName, `B${row}`, entry.debit);
+      f.SetCellValue(sheetName, `C${row}`, entry.credit);
+      totalDebits += entry.debit;
+      totalCredits += entry.credit;
+      row++;
+    });
+
+    // Add totals
+    row++;
+    f.SetCellValue(sheetName, `A${row}`, 'TOTALS');
+    f.SetCellValue(sheetName, `B${row}`, totalDebits);
+    f.SetCellValue(sheetName, `C${row}`, totalCredits);
+
+    // Save to buffer
+    const { buffer, error } = f.WriteToBuffer();
+    if (error) {
+      throw new Error(`Failed to generate Excel: ${error}`);
+    }
+
+    return Buffer.from(buffer as Uint8Array);
+  } catch (error: unknown) {
+    console.error('Error generating trial balance Excel:', error);
+    throw error instanceof Error ? error : new Error(String(error));
+  }
+}
+
+// Removed original functions - now using excelize-wasm implementation above
 
 export async function generateTrialBalancePDF(trialBalance: any, options: { entityId: string; asOfDate: Date }): Promise<ArrayBuffer> {
   try {
@@ -241,66 +294,44 @@ export async function generateTrialBalancePDF(trialBalance: any, options: { enti
     doc.text(`Generated on ${new Date().toISOString().split('T')[0]}`, 20, 280);
     
     return doc.output('arraybuffer');
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error generating Trial Balance PDF:', error);
     throw new Error('Failed to generate Trial Balance PDF');
   }
 }
 
-export async function generateTrialBalanceExcel(trialBalance: any, options: { entityId: string; asOfDate: Date }): Promise<ArrayBuffer> {
+export async function generateTrialBalanceExcelOriginal(trialBalance: any, options: { entityId: string; asOfDate: Date }): Promise<ArrayBuffer> {
   try {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Trial Balance');
+    // Initialize excelize-wasm with the WASM file path
+    const excelize = await init('./node_modules/excelize-wasm/excelize.wasm.gz');
     
-    // Set column widths
-    worksheet.columns = [
-      { header: 'Account', key: 'account', width: 30 },
-      { header: 'Debit', key: 'debit', width: 15 },
-      { header: 'Credit', key: 'credit', width: 15 }
-    ];
+    // Create a new workbook
+    const workbook = excelize.NewFile();
+    const sheetName = 'Trial Balance';
     
-    // Header
-    worksheet.mergeCells('A1:C1');
-    worksheet.getCell('A1').value = 'Trial Balance';
-    worksheet.getCell('A1').font = { size: 16, bold: true };
-    worksheet.getCell('A1').alignment = { horizontal: 'center' };
-    
-    worksheet.mergeCells('A2:C2');
-    worksheet.getCell('A2').value = `Entity: ${options.entityId}`;
-    
-    worksheet.mergeCells('A3:C3');
-    worksheet.getCell('A3').value = `As of: ${options.asOfDate.toISOString().split('T')[0]}`;
+    // Set cell values for title
+    workbook.SetCellValue(sheetName, 'A1', 'Trial Balance');
+    workbook.SetCellValue(sheetName, 'A2', `Entity: ${options.entityId}`);
+    workbook.SetCellValue(sheetName, 'A3', `As of: ${options.asOfDate.toISOString().split('T')[0]}`);
     
     // Column headers
-    worksheet.getCell('A5').value = 'Account';
-    worksheet.getCell('B5').value = 'Debit';
-    worksheet.getCell('C5').value = 'Credit';
-    
-    // Style headers
-    ['A5', 'B5', 'C5'].forEach(cell => {
-      worksheet.getCell(cell).font = { bold: true };
-      worksheet.getCell(cell).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0E0E0' }
-      };
-    });
+    workbook.SetCellValue(sheetName, 'A5', 'Account');
+    workbook.SetCellValue(sheetName, 'B5', 'Debit');
+    workbook.SetCellValue(sheetName, 'C5', 'Credit');
     
     let currentRow = 6;
     
     // Account entries
     if (trialBalance.accounts && Array.isArray(trialBalance.accounts)) {
       trialBalance.accounts.forEach((account: any) => {
-        worksheet.getCell(`A${currentRow}`).value = account.name || 'Account';
+        workbook.SetCellValue(sheetName, `A${currentRow}`, account.name || 'Account');
         
         if (account.debit && account.debit > 0) {
-          worksheet.getCell(`B${currentRow}`).value = account.debit;
-          worksheet.getCell(`B${currentRow}`).numFmt = '$#,##0.00';
+          workbook.SetCellValue(sheetName, `B${currentRow}`, account.debit);
         }
         
         if (account.credit && account.credit > 0) {
-          worksheet.getCell(`C${currentRow}`).value = account.credit;
-          worksheet.getCell(`C${currentRow}`).numFmt = '$#,##0.00';
+          workbook.SetCellValue(sheetName, `C${currentRow}`, account.credit);
         }
         
         currentRow++;
@@ -309,41 +340,22 @@ export async function generateTrialBalanceExcel(trialBalance: any, options: { en
     
     // Totals row
     currentRow++;
-    worksheet.getCell(`A${currentRow}`).value = 'TOTALS';
-    worksheet.getCell(`A${currentRow}`).font = { bold: true };
-    
-    worksheet.getCell(`B${currentRow}`).value = trialBalance.totals?.totalDebits || 0;
-    worksheet.getCell(`B${currentRow}`).numFmt = '$#,##0.00';
-    worksheet.getCell(`B${currentRow}`).font = { bold: true };
-    
-    worksheet.getCell(`C${currentRow}`).value = trialBalance.totals?.totalCredits || 0;
-    worksheet.getCell(`C${currentRow}`).numFmt = '$#,##0.00';
-    worksheet.getCell(`C${currentRow}`).font = { bold: true };
+    workbook.SetCellValue(sheetName, `A${currentRow}`, 'TOTALS');
+    workbook.SetCellValue(sheetName, `B${currentRow}`, trialBalance.totals?.totalDebits || 0);
+    workbook.SetCellValue(sheetName, `C${currentRow}`, trialBalance.totals?.totalCredits || 0);
     
     // Balance status
     currentRow += 2;
     const isBalanced = trialBalance.totals?.isBalanced ?? (trialBalance.totals?.totalDebits === trialBalance.totals?.totalCredits);
-    worksheet.mergeCells(`A${currentRow}:C${currentRow}`);
-    worksheet.getCell(`A${currentRow}`).value = `Status: ${isBalanced ? 'BALANCED' : 'OUT OF BALANCE'}`;
-    worksheet.getCell(`A${currentRow}`).font = { bold: true, color: { argb: isBalanced ? 'FF008000' : 'FFFF0000' } };
+    workbook.SetCellValue(sheetName, `A${currentRow}`, `Status: ${isBalanced ? 'BALANCED' : 'OUT OF BALANCE'}`);
     
-    // Add borders to all used cells
-    const borderStyle = { style: 'thin' as const };
-    for (let row = 1; row <= currentRow; row++) {
-      for (let col = 1; col <= 3; col++) {
-        const cell = worksheet.getCell(row, col);
-        cell.border = {
-          top: borderStyle,
-          left: borderStyle,
-          bottom: borderStyle,
-          right: borderStyle
-        };
-      }
+    // Save workbook to buffer
+    const { buffer, error } = workbook.WriteToBuffer();
+    if (error) {
+      throw new Error(`Failed to generate Excel: ${error}`);
     }
-    
-    const buffer = await workbook.xlsx.writeBuffer();
     return buffer as ArrayBuffer;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error generating Trial Balance Excel:', error);
     throw new Error('Failed to generate Trial Balance Excel');
   }

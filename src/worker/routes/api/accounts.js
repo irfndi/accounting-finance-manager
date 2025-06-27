@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '../../../lib/index.js';
+import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '../../../lib/index.worker.js';
 import { authMiddleware } from '../../middleware/auth';
 // Create accounts router
 const accounts = new Hono();

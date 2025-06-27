@@ -34,6 +34,7 @@ export const authMiddleware = createMiddleware(async (c, next) => {
         await next();
     }
     catch (_e) {
+        // Authentication failed - token invalid or expired
         return c.json({ error: 'Unauthorized' }, 401);
     }
 });
@@ -63,7 +64,7 @@ export const optionalAuthMiddleware = createMiddleware(async (c, next) => {
                 }
             }
             catch (_e) {
-                // Invalid token, but we continue without setting the user
+                // Invalid token, but we continue without setting the user (optional auth)
             }
         }
     }

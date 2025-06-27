@@ -1,0 +1,25 @@
+{
+  "kind": "cloudflare::D1Database",
+  "id": "finance-manager-db-dev",
+  "fqn": "finance-manager-dev/irfandi/finance-manager-db-dev",
+  "seq": 2,
+  "status": "creating",
+  "data": {},
+  "output": {
+    "Symbol(alchemy::ResourceID)": "finance-manager-db-dev",
+    "Symbol(alchemy::ResourceFQN)": "finance-manager-dev/irfandi/finance-manager-db-dev",
+    "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 2
+  },
+  "props": {
+    "name": "finance-manager-db-dev",
+    "migrationsFiles": []
+  },
+  "oldProps": {
+    "name": "finance-manager-db-dev",
+    "migrationsFiles": []
+  }
+}

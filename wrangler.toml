@@ -117,6 +117,12 @@ index_name = "test-finance-manager-documents"
 binding = "DOCUMENT_EMBEDDINGS"
 index_name = "prod-finance-manager-documents"
 
+# Module rules for WASM support
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+fallthrough = true
+
 # Observability
 [observability]
 enabled = true

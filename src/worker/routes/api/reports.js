@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { DatabaseAdapter, FinancialReportsEngine, formatCurrency, FINANCIAL_CONSTANTS, generateIncomeStatementPDF, generateIncomeStatementExcel, generateTrialBalancePDF, generateTrialBalanceExcel, } from '../../../lib/index.js';
+import { DatabaseAdapter, FinancialReportsEngine, formatCurrency, FINANCIAL_CONSTANTS, generateIncomeStatementPDF, generateIncomeStatementExcel, generateTrialBalancePDF, generateTrialBalanceExcel, } from '../../../lib/index.worker.js';
 import { authMiddleware } from '../../middleware/auth';
 import { createMiddleware } from 'hono/factory';
 const reportsRouter = new Hono();
@@ -842,6 +842,14 @@ reportsRouter.get('/export/income-statement', async (c) => {
                 });
             case 'xlsx':
                 // Generate Excel format
+                if (!generateIncomeStatementExcel) {
+                    return c.json({
+                        success: false,
+                        error: 'Excel export not available in Cloudflare Workers environment',
+                        supportedFormats: ['csv', 'json', 'pdf'],
+                        note: 'Please use CSV, JSON, or PDF format instead'
+                    }, 400);
+                }
                 const xlsxBuffer = await generateIncomeStatementExcel(incomeStatement, { entityId, fromDate: startDate, toDate: endDate });
                 return new Response(xlsxBuffer, {
                     headers: {
@@ -931,6 +939,14 @@ reportsRouter.get('/export/trial-balance', async (c) => {
                 });
             case 'xlsx':
                 // Generate Excel format
+                if (!generateTrialBalanceExcel) {
+                    return c.json({
+                        success: false,
+                        error: 'Excel export not available in Cloudflare Workers environment',
+                        supportedFormats: ['csv', 'json', 'pdf'],
+                        note: 'Please use CSV, JSON, or PDF format instead'
+                    }, 400);
+                }
                 const xlsxBuffer = await generateTrialBalanceExcel(trialBalance, { entityId, asOfDate });
                 return new Response(xlsxBuffer, {
                     headers: {

@@ -245,17 +245,20 @@ uploads.post('/', async (c) => {
                   void __embeddingResult;
 
                   // Embedding generation completed
-                } catch (_embeddingError) {
+                } catch (embeddingError) {
                   // Continue with upload even if embedding generation fails
+                  console.error('Embedding generation failed:', embeddingError);
                 }
               }
-            } catch (_aiError) {
+            } catch (aiError) {
               // Continue with upload even if LLM processing fails
+              console.error('LLM processing failed:', aiError);
             }
           }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         // Continue with upload even if OCR fails
+        console.error('OCR processing failed:', error instanceof Error ? error.message : String(error));
         ocrResult = {
           success: false,
           error: 'OCR processing failed but file was uploaded successfully',
@@ -381,7 +384,7 @@ uploads.post('/', async (c) => {
         }
       });
       
-    } catch (dbError) {
+    } catch (dbError: unknown) {
       logger.error('Failed to store document in database', dbError as Error, {
         fileId,
         operation: 'DATABASE_FAILURE'
@@ -434,7 +437,7 @@ uploads.post('/', async (c) => {
       data: responseData
     }, 201);
 
-  } catch (error) {
+  } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error during upload';
     // Upload error occurred
     return c.json({
@@ -533,8 +536,9 @@ uploads.get('/:fileId', async (c) => {
       headers
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     // Download error occurred
+    console.error('Download error:', error instanceof Error ? error.message : String(error));
     return c.json({
       success: false,
       error: 'Internal server error during download'
@@ -618,8 +622,9 @@ uploads.delete('/:fileId', async (c) => {
       message: 'File deleted successfully'
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     // Delete error occurred
+    console.error('Delete error:', error instanceof Error ? error.message : String(error));
     return c.json({
       success: false,
       error: 'Internal server error during deletion'
@@ -830,8 +835,9 @@ uploads.get('/:fileId/metadata', async (c) => {
       data: metadata
     });
 
-  } catch (_error) {
+  } catch (error) {
     // Get metadata error occurred
+    console.error('Failed to get file metadata:', error);
     return c.json({
       success: false,
       error: 'Internal server error while getting metadata'
@@ -1059,10 +1065,12 @@ uploads.post('/:fileId/ocr', async (c) => {
         });
       } catch (r2Error) {
         // Failed to update R2 metadata
+        console.error('Failed to update R2 metadata:', r2Error);
         // Continue - database update was successful
       }
     } catch (dbError) {
       // Failed to update OCR results in database
+      console.error('Failed to update OCR results in database:', dbError);
       // Fallback to R2 metadata only
       try {
         const existingMetadata = { ...object.customMetadata };
@@ -1085,6 +1093,7 @@ uploads.post('/:fileId/ocr', async (c) => {
         });
       } catch (error) {
         // Failed to update both database and R2 metadata
+        console.error('Failed to update metadata:', error instanceof Error ? error.message : String(error));
       }
     }
 
@@ -1109,6 +1118,7 @@ uploads.post('/:fileId/ocr', async (c) => {
 
   } catch (error) {
     // OCR processing error occurred
+    console.error('OCR processing error:', error instanceof Error ? error.message : String(error));
     return c.json({
       success: false,
       error: 'Internal server error during OCR processing'
@@ -1234,8 +1244,9 @@ uploads.get('/:fileId/ocr', async (c) => {
       }
     });
 
-  } catch (_error) {
+  } catch (error) {
     // Get OCR error occurred
+    console.error('Failed to get OCR results:', error);
     return c.json({
       success: false,
       error: 'Internal server error while getting OCR results'

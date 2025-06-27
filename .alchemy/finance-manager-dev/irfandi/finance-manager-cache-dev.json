@@ -1,0 +1,24 @@
+{
+  "kind": "cloudflare::KVNamespace",
+  "id": "finance-manager-cache-dev",
+  "fqn": "finance-manager-dev/irfandi/finance-manager-cache-dev",
+  "seq": 0,
+  "data": {},
+  "status": "created",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+    "Symbol(alchemy::ResourceID)": "finance-manager-cache-dev",
+    "Symbol(alchemy::ResourceFQN)": "finance-manager-dev/irfandi/finance-manager-cache-dev",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 0,
+    "type": "kv_namespace",
+    "namespaceId": "dcdb089c380c4b2b9dbdebe10dfd5de2",
+    "createdAt": 1751013324286,
+    "modifiedAt": 1751013324294
+  },
+  "props": {
+    "name": "finance-manager-cache-dev"
+  }
+}
