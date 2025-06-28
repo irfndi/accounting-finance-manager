@@ -190,23 +190,22 @@ export class OpenRouterProvider implements AIProvider {
     );
   }
 
-  private parseResponse(response: Response): Promise<AIResponse> {
-    return response.json().then((data: any) => {
-      const choice = data.choices?.[0];
-      if (!choice) {
-        throw new AIProviderError('No completion choices in response', this.name);
-      }
+  private async parseResponse(response: Response): Promise<AIResponse> {
+    const data: any = await response.json();
+    const choice = data.choices?.[0];
+    if (!choice) {
+      throw new AIProviderError('No completion choices in response', this.name);
+    }
 
-      return {
-        content: choice.message?.content || '',
-        usage: data.usage ? {
-          promptTokens: data.usage.prompt_tokens,
-          completionTokens: data.usage.completion_tokens,
-          totalTokens: data.usage.total_tokens
-        } : undefined,
-        model: data.model,
-        finishReason: choice.finish_reason as AIResponse['finishReason']
-      };
-    });
+    return {
+      content: choice.message?.content || '',
+      usage: data.usage ? {
+        promptTokens: data.usage.prompt_tokens,
+        completionTokens: data.usage.completion_tokens,
+        totalTokens: data.usage.total_tokens
+      } : undefined,
+      model: data.model,
+      finishReason: choice.finish_reason as AIResponse['finishReason']
+    };
   }
 }

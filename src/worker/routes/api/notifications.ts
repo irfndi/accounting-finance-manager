@@ -447,6 +447,11 @@ function initializeEmailTemplates(): void {
     EmailTemplateManager.registerTemplate('transaction-alert', getTransactionAlertTemplate())
     EmailTemplateManager.registerTemplate('budget-alert', getBudgetAlertTemplate())
     EmailTemplateManager.registerTemplate('monthly-report', getMonthlyReportTemplate())
+    EmailTemplateManager.registerTemplate('magic-link-login', getMagicLinkLoginTemplate())
+    EmailTemplateManager.registerTemplate('magic-link-register', getMagicLinkRegisterTemplate())
+    EmailTemplateManager.registerTemplate('magic-link-verify-email', getMagicLinkVerifyEmailTemplate())
+    EmailTemplateManager.registerTemplate('magic-link-reset-password', getMagicLinkResetPasswordTemplate())
+    EmailTemplateManager.registerTemplate('welcome', getWelcomeTemplate())
   }
 }
 
@@ -454,7 +459,12 @@ function getTemplateDescription(templateName: string): string {
   const descriptions: Record<string, string> = {
     'transaction-alert': 'Notification for new transactions',
     'budget-alert': 'Alert when budget thresholds are exceeded',
-    'monthly-report': 'Comprehensive monthly financial summary'
+    'monthly-report': 'Comprehensive monthly financial summary',
+    'magic-link-login': 'Magic link for passwordless login',
+    'magic-link-register': 'Magic link for account registration',
+    'magic-link-verify-email': 'Email verification magic link',
+    'magic-link-reset-password': 'Password reset magic link',
+    'welcome': 'Welcome email for new users'
   }
   return descriptions[templateName] || 'Custom email template'
 }
@@ -585,6 +595,304 @@ function getMonthlyReportTemplate(): string {
     <div class="footer">
         <p>Finance Manager System | Monthly Reporting</p>
         <p>Report sent to {{recipientEmail}}</p>
+    </div>
+</body>
+</html>`
+}
+
+// Magic Link Email Templates
+function getMagicLinkLoginTemplate(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login to Finance Manager</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; }
+        .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .magic-link-btn { display: inline-block; background: #2563eb; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; transition: background-color 0.2s; }
+        .magic-link-btn:hover { background: #1d4ed8; }
+        .security-note { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+        .expiry { color: #dc2626; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Login to Finance Manager</h1>
+            <p>Secure passwordless access</p>
+        </div>
+        <div class="content">
+            <p>Hello {{recipientName}},</p>
+            <p>Click the button below to securely log in to your Finance Manager account:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{magicLinkUrl}}" class="magic-link-btn">Log In to Finance Manager</a>
+            </div>
+            
+            <div class="security-note">
+                <p><strong>🛡️ Security Notice:</strong></p>
+                <ul>
+                    <li>This link will expire in <span class="expiry">{{expiryText}}</span></li>
+                    <li>Only use this link if you requested to log in</li>
+                    <li>Never share this link with anyone</li>
+                </ul>
+            </div>
+            
+            <p>If you didn't request this login link, please ignore this email. Your account remains secure.</p>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace;">{{magicLinkUrl}}</p>
+        </div>
+        <div class="footer">
+            <p>Finance Manager | Secure Authentication</p>
+            <p>This email was sent to {{recipientEmail}}</p>
+        </div>
+    </div>
+</body>
+</html>`
+}
+
+function getMagicLinkRegisterTemplate(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Registration</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; }
+        .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #059669, #047857); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .magic-link-btn { display: inline-block; background: #059669; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; transition: background-color 0.2s; }
+        .magic-link-btn:hover { background: #047857; }
+        .features { background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+        .expiry { color: #dc2626; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to Finance Manager!</h1>
+            <p>Complete your account setup</p>
+        </div>
+        <div class="content">
+            <p>Hello {{recipientName}},</p>
+            <p>Welcome to Finance Manager! Click the button below to complete your registration and start managing your finances:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{magicLinkUrl}}" class="magic-link-btn">Complete Registration</a>
+            </div>
+            
+            <div class="features">
+                <h3>🚀 What you'll get:</h3>
+                <ul>
+                    <li>📊 Comprehensive financial dashboard</li>
+                    <li>💰 Transaction tracking and categorization</li>
+                    <li>📈 Budget management and alerts</li>
+                    <li>📧 Automated financial reports</li>
+                    <li>🤖 AI-powered financial insights</li>
+                </ul>
+            </div>
+            
+            <p><strong>⏰ This registration link expires in {{expiryText}}</strong></p>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace;">{{magicLinkUrl}}</p>
+        </div>
+        <div class="footer">
+            <p>Finance Manager | Account Registration</p>
+            <p>This email was sent to {{recipientEmail}}</p>
+        </div>
+    </div>
+</body>
+</html>`
+}
+
+function getMagicLinkVerifyEmailTemplate(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email Address</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; }
+        .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #17a2b8, #138496); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .magic-link-btn { display: inline-block; background: #17a2b8; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; transition: background-color 0.2s; }
+        .magic-link-btn:hover { background: #138496; }
+        .verification-note { background: #e1f5fe; border: 1px solid #17a2b8; border-radius: 8px; padding: 16px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+        .expiry { color: #dc2626; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✉️ Verify Your Email</h1>
+            <p>Confirm your email address</p>
+        </div>
+        <div class="content">
+            <p>Hello {{recipientName}},</p>
+            <p>Please verify your email address to complete your Finance Manager account setup:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{magicLinkUrl}}" class="magic-link-btn">Verify Email Address</a>
+            </div>
+            
+            <div class="verification-note">
+                <p><strong>📧 Why verify your email?</strong></p>
+                <ul>
+                    <li>Secure your account access</li>
+                    <li>Receive important financial notifications</li>
+                    <li>Enable password reset functionality</li>
+                    <li>Get monthly financial reports</li>
+                </ul>
+            </div>
+            
+            <p><strong>⏰ This verification link expires in {{expiryText}}</strong></p>
+            
+            <p>If you didn't create a Finance Manager account, please ignore this email.</p>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace;">{{magicLinkUrl}}</p>
+        </div>
+        <div class="footer">
+            <p>Finance Manager | Email Verification</p>
+            <p>This email was sent to {{recipientEmail}}</p>
+        </div>
+    </div>
+</body>
+</html>`
+}
+
+function getMagicLinkResetPasswordTemplate(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Your Password</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; }
+        .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .magic-link-btn { display: inline-block; background: #f59e0b; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; transition: background-color 0.2s; }
+        .magic-link-btn:hover { background: #d97706; }
+        .security-note { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+        .expiry { color: #dc2626; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔑 Reset Your Password</h1>
+            <p>Secure password reset</p>
+        </div>
+        <div class="content">
+            <p>Hello {{recipientName}},</p>
+            <p>You requested to reset your Finance Manager password. Click the button below to create a new password:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{magicLinkUrl}}" class="magic-link-btn">Reset Password</a>
+            </div>
+            
+            <div class="security-note">
+                <p><strong>🛡️ Security Information:</strong></p>
+                <ul>
+                    <li>This link will expire in <span class="expiry">{{expiryText}}</span></li>
+                    <li>Only use this link if you requested a password reset</li>
+                    <li>After clicking, you'll be able to set a new password</li>
+                    <li>Your current password remains active until you set a new one</li>
+                </ul>
+            </div>
+            
+            <p>If you didn't request a password reset, please ignore this email. Your account remains secure.</p>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace;">{{magicLinkUrl}}</p>
+        </div>
+        <div class="footer">
+            <p>Finance Manager | Password Reset</p>
+            <p>This email was sent to {{recipientEmail}}</p>
+        </div>
+    </div>
+</body>
+</html>`
+}
+
+function getWelcomeTemplate(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Finance Manager!</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc; }
+        .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .cta-btn { display: inline-block; background: #8b5cf6; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; transition: background-color 0.2s; }
+        .cta-btn:hover { background: #7c3aed; }
+        .features { background: #faf5ff; border: 1px solid #8b5cf6; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .getting-started { background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to Finance Manager!</h1>
+            <p>Your journey to financial clarity starts here</p>
+        </div>
+        <div class="content">
+            <p>Hello {{recipientName}},</p>
+            <p>Congratulations! Your Finance Manager account has been successfully created. You're now ready to take control of your financial future.</p>
+            
+            <div style="text-align: center;">
+                <a href="{{dashboardUrl}}" class="cta-btn">Access Your Dashboard</a>
+            </div>
+            
+            <div class="features">
+                <h3>🚀 What you can do now:</h3>
+                <ul>
+                    <li>📊 <strong>Track Transactions:</strong> Monitor all your income and expenses</li>
+                    <li>💰 <strong>Manage Budgets:</strong> Set spending limits and get alerts</li>
+                    <li>📈 <strong>View Reports:</strong> Get insights into your financial patterns</li>
+                    <li>🤖 <strong>AI Insights:</strong> Receive personalized financial recommendations</li>
+                    <li>📧 <strong>Email Notifications:</strong> Stay updated with automated reports</li>
+                </ul>
+            </div>
+            
+            <div class="getting-started">
+                <h3>🏁 Getting Started:</h3>
+                <ol>
+                    <li><strong>Add your first account</strong> (bank, credit card, etc.)</li>
+                    <li><strong>Import or add transactions</strong> to see your financial picture</li>
+                    <li><strong>Set up budgets</strong> for different spending categories</li>
+                    <li><strong>Explore the dashboard</strong> to understand your finances</li>
+                </ol>
+            </div>
+            
+            <p>Need help getting started? Check out our <a href="{{helpUrl}}" style="color: #8b5cf6;">help documentation</a> or contact our support team.</p>
+            
+            <p>Thank you for choosing Finance Manager. We're excited to help you achieve your financial goals!</p>
+        </div>
+        <div class="footer">
+            <p>Finance Manager | Welcome</p>
+            <p>This email was sent to {{recipientEmail}}</p>
+        </div>
     </div>
 </body>
 </html>`

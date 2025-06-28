@@ -6,6 +6,7 @@
 import type { MagicLinkData } from './types'
 import { MagicLinkPurpose } from './types';
 import { randomBytes } from '@noble/hashes/utils';
+import type { KVNamespace } from '@cloudflare/workers-types';
 
 /**
  * Magic link manager for generating and validating magic links
@@ -43,7 +44,7 @@ export class MagicLinkManager {
     const token = this.bytesToHex(tokenBytes);
     
     const now = Date.now();
-    const ttl = (options.ttlMinutes || 15) * 60; // Convert to seconds
+    const ttl = options.ttlMinutes ? options.ttlMinutes * 60 : this.defaultTTL; // Convert to seconds
     const expiresAt = now + (ttl * 1000);
 
     const magicLinkData: MagicLinkData = {
@@ -400,18 +401,14 @@ export class MagicLinkRateLimiter {
  * Email template generator for magic links
  */
 export class MagicLinkEmailTemplate {
-  private fromName: string;
   private companyName: string;
-  private baseUrl: string;
 
   constructor(options: {
     fromName: string;
     companyName: string;
     baseUrl: string;
   }) {
-    this.fromName = options.fromName;
     this.companyName = options.companyName;
-    this.baseUrl = options.baseUrl;
   }
 
   /**

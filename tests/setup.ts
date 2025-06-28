@@ -1,5 +1,5 @@
 // Vitest setup file
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 // Mock environment variables for testing
 vi.stubEnv('NODE_ENV', 'test');

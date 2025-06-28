@@ -7,7 +7,7 @@
   "main": "./src/worker/index.ts",
   "scripts": {
     "dev": "astro dev",
-    "dev:worker": "wrangler dev --local",
+    "dev:worker": "alchemy dev",
     "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:worker\"",
     "build": "astro check && astro build && tsc --build",
     "build:worker": "tsc --build",
@@ -28,8 +28,8 @@
     "test:e2e:install": "playwright install",
     "test:all": "pnpm test && pnpm test:e2e",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "wrangler d1 migrations apply finance-manager-db --env development",
-    "db:migrate:prod": "wrangler d1 migrations apply finance-manager-db-prod --env production",
+    "db:migrate": "alchemy run --env development -- wrangler d1 migrations apply finance-manager-db",
+    "db:migrate:prod": "alchemy run --env production -- wrangler d1 migrations apply finance-manager-db-prod",
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
     "db:check": "drizzle-kit check",
@@ -37,9 +37,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "clean": "rm -rf dist .astro node_modules/.cache",
-    "tail": "wrangler tail",
-    "tail:prod": "wrangler tail --env production",
-    "types": "wrangler types"
+    "tail": "alchemy run --env development -- wrangler tail",
+    "tail:prod": "alchemy run --env production -- wrangler tail",
+    "types": "alchemy run -- wrangler types"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.55.0",

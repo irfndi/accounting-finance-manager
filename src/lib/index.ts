@@ -628,7 +628,7 @@ export class BalanceCalculator {
    * Calculates the balance for an account based on its normal balance type
    */
   static calculateAccountBalance(
-    accountType: AccountType,
+    _accountType: AccountType,
     normalBalance: NormalBalance,
     debitTotal: number,
     creditTotal: number
@@ -1510,12 +1510,10 @@ export interface DatabaseConfig {
 export class DatabaseAdapter {
   private db: D1Database;
   private entityId: string;
-  private defaultCurrency: Currency;
 
   constructor(config: DatabaseConfig) {
     this.db = config.database;
     this.entityId = config.entityId || 'default';
-    this.defaultCurrency = config.defaultCurrency || FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
   }
 
   // Account Operations

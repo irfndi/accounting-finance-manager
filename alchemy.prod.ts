@@ -5,16 +5,19 @@ import { Worker, KVNamespace, R2Bucket, D1Database, Ai } from "alchemy/cloudflar
 // Create KV Namespace for caching (production)
 const cacheKV = await KVNamespace("finance-manager-cache-prod", {
   title: "Finance Manager Cache Production",
+  adopt: true,
 });
 
 // Create R2 Bucket for document storage (production)
 const documentsBucket = await R2Bucket("finance-manager-documents-prod", {
   name: "prod-finance-manager-documents",
+  adopt: true,
 });
 
 // Create D1 Database for application data (production)
 const database = await D1Database("finance-manager-db-prod", {
   name: "prod-finance-manager-db",
+  adopt: true,
 });
 
 // Create AI binding for OCR and other AI functionality
@@ -33,6 +36,10 @@ const worker = await Worker("finance-manager-prod", {
     AI: ai,
   },
   vars: {
+    ALCHEMY_MANAGED: "true",
+    CONTAINER_VERSION: "1.0.0",
+    DEPLOYMENT_STRATEGY: "alchemy",
+    STAGE: "prod",
     ENVIRONMENT: "production",
     AUTH_SESSION_DURATION: "7d",
     AWS_REGION: "us-east-1",
@@ -40,7 +47,7 @@ const worker = await Worker("finance-manager-prod", {
     SES_FROM_NAME: "Finance Manager",
   },
   assets: {
-    directory: "dist/client",
+    path: "dist/client",
   },
 });
 

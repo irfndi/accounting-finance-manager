@@ -4,13 +4,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AIService, createAIService } from './services/ai-service.js';
-import { FinancialAIService } from './services/financial-ai.js';
-import { OpenRouterProvider } from './providers/openrouter.js';
-import { CloudflareAIProvider } from './providers/cloudflare.js';
-import { createProvider } from './providers/factory.js';
-import type { AIMessage } from './types.js';
-import { AIProviderError, AIRateLimitError } from './types.js';
+import { AIService, createAIService } from '../../src/ai/services/ai-service.js';
+import { FinancialAIService } from '../../src/ai/services/financial-ai.js';
+import { OpenRouterProvider } from '../../src/ai/providers/openrouter.js';
+import { CloudflareAIProvider } from '../../src/ai/providers/cloudflare.js';
+import { createProvider } from '../../src/ai/providers/factory.js';
+import type { AIMessage } from '../../src/ai/types.js';
+import { AIProviderError, AIRateLimitError } from '../../src/ai/types.js';
 
 // Mock fetch globally
 global.fetch = vi.fn();

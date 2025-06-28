@@ -19,7 +19,6 @@ budgetsRouter.use('*', authMiddleware)
 // Validation schemas
 const periodTypes = ['monthly', 'quarterly', 'yearly'] as const
 const budgetStatuses = ['draft', 'active', 'locked', 'archived'] as const
-const _approvalStatuses = ['pending', 'approved', 'rejected'] as const
 
 interface CreateBudgetPeriodRequest {
   name: string

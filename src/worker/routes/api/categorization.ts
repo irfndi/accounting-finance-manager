@@ -115,7 +115,7 @@ categorization.post('/suggest', async (c) => {
     }
     
     // Generate unique suggestion ID
-    const suggestionId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const suggestionId = `cat_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     
     // Create suggestion object
     const suggestion: CategorizationSuggestion = {
@@ -263,7 +263,6 @@ categorization.post('/approve', async (c) => {
     // If approved and has transaction ID, update the transaction
     if (approved && suggestion.transactionId && suggestion.suggestedAccountId) {
       try {
-        const _db = new DatabaseAdapter({ database: c.env.FINANCE_MANAGER_DB })
         // Note: This would require implementing transaction update in core
         // For now, we'll just store the approval
         console.log(`Transaction ${suggestion.transactionId} categorized as ${suggestion.suggestedCategory}`)

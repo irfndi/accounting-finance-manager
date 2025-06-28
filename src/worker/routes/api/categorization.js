@@ -67,7 +67,7 @@ categorization.post('/suggest', async (c) => {
             console.warn('Failed to find matching account:', errorMessage);
         }
         // Generate unique suggestion ID
-        const suggestionId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const suggestionId = `cat_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
         // Create suggestion object
         const suggestion = {
             id: suggestionId,

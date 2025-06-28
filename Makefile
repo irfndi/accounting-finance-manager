@@ -188,18 +188,18 @@ prod/deploy/staging: ## Deploy to staging environment
 
 prod/rollback: ## Rollback production deployment
 	@echo "$(CYAN)Rolling back production deployment...$(RESET)"
-	cd worker && wrangler rollback --env production
+	alchemy run --env production -- wrangler rollback
 	@echo "$(GREEN)✓ Rollback complete$(RESET)"
 
 prod/status: ## Check production deployment status
 	@echo "$(CYAN)Checking production status...$(RESET)"
-	cd worker && wrangler tail --env production --format pretty --once
+	alchemy run --env production -- wrangler tail --format pretty --once
 	@echo "$(GREEN)✓ Status check complete$(RESET)"
 
 test/smoke/prod: ## Run smoke tests against production
 	@echo "$(CYAN)Running production smoke tests...$(RESET)"
 	@echo "$(YELLOW)Testing production endpoints...$(RESET)"
-	curl -f https://your-worker.your-subdomain.workers.dev/health || echo "$(RED)Production health check failed$(RESET)"
+	curl -f https://finance-manager-worker.irfandimarsya.workers.dev/health || echo "$(RED)Production health check failed$(RESET)"
 	@echo "$(GREEN)✓ Production smoke tests complete$(RESET)"
 
 publish: prod/deploy ## Alias for prod/deploy
@@ -331,7 +331,7 @@ debug: ## Debug application issues
 	@echo "$(CYAN)Debug Information$(RESET)"
 	@echo "=================="
 	@echo "$(YELLOW)Recent errors in logs:$(RESET)"
-	wrangler tail --env production --format json | jq '.[] | select(.level == "error")' | head -5 || echo "No recent errors"
+	alchemy run --env production -- wrangler tail --format json | jq '.[] | select(.level == "error")' | head -5 || echo "No recent errors"
 	@echo "$(YELLOW)Memory usage:$(RESET)"
 	ps aux | grep node | head -5
 
@@ -375,18 +375,18 @@ health: ## Check overall system health
 feature/enable: ## Enable a feature flag (usage: make feature/enable FLAG=feature_name)
 	@echo "$(CYAN)Enabling feature flag: $(FLAG)$(RESET)"
 	@if [ -z "$(FLAG)" ]; then echo "$(RED)Error: FLAG parameter required$(RESET)"; exit 1; fi
-	wrangler kv:key put "feature_$(FLAG)" "true" --env production
+	alchemy run --env production -- wrangler kv:key put "feature_$(FLAG)" "true"
 	@echo "$(GREEN)✓ Feature $(FLAG) enabled$(RESET)"
 
 feature/disable: ## Disable a feature flag (usage: make feature/disable FLAG=feature_name)
 	@echo "$(CYAN)Disabling feature flag: $(FLAG)$(RESET)"
 	@if [ -z "$(FLAG)" ]; then echo "$(RED)Error: FLAG parameter required$(RESET)"; exit 1; fi
-	wrangler kv:key put "feature_$(FLAG)" "false" --env production
+	alchemy run --env production -- wrangler kv:key put "feature_$(FLAG)" "false"
 	@echo "$(GREEN)✓ Feature $(FLAG) disabled$(RESET)"
 
 feature/list: ## List all feature flags
 	@echo "$(CYAN)Current feature flags:$(RESET)"
-	wrangler kv:key list --env production | grep "feature_" || echo "No feature flags found"
+	alchemy run --env production -- wrangler kv:key list | grep "feature_" || echo "No feature flags found"
 
 env/switch: ## Switch environment (usage: make env/switch ENV=staging|production)
 	@echo "$(CYAN)Switching to $(ENV) environment$(RESET)"
@@ -398,4 +398,4 @@ env/status: ## Show current environment status
 	@echo "$(CYAN)Environment Status$(RESET)"
 	@echo "=================="
 	@echo "Current environment: $$(cat .env.local 2>/dev/null | grep CLOUDFLARE_ENV | cut -d'=' -f2 || echo 'development')"
-	wrangler whoami
+	alchemy run -- wrangler whoami
