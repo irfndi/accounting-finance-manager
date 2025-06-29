@@ -10,6 +10,7 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone'
   }),
+  srcDir: './src/web',
   vite: {
     plugins: [tailwindcss()],
     resolve: {

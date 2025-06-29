@@ -1,4 +1,4 @@
-import React, { createElement } from 'react';
+import React__default, { createElement } from 'react';
 import ReactDOM from 'react-dom/server';
 
 const contexts = /* @__PURE__ */ new WeakMap();
@@ -51,7 +51,7 @@ async function check(Component, props, children) {
   if (typeof Component === "function" && Component["$$typeof"] === Symbol.for("react.forward_ref"))
     return false;
   if (Component.prototype != null && typeof Component.prototype.render === "function") {
-    return React.Component.isPrototypeOf(Component) || React.PureComponent.isPrototypeOf(Component);
+    return React__default.Component.isPrototypeOf(Component) || React__default.PureComponent.isPrototypeOf(Component);
   }
   let isReactComponent = false;
   function Tester(...args) {
@@ -62,7 +62,7 @@ async function check(Component, props, children) {
       }
     } catch {
     }
-    return React.createElement("div");
+    return React__default.createElement("div");
   }
   await renderToStaticMarkup.call(this, Tester, props, children);
   return isReactComponent;
@@ -88,7 +88,7 @@ async function renderToStaticMarkup(Component, props, { default: children, ...sl
   const slots = {};
   for (const [key, value] of Object.entries(slotted)) {
     const name = slotName(key);
-    slots[name] = React.createElement(static_html_default, {
+    slots[name] = React__default.createElement(static_html_default, {
       hydrate: needsHydration(metadata),
       value,
       name
@@ -100,7 +100,7 @@ async function renderToStaticMarkup(Component, props, { default: children, ...sl
   };
   const newChildren = children ?? props.children;
   if (newChildren != null) {
-    newProps.children = React.createElement(static_html_default, {
+    newProps.children = React__default.createElement(static_html_default, {
       hydrate: needsHydration(metadata),
       value: newChildren
     });
@@ -111,7 +111,7 @@ async function renderToStaticMarkup(Component, props, { default: children, ...sl
     attrs["data-action-key"] = formState[1];
     attrs["data-action-name"] = formState[2];
   }
-  const vnode = React.createElement(Component, newProps);
+  const vnode = React__default.createElement(Component, newProps);
   const renderOptions = {
     identifierPrefix: prefix,
     formState

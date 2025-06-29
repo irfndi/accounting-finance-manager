@@ -475,4 +475,4 @@ describe('AI Service Tests', () => {
       expect(service).toBeInstanceOf(AIService);
     });
   });
-}); 
+});

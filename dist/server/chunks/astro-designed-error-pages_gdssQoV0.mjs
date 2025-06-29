@@ -1,4 +1,4 @@
-import { a2 as NOOP_MIDDLEWARE_HEADER, a3 as REDIRECT_STATUS_CODES, A as AstroError, a4 as ActionsReturnedInvalidDataError, a5 as escape, D as DEFAULT_404_COMPONENT } from './astro/server_DhTGWCEe.mjs';
+import { aq as NOOP_MIDDLEWARE_HEADER, ar as REDIRECT_STATUS_CODES, A as AstroError, as as ActionsReturnedInvalidDataError, at as escape, Y as DEFAULT_404_COMPONENT } from './astro/server_BVjmk4Kv.mjs';
 
 const NOOP_MIDDLEWARE_FN = async (_ctx, next) => {
   const response = await next();

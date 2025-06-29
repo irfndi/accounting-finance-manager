@@ -107,17 +107,90 @@ const NoMatchingImport = {
   message: (componentName) => `Could not render \`${componentName}\`. No matching import has been found for \`${componentName}\`.`,
   hint: "Please make sure the component is properly imported."
 };
+const InvalidComponentArgs = {
+  name: "InvalidComponentArgs",
+  title: "Invalid component arguments.",
+  message: (name) => `Invalid arguments passed to${name ? ` <${name}>` : ""} component.`,
+  hint: "Astro components cannot be rendered directly via function call, such as `Component()` or `{items.map(Component)}`."
+};
 const PageNumberParamNotFound = {
   name: "PageNumberParamNotFound",
   title: "Page number param not found.",
   message: (paramName) => `[paginate()] page number param \`${paramName}\` not found in your filepath.`,
   hint: "Rename your file to `[page].astro` or `[...page].astro`."
 };
+const ImageMissingAlt = {
+  name: "ImageMissingAlt",
+  title: 'Image missing required "alt" property.',
+  message: 'Image missing "alt" property. "alt" text is required to describe important images on the page.',
+  hint: 'Use an empty string ("") for decorative images.'
+};
+const InvalidImageService = {
+  name: "InvalidImageService",
+  title: "Error while loading image service.",
+  message: "There was an error loading the configured image service. Please see the stack trace for more information."
+};
+const MissingImageDimension = {
+  name: "MissingImageDimension",
+  title: "Missing image dimensions",
+  message: (missingDimension, imageURL) => `Missing ${missingDimension === "both" ? "width and height attributes" : `${missingDimension} attribute`} for ${imageURL}. When using remote images, both dimensions are required in order to avoid CLS.`,
+  hint: "If your image is inside your `src` folder, you probably meant to import it instead. See [the Imports guide for more information](https://docs.astro.build/en/guides/imports/#other-assets). You can also use `inferSize={true}` for remote images to get the original dimensions."
+};
+const FailedToFetchRemoteImageDimensions = {
+  name: "FailedToFetchRemoteImageDimensions",
+  title: "Failed to retrieve remote image dimensions",
+  message: (imageURL) => `Failed to get the dimensions for ${imageURL}.`,
+  hint: "Verify your remote image URL is accurate, and that you are not using `inferSize` with a file located in your `public/` folder."
+};
+const UnsupportedImageFormat = {
+  name: "UnsupportedImageFormat",
+  title: "Unsupported image format",
+  message: (format, imagePath, supportedFormats) => `Received unsupported format \`${format}\` from \`${imagePath}\`. Currently only ${supportedFormats.join(
+    ", "
+  )} are supported by our image services.`,
+  hint: "Using an `img` tag directly instead of the `Image` component might be what you're looking for."
+};
+const UnsupportedImageConversion = {
+  name: "UnsupportedImageConversion",
+  title: "Unsupported image conversion",
+  message: "Converting between vector (such as SVGs) and raster (such as PNGs and JPEGs) images is not currently supported."
+};
 const PrerenderDynamicEndpointPathCollide = {
   name: "PrerenderDynamicEndpointPathCollide",
   title: "Prerendered dynamic endpoint has path collision.",
   message: (pathname) => `Could not render \`${pathname}\` with an \`undefined\` param as the generated path will collide during prerendering. Prevent passing \`undefined\` as \`params\` for the endpoint's \`getStaticPaths()\` function, or add an additional extension to the endpoint's filename.`,
   hint: (filename) => `Rename \`${filename}\` to \`${filename.replace(/\.(?:js|ts)/, (m) => `.json` + m)}\``
+};
+const ExpectedImage = {
+  name: "ExpectedImage",
+  title: "Expected src to be an image.",
+  message: (src, typeofOptions, fullOptions) => `Expected \`src\` property for \`getImage\` or \`<Image />\` to be either an ESM imported image or a string with the path of a remote image. Received \`${src}\` (type: \`${typeofOptions}\`).
+
+Full serialized options received: \`${fullOptions}\`.`,
+  hint: "This error can often happen because of a wrong path. Make sure the path to your image is correct. If you're passing an async function, make sure to call and await it."
+};
+const ExpectedImageOptions = {
+  name: "ExpectedImageOptions",
+  title: "Expected image options.",
+  message: (options) => `Expected getImage() parameter to be an object. Received \`${options}\`.`
+};
+const ExpectedNotESMImage = {
+  name: "ExpectedNotESMImage",
+  title: "Expected image options, not an ESM-imported image.",
+  message: "An ESM-imported image cannot be passed directly to `getImage()`. Instead, pass an object with the image in the `src` property.",
+  hint: "Try changing `getImage(myImage)` to `getImage({ src: myImage })`"
+};
+const IncompatibleDescriptorOptions = {
+  name: "IncompatibleDescriptorOptions",
+  title: "Cannot set both `densities` and `widths`",
+  message: "Only one of `densities` or `widths` can be specified. In most cases, you'll probably want to use only `widths` if you require specific widths.",
+  hint: "Those attributes are used to construct a `srcset` attribute, which cannot have both `x` and `w` descriptors."
+};
+const NoImageMetadata = {
+  name: "NoImageMetadata",
+  title: "Could not process image metadata.",
+  message: (imagePath) => `Could not process image metadata${imagePath ? ` for \`${imagePath}\`` : ""}.`,
+  hint: "This is often caused by a corrupted or malformed image. Re-exporting the image from your image editor may fix this issue."
 };
 const ResponseSentError = {
   name: "ResponseSentError",
@@ -157,6 +230,30 @@ const AstroResponseHeadersReassigned = {
   message: "Individual headers can be added to and removed from `Astro.response.headers`, but it must not be replaced with another instance of `Headers` altogether.",
   hint: "Consider using `Astro.response.headers.add()`, and `Astro.response.headers.delete()`."
 };
+const LocalImageUsedWrongly = {
+  name: "LocalImageUsedWrongly",
+  title: "Local images must be imported.",
+  message: (imageFilePath) => `\`Image\`'s and \`getImage\`'s \`src\` parameter must be an imported image or an URL, it cannot be a string filepath. Received \`${imageFilePath}\`.`,
+  hint: "If you want to use an image from your `src` folder, you need to either import it or if the image is coming from a content collection, use the [image() schema helper](https://docs.astro.build/en/guides/images/#images-in-content-collections). See https://docs.astro.build/en/guides/images/#src-required for more information on the `src` property."
+};
+const AstroGlobUsedOutside = {
+  name: "AstroGlobUsedOutside",
+  title: "Astro.glob() used outside of an Astro file.",
+  message: (globStr) => `\`Astro.glob(${globStr})\` can only be used in \`.astro\` files. \`import.meta.glob(${globStr})\` can be used instead to achieve a similar result.`,
+  hint: "See Vite's documentation on `import.meta.glob` for more information: https://vite.dev/guide/features.html#glob-import"
+};
+const AstroGlobNoMatch = {
+  name: "AstroGlobNoMatch",
+  title: "Astro.glob() did not match any files.",
+  message: (globStr) => `\`Astro.glob(${globStr})\` did not return any matching files.`,
+  hint: "Check the pattern for typos."
+};
+const MissingSharp = {
+  name: "MissingSharp",
+  title: "Could not find Sharp.",
+  message: "Could not find Sharp. Please install Sharp (`sharp`) manually into your project or migrate to another image service.",
+  hint: "See Sharp's installation instructions for more information: https://sharp.pixelplumbing.com/install. If you are not relying on `astro:assets` to optimize, transform, or process any images, you can configure a passthrough image service instead of installing Sharp. See https://docs.astro.build/en/reference/errors/missing-sharp for more information.\n\nSee https://docs.astro.build/en/guides/images/#default-image-service for more information on how to migrate to another image service."
+};
 const i18nNoLocaleFoundInPath = {
   name: "i18nNoLocaleFoundInPath",
   title: "The path doesn't contain any locale",
@@ -176,6 +273,18 @@ The static route '${to}' is rendered by the component
 '${component}', which is marked as prerendered. This is a forbidden operation because during the build the component '${component}' is compiled to an
 HTML file, which can't be retrieved at runtime by Astro.`,
   hint: (component) => `Add \`export const prerender = false\` to the component '${component}', or use a Astro.redirect().`
+};
+const ExperimentalFontsNotEnabled = {
+  name: "ExperimentalFontsNotEnabled",
+  title: "Experimental fonts are not enabled",
+  message: "The Font component is used but experimental fonts have not been registered in the config.",
+  hint: "Check that you have enabled experimental fonts and also configured your preferred fonts."
+};
+const FontFamilyNotFound = {
+  name: "FontFamilyNotFound",
+  title: "Font family not found",
+  message: (family) => `No data was found for the \`"${family}"\` family passed to the \`<Font>\` component.`,
+  hint: "This is often caused by a typo. Check that your Font component is using a `cssVariable` specified in your config."
 };
 const CspNotEnabled = {
   name: "CspNotEnabled",
@@ -275,6 +384,71 @@ class AstroError extends Error {
   static is(err) {
     return err.type === "AstroError";
   }
+}
+
+function validateArgs(args) {
+  if (args.length !== 3) return false;
+  if (!args[0] || typeof args[0] !== "object") return false;
+  return true;
+}
+function baseCreateComponent(cb, moduleId, propagation) {
+  const name = moduleId?.split("/").pop()?.replace(".astro", "") ?? "";
+  const fn = (...args) => {
+    if (!validateArgs(args)) {
+      throw new AstroError({
+        ...InvalidComponentArgs,
+        message: InvalidComponentArgs.message(name)
+      });
+    }
+    return cb(...args);
+  };
+  Object.defineProperty(fn, "name", { value: name, writable: false });
+  fn.isAstroComponentFactory = true;
+  fn.moduleId = moduleId;
+  fn.propagation = propagation;
+  return fn;
+}
+function createComponentWithOptions(opts) {
+  const cb = baseCreateComponent(opts.factory, opts.moduleId, opts.propagation);
+  return cb;
+}
+function createComponent(arg1, moduleId, propagation) {
+  if (typeof arg1 === "function") {
+    return baseCreateComponent(arg1, moduleId, propagation);
+  } else {
+    return createComponentWithOptions(arg1);
+  }
+}
+
+function createAstroGlobFn() {
+  const globHandler = (importMetaGlobResult) => {
+    console.warn(`Astro.glob is deprecated and will be removed in a future major version of Astro.
+Use import.meta.glob instead: https://vitejs.dev/guide/features.html#glob-import`);
+    if (typeof importMetaGlobResult === "string") {
+      throw new AstroError({
+        ...AstroGlobUsedOutside,
+        message: AstroGlobUsedOutside.message(JSON.stringify(importMetaGlobResult))
+      });
+    }
+    let allEntries = [...Object.values(importMetaGlobResult)];
+    if (allEntries.length === 0) {
+      throw new AstroError({
+        ...AstroGlobNoMatch,
+        message: AstroGlobNoMatch.message(JSON.stringify(importMetaGlobResult))
+      });
+    }
+    return Promise.all(allEntries.map((fn) => fn()));
+  };
+  return globHandler;
+}
+function createAstro(site) {
+  return {
+    // TODO: this is no longer necessary for `Astro.site`
+    // but it somehow allows working around caching issues in content collections for some tests
+    site: void 0,
+    generator: `Astro v${ASTRO_VERSION}`,
+    glob: createAstroGlobFn()
+  };
 }
 
 let FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM, isTTY=true;
@@ -1089,6 +1263,9 @@ function renderAllHeadContent(result) {
   }
   return markHTMLString(content);
 }
+function renderHead() {
+  return createRenderInstruction({ type: "head" });
+}
 function maybeRenderHead() {
   return createRenderInstruction({ type: "maybe-head" });
 }
@@ -1468,6 +1645,9 @@ function isSlotString(str) {
   return !!str[slotString];
 }
 function renderSlot(result, slotted, fallback) {
+  if (!slotted && fallback) {
+    return renderSlot(result, fallback);
+  }
   return {
     async render(destination) {
       await renderChild(destination, typeof slotted === "function" ? slotted(result) : slotted);
@@ -1496,7 +1676,7 @@ async function renderSlotToString(result, slotted, fallback) {
       }
     }
   };
-  const renderInstance = renderSlot(result, slotted);
+  const renderInstance = renderSlot(result, slotted, fallback);
   await renderInstance.render(temporaryDestination);
   return markHTMLString(new SlotString(content, instructions));
 }
@@ -2729,6 +2909,23 @@ function prerenderElementChildren(tag, children) {
   }
 }
 
+async function renderScript(result, id) {
+  if (result._metadata.renderedScripts.has(id)) return;
+  result._metadata.renderedScripts.add(id);
+  const inlined = result.inlinedScripts.get(id);
+  if (inlined != null) {
+    if (inlined) {
+      return markHTMLString(`<script type="module">${inlined}</script>`);
+    } else {
+      return "";
+    }
+  }
+  const resolved = await result.resolve(id);
+  return markHTMLString(
+    `<script type="module" src="${result.userAssetsBase ? (result.base === "/" ? "" : result.base) + result.userAssetsBase : ""}${resolved}"></script>`
+  );
+}
+
 async function renderPage(result, componentFactory, props, children, streaming, route) {
   if (!isAstroComponentFactory(componentFactory)) {
     result._metadata.headInTree = result.componentMetadata.get(componentFactory.moduleId)?.containsHead ?? false;
@@ -2947,4 +3144,4 @@ function spreadAttributes(values = {}, _name, { class: scopedClassName } = {}) {
   return markHTMLString(output);
 }
 
-export { LocalsNotAnObject as $, AstroError as A, isRenderInstruction as B, SessionStorageSaveError as C, DEFAULT_404_COMPONENT as D, ASTRO_VERSION as E, ForbiddenRewrite as F, GetStaticPathsRequired as G, CspNotEnabled as H, InvalidGetStaticPathsReturn as I, green as J, generateCspDigest as K, LocalsReassigned as L, MiddlewareNoDataOrNextCalled as M, NoMatchingStaticPathFound as N, PrerenderClientAddressNotAvailable as O, PageNumberParamNotFound as P, clientAddressSymbol as Q, ROUTE_TYPE_HEADER as R, SessionStorageInitError as S, ClientAddressNotAvailable as T, StaticClientAddressNotAvailable as U, AstroResponseHeadersReassigned as V, responseSentSymbol as W, renderPage as X, REWRITE_DIRECTIVE_HEADER_KEY as Y, REWRITE_DIRECTIVE_HEADER_VALUE as Z, renderEndpoint as _, decryptString as a, REROUTABLE_STATUS_CODES as a0, getDefaultExportFromCjs as a1, NOOP_MIDDLEWARE_HEADER as a2, REDIRECT_STATUS_CODES as a3, ActionsReturnedInvalidDataError as a4, escape as a5, renderTemplate as b, createSlotValueFromString as c, decodeKey as d, REROUTE_DIRECTIVE_HEADER as e, i18nNoLocaleFoundInPath as f, ResponseSentError as g, bold as h, isAstroComponentFactory as i, red as j, dim as k, blue as l, MiddlewareNotAResponse as m, RewriteWithBodyUsed as n, originPathnameSymbol as o, InvalidGetStaticPathsEntry as p, GetStaticPathsExpectedParams as q, renderComponent as r, GetStaticPathsInvalidRouteParam as s, ActionNotFoundError as t, PrerenderDynamicEndpointPathCollide as u, ReservedSlotName as v, renderSlotToString as w, renderJSX as x, yellow as y, chunkToString as z };
+export { PrerenderDynamicEndpointPathCollide as $, AstroError as A, bold as B, red as C, yellow as D, ExpectedImage as E, FailedToFetchRemoteImageDimensions as F, dim as G, blue as H, IncompatibleDescriptorOptions as I, MiddlewareNoDataOrNextCalled as J, MiddlewareNotAResponse as K, LocalImageUsedWrongly as L, MissingImageDimension as M, NoImageMetadata as N, originPathnameSymbol as O, RewriteWithBodyUsed as P, GetStaticPathsRequired as Q, ROUTE_TYPE_HEADER as R, InvalidGetStaticPathsReturn as S, InvalidGetStaticPathsEntry as T, UnsupportedImageFormat as U, GetStaticPathsExpectedParams as V, GetStaticPathsInvalidRouteParam as W, PageNumberParamNotFound as X, DEFAULT_404_COMPONENT as Y, ActionNotFoundError as Z, NoMatchingStaticPathFound as _, UnsupportedImageConversion as a, ReservedSlotName as a0, renderSlotToString as a1, renderJSX as a2, chunkToString as a3, isRenderInstruction as a4, ForbiddenRewrite as a5, SessionStorageInitError as a6, SessionStorageSaveError as a7, ASTRO_VERSION as a8, CspNotEnabled as a9, green as aa, LocalsReassigned as ab, generateCspDigest as ac, PrerenderClientAddressNotAvailable as ad, clientAddressSymbol as ae, ClientAddressNotAvailable as af, StaticClientAddressNotAvailable as ag, AstroResponseHeadersReassigned as ah, responseSentSymbol as ai, renderPage as aj, REWRITE_DIRECTIVE_HEADER_KEY as ak, REWRITE_DIRECTIVE_HEADER_VALUE as al, renderEndpoint as am, LocalsNotAnObject as an, REROUTABLE_STATUS_CODES as ao, getDefaultExportFromCjs as ap, NOOP_MIDDLEWARE_HEADER as aq, REDIRECT_STATUS_CODES as ar, ActionsReturnedInvalidDataError as as, escape as at, MissingSharp as au, ExpectedImageOptions as b, ExpectedNotESMImage as c, InvalidImageService as d, createComponent as e, createAstro as f, ImageMissingAlt as g, addAttribute as h, ExperimentalFontsNotEnabled as i, FontFamilyNotFound as j, renderComponent as k, renderScript as l, maybeRenderHead as m, renderHead as n, renderSlot as o, decodeKey as p, decryptString as q, renderTemplate as r, spreadAttributes as s, toStyleString as t, unescapeHTML as u, createSlotValueFromString as v, isAstroComponentFactory as w, REROUTE_DIRECTIVE_HEADER as x, i18nNoLocaleFoundInPath as y, ResponseSentError as z };

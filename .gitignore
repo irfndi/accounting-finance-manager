@@ -42,3 +42,5 @@ worker/dist/
 # Task files
 # tasks.json
 # tasks/ 
+
+dist
