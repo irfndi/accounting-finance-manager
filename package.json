@@ -9,7 +9,7 @@
     "dev": "astro dev",
     "dev:worker": "alchemy dev",
     "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:worker\"",
-    "build": "astro check && astro build",
+    "build": "pnpm install --no-frozen-lockfile && astro check && astro build",
     "build:worker": "tsc --noEmit",
     "preview": "astro preview",
     "deploy": "pnpm dlx ./alchemy.run.ts",
