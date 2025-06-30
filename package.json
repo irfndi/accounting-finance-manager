@@ -10,7 +10,6 @@
     "dev:worker": "alchemy dev",
     "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:worker\"",
     "build": "astro check && astro build",
-    "build:deploy": "./scripts/build-deploy.sh",
     "build:worker": "tsc --noEmit",
     "preview": "astro preview",
     "deploy": "pnpm dlx ./alchemy.run.ts",
