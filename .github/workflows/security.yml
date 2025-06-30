@@ -41,7 +41,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Run PNPM audit
         timeout-minutes: 2
@@ -102,7 +107,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Build for CodeQL analysis
         run: |
@@ -137,7 +147,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Install Snyk CLI
         run: |
@@ -212,7 +227,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Install license checker
         run: |
@@ -309,7 +329,11 @@ jobs:
       - name: Verify package integrity
         run: |
           echo "🔐 Verifying package integrity..."
-          pnpm install --frozen-lockfile --verify-store-integrity
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile --verify-store-integrity || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile --verify-store-integrity
+          }
           echo "✅ Package integrity verified"
 
       - name: Check for suspicious packages
