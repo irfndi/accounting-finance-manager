@@ -82,7 +82,7 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div>
-              <h1 className="text-lg font-semibold">Finance Manager</h1>
+              <h1 data-testid="nav-title" className="text-lg font-semibold">Finance Manager</h1>
               <p className="text-xs text-slate-400">Corporate Accounting</p>
             </div>
           )}
@@ -90,7 +90,7 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="text-slate-400 hover:text-white hover:bg-slate-800"
+            className="text-slate-500 hover:text-white hover:bg-slate-800"
           >
             <svg
               className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-180' : ''}`}

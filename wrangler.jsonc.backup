@@ -1,0 +1,164 @@
+{
+  // Cloudflare Workers configuration in JSONC format
+  "main": "src/index.ts",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  
+  "assets": {
+    "directory": "dist"
+  },
+  
+  // Worker configuration
+  "env": {
+    "production": {
+      "name": "finance-manager",
+      "vars": {
+        "ALCHEMY_MANAGED": "true",
+        "CONTAINER_VERSION": "1.0.0",
+        "DEPLOYMENT_STRATEGY": "alchemy",
+        "STAGE": "prod",
+        "ENVIRONMENT": "production",
+        "JWT_SECRET": "dev-jwt-secret-please-change-in-production-use-strong-random-key",
+        "AUTH_SESSION_DURATION": "7d",
+        "AWS_REGION": "us-east-1",
+        "SES_FROM_EMAIL": "noreply@finance-manager.com",
+        "SES_FROM_NAME": "Finance Manager"
+      },
+      "d1_databases": [
+        {
+          "binding": "FINANCE_MANAGER_DB",
+          "database_name": "prod-finance-manager-db",
+          "database_id": "5320fcf4-f13e-441f-8952-e94f8b9cfb1d",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "FINANCE_MANAGER_CACHE",
+          "id": "138dfa25adf345539677e7ef493eb335"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FINANCE_MANAGER_DOCUMENTS",
+          "bucket_name": "prod-finance-manager-documents"
+        }
+      ],
+      "ai": {
+        "binding": "AI"
+      },
+      "vectorize": [
+        {
+          "binding": "DOCUMENT_EMBEDDINGS",
+          "index_name": "prod-finance-manager-documents"
+        }
+      ]
+    },
+    "development": {
+      "name": "finance-manager-dev",
+      "vars": {
+        "ALCHEMY_MANAGED": "true",
+        "CONTAINER_VERSION": "1.0.0",
+        "DEPLOYMENT_STRATEGY": "alchemy",
+        "STAGE": "dev"
+      }
+    },
+    "test": {
+      "name": "finance-manager-test",
+      "vars": {
+        "ALCHEMY_MANAGED": "true",
+        "CONTAINER_VERSION": "1.0.0",
+        "DEPLOYMENT_STRATEGY": "alchemy",
+        "STAGE": "test",
+        "ENVIRONMENT": "test",
+        "JWT_SECRET": "test-jwt-secret-key-for-testing-only",
+        "AUTH_SESSION_DURATION": "1h",
+        "AWS_REGION": "us-east-1",
+        "SES_FROM_EMAIL": "test@finance-manager.com",
+        "SES_FROM_NAME": "Finance Manager Test"
+      },
+      "d1_databases": [
+        {
+          "binding": "FINANCE_MANAGER_DB",
+          "database_name": "test-finance-manager-db",
+          "database_id": "test-db-id",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "FINANCE_MANAGER_CACHE",
+          "id": "test-kv-id"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FINANCE_MANAGER_DOCUMENTS",
+          "bucket_name": "test-finance-manager-documents"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "DOCUMENT_EMBEDDINGS",
+          "index_name": "test-finance-manager-documents"
+        }
+      ]
+    }
+  },
+  
+  // Default variables for development
+  "vars": {
+    "ALCHEMY_MANAGED": "true",
+    "CONTAINER_VERSION": "1.0.0",
+    "DEPLOYMENT_STRATEGY": "alchemy",
+    "STAGE": "dev",
+    "ENVIRONMENT": "development",
+    "AUTH_SESSION_DURATION": "7d",
+    "AWS_REGION": "us-east-1",
+    "SES_FROM_EMAIL": "noreply@finance-manager.com",
+    "SES_FROM_NAME": "Finance Manager"
+  },
+  
+  // D1 Database bindings (default/development)
+  "d1_databases": [
+    {
+      "binding": "FINANCE_MANAGER_DB",
+      "database_name": "finance-manager-db",
+      "database_id": "886fa63b-1b70-42bc-8acd-62c21d68e42b",
+      "migrations_dir": "migrations"
+    }
+  ],
+  
+  // KV Storage bindings (default/development)
+  "kv_namespaces": [
+    {
+      "binding": "FINANCE_MANAGER_CACHE",
+      "id": "0e0af82b22224048a122082d1f3f6d42"
+    }
+  ],
+  
+  // R2 Storage bindings (default/development)
+  "r2_buckets": [
+    {
+      "binding": "FINANCE_MANAGER_DOCUMENTS",
+      "bucket_name": "finance-manager-documents"
+    }
+  ],
+  
+  // Module rules for WASM support
+  "rules": [
+    {
+      "type": "CompiledWasm",
+      "globs": ["**/*.wasm"],
+      "fallthrough": true
+    }
+  ],
+  
+  // Observability
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true
+    }
+  }
+}

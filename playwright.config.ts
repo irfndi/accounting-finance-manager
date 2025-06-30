@@ -1,72 +1,67 @@
 import { defineConfig, devices } from '@playwright/test';
+import { getEnvironmentConfig } from './tests/e2e/config/environments';
 
-/**
- * @see https://playwright.dev/docs/test-configuration
- */
+const envConfig = getEnvironmentConfig();
+
 export default defineConfig({
   testDir: './tests/e2e',
-  /* Global setup and teardown */
-  globalSetup: './tests/e2e/global-setup.ts',
-  /* Run tests in files in parallel */
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 1 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Timeout settings */
-  timeout: 60 * 1000, // 60 seconds per test
+  retries: process.env.CI ? envConfig.retries : 0,
+  workers: process.env.CI ? envConfig.workers : undefined,
+  timeout: envConfig.timeout,
   expect: {
-    timeout: 10 * 1000, // 10 seconds for assertions
+    timeout: 5000,
   },
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html'],
     ['json', { outputFile: 'test-results/results.json' }],
-    ['junit', { outputFile: 'test-results/results.xml' }]
+    ['junit', { outputFile: 'test-results/results.xml' }],
   ],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-    
-    /* Take screenshot on failure */
-    screenshot: 'only-on-failure',
-    
-    /* Record video on failure */
-    video: 'retain-on-failure',
+    ...envConfig.use,
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
   },
-
-  /* Configure projects for major browsers */
   projects: [
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+      teardown: 'teardown',
+    },
+    {
+      name: 'teardown',
+      testMatch: /.*\.teardown\.ts/,
+    },
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
       testMatch: /.*\.spec\.ts$/,
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      dependencies: ['setup'],
       testMatch: /.*\.spec\.ts$/,
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      dependencies: ['setup'],
       testMatch: /.*\.spec\.ts$/,
     },
     {
       name: 'visual-regression',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.visual\.ts$/,
+      dependencies: ['setup'],
+      testMatch: /.*\.visual\.spec\.ts$/,
     },
     {
       name: 'accessibility',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.a11y\.ts$/,
+      dependencies: ['setup'],
+      testMatch: /.*\.a11y\.spec\.ts$/,
     },
   ],
 

@@ -38,14 +38,14 @@ import {
 } from './ui/select';
 
 interface Account {
-  id: string;
+  id: number;
   code: string;
   name: string;
   type: string;
   subtype?: string;
   category?: string;
   description?: string;
-  parentId?: string;
+  parentId?: number | null;
   level: number;
   path: string;
   isActive: boolean;
@@ -72,7 +72,7 @@ interface CreateAccountData {
   subtype?: string;
   category?: string;
   description?: string;
-  parentId?: string;
+  parentId?: number | null;
   isActive: boolean;
   allowTransactions: boolean;
   reportOrder: number;
@@ -86,10 +86,9 @@ const ACCOUNT_TYPES = [
   { value: 'EXPENSE', label: 'Expense' },
 ];
 
-// Use environment variables in a way that's compatible with Astro
-const API_BASE_URL = typeof (import.meta as any).env !== 'undefined' && (import.meta as any).env.PUBLIC_API_URL
-  ? (import.meta as any).env.PUBLIC_API_URL
-  : 'http://localhost:8787';
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
+  : 'http://localhost:3000';
 
 export default function ChartOfAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -110,7 +109,7 @@ export default function ChartOfAccounts() {
     subtype: '',
     category: '',
     description: '',
-    parentId: '',
+    parentId: undefined,
     isActive: true,
     allowTransactions: true,
     reportOrder: 0,
@@ -128,6 +127,7 @@ export default function ChartOfAccounts() {
       setAccounts(data.accounts || []);
       setError(null);
     } catch (err) {
+      console.error('Error fetching accounts:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch accounts');
     } finally {
       setLoading(false);
@@ -201,7 +201,7 @@ export default function ChartOfAccounts() {
       subtype: '',
       category: '',
       description: '',
-      parentId: '',
+      parentId: undefined,
       isActive: true,
       allowTransactions: true,
       reportOrder: 0,
@@ -219,7 +219,7 @@ export default function ChartOfAccounts() {
       subtype: account.subtype || '',
       category: account.category || '',
       description: account.description || '',
-      parentId: account.parentId || '',
+      parentId: account.parentId || null,
       isActive: account.isActive,
       allowTransactions: account.allowTransactions,
       reportOrder: account.reportOrder,
@@ -246,7 +246,7 @@ export default function ChartOfAccounts() {
 
   // Build hierarchical account structure
   const buildAccountHierarchy = (accounts: Account[]): Account[] => {
-    const accountMap = new Map<string, Account>();
+    const accountMap = new Map<number, Account>();
     const rootAccounts: Account[] = [];
 
     // Create map of all accounts
@@ -275,12 +275,14 @@ export default function ChartOfAccounts() {
     const matchesType = filterType === 'all' || account.type === filterType;
     return matchesSearch && matchesType;
   });
+  
+
 
   // Render account row
   const renderAccountRow = (account: Account, level: number = 0): React.ReactNode[] => {
     const rows: React.ReactNode[] = [];
     const hasChildren = account.children && account.children.length > 0;
-    const isExpanded = expandedAccounts.has(account.id);
+    const isExpanded = expandedAccounts.has(account.id.toString());
     const indent = level * 20;
 
     rows.push(
@@ -289,7 +291,7 @@ export default function ChartOfAccounts() {
           <div className="flex items-center gap-2">
             {hasChildren && (
               <button
-                onClick={() => toggleExpanded(account.id)}
+                onClick={() => toggleExpanded(account.id.toString())}
                 className="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-700"
               >
                 {isExpanded ? '−' : '+'}
@@ -523,8 +525,8 @@ export default function ChartOfAccounts() {
             <div>
               <Label htmlFor="parentId">Parent Account</Label>
               <Select
-                value={formData.parentId || ''}
-                onValueChange={(value) => setFormData({ ...formData, parentId: value })}
+                value={formData.parentId?.toString() || ''}
+                onValueChange={(value) => setFormData({ ...formData, parentId: value ? parseInt(value) : null })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a parent account (optional)" />
@@ -565,7 +567,7 @@ export default function ChartOfAccounts() {
 
             <div>
               <Label htmlFor="parentId">Parent Account</Label>
-              <Select value={formData.parentId} onValueChange={(value) => setFormData({ ...formData, parentId: value })}>
+              <Select value={formData.parentId?.toString() || ''} onValueChange={(value) => setFormData({ ...formData, parentId: value ? parseInt(value) : null })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select parent (optional)" />
                 </SelectTrigger>
@@ -574,7 +576,7 @@ export default function ChartOfAccounts() {
                   {accounts
                     .filter(acc => acc.accountingInfo?.canHaveChildren && acc.id !== editingAccount?.id)
                     .map(account => (
-                      <SelectItem key={account.id} value={account.id}>
+                      <SelectItem key={account.id} value={account.id.toString()}>
                         {account.code} - {account.name}
                       </SelectItem>
                     ))}

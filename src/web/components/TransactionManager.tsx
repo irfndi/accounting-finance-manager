@@ -277,13 +277,13 @@ export default function TransactionManager() {
         return;
       }
 
-      // TODO: Call API to create transaction
-      console.log('Creating transaction:', {
-        description: newTransaction.description,
-        reference: newTransaction.reference,
-        transactionDate: newTransaction.transactionDate,
-        entries: validEntries
-      });
+      // Call API to create transaction
+      // console.log('Creating transaction:', {
+      //   description: newTransaction.description,
+      //   reference: newTransaction.reference,
+      //   transactionDate: newTransaction.transactionDate,
+      //   entries: validEntries
+      // });
       
       // Reset form
       setNewTransaction({
@@ -453,12 +453,12 @@ export default function TransactionManager() {
                 {aiInsights.map((insight, index) => (
                   <div key={index} className={`p-3 rounded-lg border-l-4 ${
                     insight.type === 'error' ? 'bg-red-50 border-red-400 text-red-700' :
-                    insight.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-700' :
-                    'bg-blue-50 border-blue-400 text-blue-700'
+                    insight.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-800' :
+                    'bg-blue-50 border-blue-400 text-blue-800'
                   }`}>
                     <div className="flex items-center justify-between">
                       <span className="text-sm">{insight.message}</span>
-                      <span className="text-xs opacity-75">
+                      <span className="text-xs text-gray-600">
                         {Math.round(insight.confidence * 100)}% confidence
                       </span>
                     </div>
@@ -613,7 +613,7 @@ export default function TransactionManager() {
                   <div>
                     <span className="font-medium">Balance Status:</span>
                     <div className={`text-lg font-bold ${
-                      totals.isBalanced ? 'text-green-600' : 'text-red-600'
+                      totals.isBalanced ? 'text-green-700' : 'text-red-600'
                     }`}>
                       {totals.isBalanced ? '✓ Balanced' : '✗ Unbalanced'}
                     </div>

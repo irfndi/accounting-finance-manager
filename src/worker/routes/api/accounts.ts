@@ -122,10 +122,10 @@ async function createAccountingServices(d1Database: D1Database, entityId: string
 // GET /accounts - List all accounts with enhanced functionality
 accounts.get('/', async (c) => {
   try {
-    const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
-    
     // Get query parameters for filtering
     const { type, active, parent, entityId = 'default' } = c.req.query()
+    
+    const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB, entityId)
     
     let allAccounts
     
@@ -193,6 +193,7 @@ accounts.get('/', async (c) => {
 accounts.get('/:id', async (c) => {
   try {
     const accountId = Number.parseInt(c.req.param('id'), 10)
+    const { entityId = 'default' } = c.req.query()
     
     if (Number.isNaN(accountId) || accountId <= 0) {
       return c.json({ 
@@ -202,7 +203,7 @@ accounts.get('/:id', async (c) => {
       }, 400)
     }
 
-    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
+    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB, entityId)
     
     const account = await dbAdapter.getAccount(accountId)
     
@@ -264,7 +265,8 @@ accounts.get('/:id', async (c) => {
 // POST /accounts - Create new account with enhanced validation
 accounts.post('/', async (c) => {
   try {
-    const body: CreateAccountRequest = await c.req.json()
+    const body: CreateAccountRequest & { entityId?: string } = await c.req.json()
+    const entityId = body.entityId || 'default'
     
     // Enhanced validation using core logic
     const codeError = validateAccountCode(body.code)
@@ -287,7 +289,7 @@ accounts.post('/', async (c) => {
       return c.json({ error: normalBalanceError, code: 'VALIDATION_ERROR' }, 400)
     }
     
-    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
+    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB, entityId)
     
     // Check if account code already exists using account registry
     const existingAccounts = accountRegistry.getAllAccounts()
@@ -339,7 +341,7 @@ accounts.post('/', async (c) => {
       currentBalance: 0,
       reportCategory: body.reportCategory || body.type,
       reportOrder: body.reportOrder || 0,
-      entityId: 'default'
+      entityId: entityId
     }
     
     const newAccount = await dbAdapter.createAccount(accountData)

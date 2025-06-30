@@ -1605,6 +1605,11 @@ export class DatabaseAdapter {
     return result ? this.mapDbAccountToAccount(result) : null;
   }
 
+  async deleteAccount(accountId: number): Promise<void> {
+    const query = 'DELETE FROM accounts WHERE id = ? AND entity_id = ?';
+    await this.db.prepare(query).bind(accountId, this.entityId).run();
+  }
+
   // Transaction Operations
   async createTransaction(transactionData: TransactionData): Promise<Transaction> {
     const now = new Date();
@@ -1759,7 +1764,7 @@ export class DatabaseAdapter {
       type: row.type as AccountType,
       subtype: row.subtype as string | undefined,
       category: row.category as string | undefined,
-      parentId: row.parent_id as number | undefined, // parentId is number, not string
+      parentId: row.parent_id ? (row.parent_id as number) : undefined, // Convert null to undefined
       level: row.level as number,
       path: row.path as string,
       isActive: Boolean(row.is_active),
@@ -1838,7 +1843,7 @@ export class DatabaseAccountRegistry extends AccountRegistry {
     }
   }
 
-  async registerAccount(account: Account): Promise<Account> {
+  async registerAccount(account: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>): Promise<Account> {
     const createdAccount = await this.dbAdapter.createAccount(account);
     super.registerAccount(createdAccount);
     return createdAccount;
@@ -1850,6 +1855,35 @@ export class DatabaseAccountRegistry extends AccountRegistry {
 
   async getAccountsByTypeFromDatabase(accountType: AccountType): Promise<Account[]> {
     return await this.dbAdapter.getAccountsByType(accountType);
+  }
+
+  async getAllAccountsFromDatabase(): Promise<Account[]> {
+    return await this.dbAdapter.getAllAccounts();
+  }
+
+  async getAccountById(accountId: number): Promise<Account | null> {
+    return await this.dbAdapter.getAccount(accountId);
+  }
+
+  async updateAccount(accountId: number, updateData: Partial<Account>): Promise<Account> {
+    const updatedAccount = await this.dbAdapter.updateAccount(accountId, updateData);
+    if (!updatedAccount) {
+      throw new Error(`Account with ID ${accountId} not found`);
+    }
+    // Update the in-memory registry as well
+    super.registerAccount(updatedAccount);
+    return updatedAccount;
+  }
+
+  async deleteAccount(accountId: number): Promise<void> {
+    await this.dbAdapter.deleteAccount(accountId);
+    // Remove from in-memory registry as well
+    super.removeAccount(accountId.toString());
+  }
+
+  getAccountByCode(code: string): Account | null {
+    const accounts = super.getAllAccounts();
+    return accounts.find(account => account.code === code) || null;
   }
 }
 

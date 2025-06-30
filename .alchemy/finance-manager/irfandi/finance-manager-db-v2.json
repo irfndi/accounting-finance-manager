@@ -4,7 +4,7 @@
   "fqn": "finance-manager/irfandi/finance-manager-db-v2",
   "seq": 2,
   "data": {},
-  "status": "created",
+  "status": "updated",
   "output": {
     "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
     "Symbol(alchemy::ResourceID)": "finance-manager-db-v2",
@@ -16,13 +16,17 @@
     "type": "d1",
     "id": "ed6f24bb-ddf5-4e5d-8c51-154b819a82fd",
     "name": "finance-manager-db-v2",
-    "fileSize": 8192,
+    "fileSize": 12288,
     "numTables": 0,
     "version": "production",
+    "readReplication": {
+      "mode": "disabled"
+    },
     "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
   },
   "props": {
     "name": "finance-manager-db-v2",
+    "adopt": true,
     "migrationsFiles": []
   }
 }
