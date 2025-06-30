@@ -29,6 +29,7 @@ node_modules/
 coverage/
 .wrangler
 .astro
+.alchemy
 
 test-result
 playwright-report
