@@ -8,7 +8,7 @@ import {
   FINANCIAL_CONSTANTS,
   DatabaseJournalEntryManager,
   DoubleEntryError,
-} from '../../../lib/index.js';
+} from '../../../lib/index.ts';
 import type { Currency, JournalEntry, Account } from '../../../types/index.js';
 import { authMiddleware } from '../../middleware/auth';
 import { FinancialAIService, createAIService } from '../../../ai/index.js';

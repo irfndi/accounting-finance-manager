@@ -119,7 +119,11 @@ export default function ChartOfAccounts() {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/accounts`);
+      const response = await fetch(`${API_BASE_URL}/api/accounts`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch accounts: ${response.statusText}`);
       }
@@ -147,6 +151,7 @@ export default function ChartOfAccounts() {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
         },
         body: JSON.stringify(formData),
       });
@@ -176,6 +181,9 @@ export default function ChartOfAccounts() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/accounts/${accountToDelete.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        },
       });
 
       if (!response.ok) {
@@ -525,14 +533,14 @@ export default function ChartOfAccounts() {
             <div>
               <Label htmlFor="parentId">Parent Account</Label>
               <Select
-                value={formData.parentId?.toString() || ''}
-                onValueChange={(value) => setFormData({ ...formData, parentId: value ? parseInt(value) : null })}
+                value={formData.parentId?.toString() || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, parentId: value && value !== 'none' ? parseInt(value) : null })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a parent account (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value=""><em>No Parent</em></SelectItem>
+                  <SelectItem value="none"><em>No Parent</em></SelectItem>
                   {accounts
                     .filter(acc => ['ASSET', 'LIABILITY', 'EQUITY'].includes(acc.type) && acc.id !== editingAccount?.id)
                     .map(parent => (
@@ -567,12 +575,12 @@ export default function ChartOfAccounts() {
 
             <div>
               <Label htmlFor="parentId">Parent Account</Label>
-              <Select value={formData.parentId?.toString() || ''} onValueChange={(value) => setFormData({ ...formData, parentId: value ? parseInt(value) : null })}>
+              <Select value={formData.parentId?.toString() || 'none'} onValueChange={(value) => setFormData({ ...formData, parentId: value && value !== 'none' ? parseInt(value) : null })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select parent (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Parent</SelectItem>
+                  <SelectItem value="none">No Parent</SelectItem>
                   {accounts
                     .filter(acc => acc.accountingInfo?.canHaveChildren && acc.id !== editingAccount?.id)
                     .map(account => (

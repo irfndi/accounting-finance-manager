@@ -66,11 +66,11 @@ interface GeneralLedgerStats {
 }
 
 const ACCOUNT_TYPES = [
-  'asset',
-  'liability', 
-  'equity',
-  'revenue',
-  'expense'
+  'ASSET',
+  'LIABILITY',
+  'EQUITY',
+  'REVENUE',
+  'EXPENSE'
 ] as const;
 
 const API_BASE_URL = typeof window !== 'undefined' 
@@ -97,7 +97,7 @@ export default function GeneralLedger() {
   const [formData, setFormData] = useState<CreateAccountData>({
     code: '',
     name: '',
-    type: 'asset',
+    type: 'ASSET',
     subtype: '',
     category: '',
     description: '',
@@ -119,7 +119,11 @@ export default function GeneralLedger() {
       }
       
       const url = `${API_BASE_URL}/api/accounts?${params}`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch accounts: ${response.statusText}`);
       }
@@ -155,6 +159,7 @@ export default function GeneralLedger() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
         },
         body: JSON.stringify(formData),
       });
@@ -170,9 +175,9 @@ export default function GeneralLedger() {
       
       // Reset form and close dialog
       setFormData({
-        code: '',
-        name: '',
-        type: 'asset',
+      code: '',
+      name: '',
+      type: 'ASSET',
         subtype: '',
         category: '',
         description: '',
@@ -214,12 +219,12 @@ export default function GeneralLedger() {
   }, [searchTerm, typeFilter]);
 
   const getTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'asset': return 'bg-blue-100 text-blue-800';
-      case 'liability': return 'bg-red-100 text-red-800';
-      case 'equity': return 'bg-purple-100 text-purple-800';
-      case 'revenue': return 'bg-green-100 text-green-800';
-      case 'expense': return 'bg-orange-100 text-orange-800';
+    switch (type.toUpperCase()) {
+      case 'ASSET': return 'bg-blue-100 text-blue-800';
+      case 'LIABILITY': return 'bg-red-100 text-red-800';
+      case 'EQUITY': return 'bg-purple-100 text-purple-800';
+      case 'REVENUE': return 'bg-green-100 text-green-800';
+      case 'EXPENSE': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };

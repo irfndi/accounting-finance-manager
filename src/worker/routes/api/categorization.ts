@@ -7,7 +7,7 @@ import { Hono } from 'hono'
 import type { AppContext } from '../../types'
 import { authMiddleware } from '../../middleware/auth'
 import { FinancialAIService, AIService, createProvider } from '../../../ai/index.js'
-import { DatabaseAdapter } from '../../../lib/index.js'
+import { DatabaseAdapter } from '../../../lib/index.ts'
 import type { Account } from '../../../types/index.js'
 import { z } from 'zod'
 

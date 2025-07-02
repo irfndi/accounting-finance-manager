@@ -4,7 +4,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { createAIService, FinancialAIService } from '../../../ai/index.js';
+import { createAIService, FinancialAIService } from '../../../ai/index.ts';
 
 export const prerender = false;
 

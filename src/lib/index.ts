@@ -20,7 +20,7 @@ import type {
   TrialBalance,
   BalanceSheet,
   IncomeStatement,
-} from '../types/index.js';
+} from '../types/index.ts';
 
 // Core financial constants
 const SUPPORTED_CURRENCIES = ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'] as const;

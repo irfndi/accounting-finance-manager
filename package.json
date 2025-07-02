@@ -7,8 +7,8 @@
   "main": "./alchemy.run.ts",
   "scripts": {
     "dev": "astro dev",
-    "dev:worker": "alchemy dev",
-    "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:worker\"",
+    "dev:worker": "alchemy run --env development",
+    "dev:all": "pnpm dev",
     "build": "pnpm install --no-frozen-lockfile && astro check && astro build",
     "build:worker": "tsc --noEmit",
     "preview": "astro preview",

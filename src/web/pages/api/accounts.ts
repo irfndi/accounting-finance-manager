@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '../../../lib/index.js';
-import type { AccountType } from '../../../types/index.js';
+import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '../../../lib/index.ts';
+import type { AccountType } from '../../../types/index.ts';
 import type { D1Database } from '@cloudflare/workers-types';
 
 // Validation schemas
@@ -56,12 +56,57 @@ async function createAccountingServices(d1Database: D1Database, entityId = 'defa
 // GET /api/accounts - List all accounts
 export const GET: APIRoute = async ({ request, locals }) => {
   try {
-    const runtime = (locals as any).runtime as { env: { FINANCE_MANAGER_DB: D1Database } };
+    console.log('Locals object:', JSON.stringify(locals, null, 2));
     
-    if (!runtime?.env?.FINANCE_MANAGER_DB) {
+    // Try to get D1 database from different possible locations
+    let db: D1Database | undefined;
+    
+    // Check Cloudflare runtime first
+    const runtime = (locals as any).runtime as { env: { FINANCE_MANAGER_DB: D1Database } };
+    if (runtime?.env?.FINANCE_MANAGER_DB) {
+      db = runtime.env.FINANCE_MANAGER_DB;
+      console.log('Using Cloudflare D1 database from runtime');
+    }
+    
+    // Check platformProxy (for local development)
+    const platformProxy = (locals as any).platformProxy;
+    if (!db && platformProxy?.env?.FINANCE_MANAGER_DB) {
+      db = platformProxy.env.FINANCE_MANAGER_DB;
+      console.log('Using D1 database from platformProxy');
+    }
+    
+    // Check direct env access
+    if (!db && (locals as any).env?.FINANCE_MANAGER_DB) {
+      db = (locals as any).env.FINANCE_MANAGER_DB;
+      console.log('Using D1 database from direct env');
+    }
+    
+    console.log('Database found:', !!db);
+    console.log('Runtime object:', JSON.stringify(runtime, null, 2));
+    console.log('PlatformProxy:', JSON.stringify(platformProxy, null, 2));
+    
+    // Check for database availability
+    if (!db) {
+      console.error('Database not available. This API requires Cloudflare D1 database.');
+      console.error('Current adapter: Node.js (expected: Cloudflare)');
+      console.error('To fix: Switch to Cloudflare adapter or set up local database');
+      
       return new Response(
-        JSON.stringify({ error: 'Database not available' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          error: 'Database configuration error',
+          message: 'This API requires Cloudflare D1 database but is running in Node.js mode',
+          solution: 'Switch to Cloudflare adapter in astro.config.mjs or configure local database',
+          debug: {
+            adapter: 'node',
+            expectedAdapter: 'cloudflare',
+            hasRuntime: !!runtime,
+            hasEnv: !!(runtime?.env),
+            hasDB: !!(runtime?.env?.FINANCE_MANAGER_DB),
+            localsKeys: Object.keys(locals || {}),
+            runtimeKeys: Object.keys(runtime || {})
+          }
+        }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -69,7 +114,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const url = new URL(request.url);
     const entityId = url.searchParams.get('entityId') || 'default';
     
-    const { dbAdapter: _dbAdapter, accountRegistry } = await createAccountingServices(runtime.env.FINANCE_MANAGER_DB, entityId);
+    const { dbAdapter: _dbAdapter, accountRegistry } = await createAccountingServices(db, entityId);
     
     const type = url.searchParams.get('type');
     const active = url.searchParams.get('active');
@@ -150,9 +195,27 @@ export const GET: APIRoute = async ({ request, locals }) => {
 // POST /api/accounts - Create new account
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    const runtime = (locals as any).runtime as { env: { FINANCE_MANAGER_DB: D1Database } };
+    // Try to get D1 database from different possible locations
+    let db: D1Database | undefined;
     
-    if (!runtime?.env?.FINANCE_MANAGER_DB) {
+    // Check Cloudflare runtime first
+    const runtime = (locals as any).runtime as { env: { FINANCE_MANAGER_DB: D1Database } };
+    if (runtime?.env?.FINANCE_MANAGER_DB) {
+      db = runtime.env.FINANCE_MANAGER_DB;
+    }
+    
+    // Check platformProxy (for local development)
+    const platformProxy = (locals as any).platformProxy;
+    if (!db && platformProxy?.env?.FINANCE_MANAGER_DB) {
+      db = platformProxy.env.FINANCE_MANAGER_DB;
+    }
+    
+    // Check direct env access
+    if (!db && (locals as any).env?.FINANCE_MANAGER_DB) {
+      db = (locals as any).env.FINANCE_MANAGER_DB;
+    }
+    
+    if (!db) {
       return new Response(
         JSON.stringify({ error: 'Database not available' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -190,7 +253,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Extract entityId from request body or default to 'default'
     const entityId = body.entityId || 'default';
     
-    const { dbAdapter: _dbAdapter, accountRegistry } = await createAccountingServices(runtime.env.FINANCE_MANAGER_DB, entityId);
+    const { dbAdapter: _dbAdapter, accountRegistry } = await createAccountingServices(db, entityId);
     
     // Check for duplicate code
     const allAccounts = accountRegistry.getAllAccounts();

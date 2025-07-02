@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '../../../../lib/index.js';
-import type { AccountType } from '../../../../types/index.js';
+import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '../../../../lib/index.ts';
+import type { AccountType } from '../../../../types/index.ts';
 
 // Validation schemas
 const accountTypes = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];

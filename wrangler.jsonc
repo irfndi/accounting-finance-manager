@@ -2,6 +2,7 @@
   "name": "finance-manager",
   "main": "dist/_worker.js/index.js",
   "compatibility_date": "2025-06-17",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": { "binding": "ASSETS", "directory": "dist" },
   "ai": { "binding": "AI" },
   "kv_namespaces": [
