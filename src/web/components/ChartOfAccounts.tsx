@@ -105,7 +105,7 @@ export default function ChartOfAccounts() {
   const [formData, setFormData] = useState<CreateAccountData>({
     code: '',
     name: '',
-    type: '',
+    type: '', // Empty to trigger validation
     subtype: '',
     category: '',
     description: '',
@@ -140,7 +140,23 @@ export default function ChartOfAccounts() {
 
   // Create or update account
   const saveAccount = async () => {
+    console.log('saveAccount called with formData:', formData);
     try {
+      // Frontend validation
+      if (!formData.code.trim()) {
+        console.log('Setting error: Account code is required');
+        setError('Account code is required');
+        return;
+      }
+      if (!formData.name.trim()) {
+        setError('Account name is required');
+        return;
+      }
+      if (!formData.type) {
+        setError('Account type is required');
+        return;
+      }
+      
       const url = editingAccount
         ? `${API_BASE_URL}/api/accounts/${editingAccount.id}`
         : `${API_BASE_URL}/api/accounts`;
@@ -157,13 +173,14 @@ export default function ChartOfAccounts() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json() as { message?: string };
-        throw new Error(errorData.message || 'Failed to save account');
+        const errorData = await response.json() as { error?: string; message?: string };
+        throw new Error(errorData.error || errorData.message || 'Failed to save account');
       }
 
       await fetchAccounts();
       setIsDialogOpen(false);
       resetForm();
+      setError(null); // Clear any previous errors
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save account');
     }
@@ -205,7 +222,7 @@ export default function ChartOfAccounts() {
     setFormData({
       code: '',
       name: '',
-      type: '',
+      type: '', // Empty to trigger validation
       subtype: '',
       category: '',
       description: '',
@@ -215,6 +232,29 @@ export default function ChartOfAccounts() {
       reportOrder: 0,
     });
     setEditingAccount(null);
+    setError(null); // Clear any previous errors
+  };
+
+  // Export accounts
+  const exportAccounts = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/accounts/export`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export accounts');
+      }
+
+      const data = await response.json();
+      // Handle the export data (could download as file, etc.)
+      console.log('Exported accounts:', data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export accounts');
+    }
   };
 
   // Open edit dialog
@@ -278,8 +318,8 @@ export default function ChartOfAccounts() {
 
   // Filter accounts
   const filteredAccounts = accounts.filter(account => {
-    const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (account.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (account.code || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || account.type === filterType;
     return matchesSearch && matchesType;
   });
@@ -405,9 +445,14 @@ export default function ChartOfAccounts() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Chart of Accounts</CardTitle>
-            <Button onClick={openCreateDialog}>
-              Add Account
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={exportAccounts}>
+                Export Accounts
+              </Button>
+              <Button onClick={openCreateDialog}>
+                Add Account
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -482,6 +527,12 @@ export default function ChartOfAccounts() {
             </DialogDescription>
           </DialogHeader>
 
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-800">{error}</p>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -496,7 +547,7 @@ export default function ChartOfAccounts() {
               <div>
                 <Label htmlFor="type">Type</Label>
                 <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="account-type-select">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -540,12 +591,13 @@ export default function ChartOfAccounts() {
                   <SelectValue placeholder="Select a parent account (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none"><em>No Parent</em></SelectItem>
+                  <SelectItem value="none">No Parent</SelectItem>
                   {accounts
-                    .filter(acc => ['ASSET', 'LIABILITY', 'EQUITY'].includes(acc.type) && acc.id !== editingAccount?.id)
-                    .map(parent => (
-                      <SelectItem key={parent.id} value={parent.id.toString()}>
-                        {parent.name} ({parent.code})
+                    .filter(acc => acc.accountingInfo?.canHaveChildren && acc.id !== editingAccount?.id)
+                    .filter(account => account.id && account.code && account.name) // Ensure valid data
+                    .map(account => (
+                      <SelectItem key={account.id} value={account.id.toString()}>
+                        {account.code} - {account.name}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -573,24 +625,7 @@ export default function ChartOfAccounts() {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="parentId">Parent Account</Label>
-              <Select value={formData.parentId?.toString() || 'none'} onValueChange={(value) => setFormData({ ...formData, parentId: value && value !== 'none' ? parseInt(value) : null })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select parent (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Parent</SelectItem>
-                  {accounts
-                    .filter(acc => acc.accountingInfo?.canHaveChildren && acc.id !== editingAccount?.id)
-                    .map(account => (
-                      <SelectItem key={account.id} value={account.id.toString()}>
-                        {account.code} - {account.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">

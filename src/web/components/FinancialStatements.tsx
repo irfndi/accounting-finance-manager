@@ -284,7 +284,7 @@ export default function FinancialStatements() {
                               {renderFinancialDataRows(balanceSheet.assets.nonCurrentAssets, 1)}
                             </>
                           )}
-                          <TableRow className="border-t-2 border-gray-300 font-bold">
+                          <TableRow className="border-t-2 border-gray-300 font-bold" data-testid="total-assets-row">
                             <TableCell>Total Assets</TableCell>
                             <TableCell className="text-right font-mono">
                               {formatCurrency(balanceSheet.assets.totalAssets)}

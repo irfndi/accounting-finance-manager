@@ -66,12 +66,12 @@ interface GeneralLedgerStats {
 }
 
 const ACCOUNT_TYPES = [
-  'ASSET',
-  'LIABILITY',
-  'EQUITY',
-  'REVENUE',
-  'EXPENSE'
-] as const;
+  { value: 'ASSET', label: 'Asset' },
+  { value: 'LIABILITY', label: 'Liability' },
+  { value: 'EQUITY', label: 'Equity' },
+  { value: 'REVENUE', label: 'Revenue' },
+  { value: 'EXPENSE', label: 'Expense' },
+];
 
 const API_BASE_URL = typeof window !== 'undefined' 
   ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
@@ -322,8 +322,8 @@ export default function GeneralLedger() {
                   </SelectTrigger>
                   <SelectContent>
                     {ACCOUNT_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -475,8 +475,8 @@ export default function GeneralLedger() {
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 {ACCOUNT_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -8,6 +8,9 @@ export * from './jwt';
 export * from './magicLink';
 export * from './types';
 
+// Export specific functions for convenience
+export { validateToken, verifyToken, generateToken, refreshToken } from './jwt';
+
 // Import all utilities
 import * as PasswordUtils from './password';
 import * as JwtUtils from './jwt';

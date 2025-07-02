@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { DatabaseAdapter, DatabaseAccountRegistry, FINANCIAL_CONSTANTS, getNormalBalance, formatCurrency, AccountingValidationError } from '../../../lib/index.ts';
+import { validateToken } from '../../../lib/auth/index.ts';
 import type { AccountType } from '../../../types/index.ts';
 import type { D1Database } from '@cloudflare/workers-types';
 
@@ -7,34 +8,49 @@ import type { D1Database } from '@cloudflare/workers-types';
 const accountTypes = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
 
 // Enhanced validation using core logic
-function validateAccountCode(code: string): string | null {
+export function validateAccountCode(code: string): string | null {
   if (!code || typeof code !== 'string') {
-    return 'Account code is required and must be a string';
+    return 'Account code is required';
   }
-  if (code.length < 2 || code.length > 20) {
-    return 'Account code must be between 2 and 20 characters';
+  const trimmedCode = code.trim();
+  if (!trimmedCode) {
+    return 'Account code is required';
   }
-  if (!/^[A-Z0-9.-]+$/i.test(code)) {
+  if (trimmedCode.length < 3) {
+    return 'Account code must be at least 3 characters';
+  }
+  if (trimmedCode.length > 20) {
+    return 'Account code must be at most 20 characters';
+  }
+  if (!/^[A-Z0-9.-]+$/i.test(trimmedCode)) {
     return 'Account code can only contain letters, numbers, dots, and hyphens';
   }
   return null;
 }
 
-function validateAccountName(name: string): string | null {
+export function validateAccountName(name: string): string | null {
   if (!name || typeof name !== 'string') {
-    return 'Account name is required and must be a string';
+    return 'Account name is required';
   }
-  if (name.length < 3 || name.length > 100) {
-    return 'Account name must be between 3 and 100 characters';
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    return 'Account name is required';
+  }
+  if (trimmedName.length < 2) {
+    return 'Account name must be at least 2 characters';
+  }
+  if (trimmedName.length > 100) {
+    return 'Account name must be at most 100 characters';
   }
   return null;
 }
 
-function validateAccountType(type: string): string | null {
+export function validateAccountType(type: string): string | null {
   if (!type || typeof type !== 'string') {
-    return 'Account type is required';
+    return `Account type must be one of: ${accountTypes.join(', ')}`;
   }
-  if (!accountTypes.includes(type)) {
+  const trimmedType = type.trim();
+  if (!accountTypes.includes(trimmedType)) {
     return `Account type must be one of: ${accountTypes.join(', ')}`;
   }
   return null;
@@ -56,6 +72,25 @@ async function createAccountingServices(d1Database: D1Database, entityId = 'defa
 // GET /api/accounts - List all accounts
 export const GET: APIRoute = async ({ request, locals }) => {
   try {
+    // Validate authentication
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization token required' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const tokenValidation = await validateToken(token);
+    if (!tokenValidation.valid) {
+      return new Response(
+        JSON.stringify({ error: tokenValidation.error || 'Invalid token' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Locals object:', JSON.stringify(locals, null, 2));
     
     // Try to get D1 database from different possible locations
@@ -195,6 +230,25 @@ export const GET: APIRoute = async ({ request, locals }) => {
 // POST /api/accounts - Create new account
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
+    // Validate authentication
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization token required' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const tokenValidation = await validateToken(token);
+    if (!tokenValidation.valid) {
+      return new Response(
+        JSON.stringify({ error: tokenValidation.error || 'Invalid token' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Try to get D1 database from different possible locations
     let db: D1Database | undefined;
     
@@ -222,7 +276,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    const body = await request.json() as any;
+    // Parse JSON with error handling
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const { code, name, type, subtype, category, description, parentId, isActive, allowTransactions, reportOrder } = body;
     
     // Validate required fields
@@ -253,14 +317,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Extract entityId from request body or default to 'default'
     const entityId = body.entityId || 'default';
     
-    const { dbAdapter: _dbAdapter, accountRegistry } = await createAccountingServices(db, entityId);
-    
-    // Check for duplicate code
-    const allAccounts = accountRegistry.getAllAccounts();
-    const existingAccount = allAccounts.find(account => account.code === code);
+    // Check for duplicate code using direct database query
+    const existingAccountQuery = db.prepare('SELECT id FROM accounts WHERE code = ? AND entity_id = ?');
+    const existingAccount = await existingAccountQuery.bind(code, entityId).first();
     if (existingAccount) {
       return new Response(
-        JSON.stringify({ error: `Account with code '${code}' already exists` }),
+        JSON.stringify({ error: 'Account code already exists' }),
         { status: 409, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -288,19 +350,50 @@ export const POST: APIRoute = async ({ request, locals }) => {
       updatedBy: undefined
     };
 
-    // Create account in database
-    const newAccount = await accountRegistry.registerAccount(accountData);
+    // Create account in database using direct insert
+    const insertQuery = db.prepare(`
+      INSERT INTO accounts (
+        code, name, type, subtype, category, description, parent_id, level, path,
+        is_active, is_system, allow_transactions, normal_balance, report_category,
+        report_order, current_balance, entity_id, created_by, updated_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    const result = await insertQuery.bind(
+      accountData.code,
+      accountData.name,
+      accountData.type,
+      accountData.subtype,
+      accountData.category,
+      accountData.description,
+      accountData.parentId,
+      accountData.level,
+      accountData.path,
+      accountData.isActive ? 1 : 0,
+      accountData.isSystem ? 1 : 0,
+      accountData.allowTransactions ? 1 : 0,
+      accountData.normalBalance,
+      accountData.reportCategory,
+      accountData.reportOrder,
+      accountData.currentBalance,
+      accountData.entityId,
+      accountData.createdBy,
+      accountData.updatedBy
+    ).run();
+    
+    const newAccount = {
+      id: result.meta.last_row_id,
+      ...accountData
+    };
     
     return new Response(
       JSON.stringify({
-        account: {
-          ...newAccount,
-          accountingInfo: {
-            canHaveChildren: ['ASSET', 'LIABILITY', 'EQUITY'].includes(newAccount.type),
-            expectedNormalBalance: getNormalBalance(newAccount.type),
-            isBalanceSheet: ['ASSET', 'LIABILITY', 'EQUITY'].includes(newAccount.type),
-            isIncomeStatement: ['REVENUE', 'EXPENSE'].includes(newAccount.type)
-          }
+        ...newAccount,
+        accountingInfo: {
+          canHaveChildren: ['ASSET', 'LIABILITY', 'EQUITY'].includes(newAccount.type),
+          expectedNormalBalance: getNormalBalance(newAccount.type),
+          isBalanceSheet: ['ASSET', 'LIABILITY', 'EQUITY'].includes(newAccount.type),
+          isIncomeStatement: ['REVENUE', 'EXPENSE'].includes(newAccount.type)
         },
         message: 'Account created successfully'
       }),
