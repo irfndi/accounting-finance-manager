@@ -155,6 +155,20 @@ export default function GeneralLedger() {
       setIsSubmitting(true);
       setFormErrors({});
       
+      // Frontend validation
+      if (!formData.code.trim()) {
+        setFormErrors({ code: 'Account code is required' });
+        return;
+      }
+      if (!formData.name.trim()) {
+        setFormErrors({ name: 'Account name is required' });
+        return;
+      }
+      if (!formData.type.trim()) {
+        setFormErrors({ type: 'Account type is required' });
+        return;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/api/accounts`, {
         method: 'POST',
         headers: {

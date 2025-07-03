@@ -105,7 +105,7 @@ export default function ChartOfAccounts() {
   const [formData, setFormData] = useState<CreateAccountData>({
     code: '',
     name: '',
-    type: '', // Empty to trigger validation
+    type: 'ASSET', // Default to ASSET
     subtype: '',
     category: '',
     description: '',
@@ -222,7 +222,7 @@ export default function ChartOfAccounts() {
     setFormData({
       code: '',
       name: '',
-      type: '', // Empty to trigger validation
+      type: 'ASSET', // Default to ASSET
       subtype: '',
       category: '',
       description: '',
