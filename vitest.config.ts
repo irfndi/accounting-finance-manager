@@ -22,7 +22,7 @@ export default defineWorkersConfig({
     silent: false,
     reporters: ['verbose'],
     coverage: {
-      enabled: false,
+      enabled: false, // Temporarily disabled due to Cloudflare Workers compatibility
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
@@ -30,16 +30,20 @@ export default defineWorkersConfig({
         'dist/**',
         '**/*.test.ts',
         '**/*.spec.ts',
+        '**/*.test.tsx',
         'tests/**',
         'migrations/**',
-        '**/*.config.*'
+        '**/*.config.*',
+        '**/*.d.ts',
+        'src/global.d.ts',
+        'worker-configuration.d.ts'
       ],
       thresholds: {
         global: {
-          branches: 0,
-          functions: 0,
-          lines: 0,
-          statements: 0
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80
         }
       }
     },

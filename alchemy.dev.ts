@@ -1,54 +1,63 @@
-import { Worker, KVNamespace, R2Bucket, D1Database, Ai } from "alchemy/cloudflare";
+import alchemy from "alchemy";
+import { Worker, D1Database, KVNamespace, R2Bucket, Ai, Assets } from "alchemy/cloudflare";
 
-// Development environment configuration
-
-// Create KV Namespace for caching (development)
-const cacheKV = await KVNamespace("finance-manager-cache-dev", {
-  title: "Finance Manager Cache Dev",
-  adopt: true,
+// Initialize Alchemy app for development
+const app = await alchemy("finance-manager-dev", {
+  stage: "dev",
 });
 
-// Create R2 Bucket for document storage (development)
-const documentsBucket = await R2Bucket("finance-manager-documents-dev", {
-  name: "finance-manager-documents-dev",
-  adopt: true,
-});
-
-// Create D1 Database for application data (development)
-const database = await D1Database("finance-manager-db-dev", {
+// Create D1 Database (adopt existing if present)
+const d1Database = await D1Database("finance-manager-db-dev", {
   name: "finance-manager-db-dev",
   adopt: true,
 });
 
-// Create AI binding for OCR and other AI functionality
+// Create KV Namespace (adopt existing if present)
+const kvNamespace = await KVNamespace("finance-manager-cache-dev", {
+  title: "finance-manager-cache-dev",
+  adopt: true,
+});
+
+// Create R2 Bucket (adopt existing if present)
+const r2Bucket = await R2Bucket("finance-manager-documents-dev", {
+  name: "finance-manager-documents-dev",
+  adopt: true,
+});
+
+// Use existing AI (since it already exists)
 const ai = new Ai();
 
-// Create the main worker (development)
+// Create Assets for serving static files
+const assets = await Assets("static", {
+  path: "./dist",
+});
+
+// Create Worker with all bindings (adopt existing if present)
 const worker = await Worker("finance-manager-dev", {
   name: "finance-manager-dev",
-  entrypoint: "./src/worker/index.ts",
-  compatibilityDate: "2024-12-01",
-  compatibilityFlags: ["nodejs_compat"],
+  entrypoint: "./dist/_worker.js/index.js",
+  adopt: true,
   bindings: {
-    FINANCE_MANAGER_DB: database,
-    FINANCE_MANAGER_CACHE: cacheKV,
-    FINANCE_MANAGER_DOCUMENTS: documentsBucket,
+    FINANCE_MANAGER_DB: d1Database,
+    FINANCE_MANAGER_CACHE: kvNamespace,
+    FINANCE_MANAGER_DOCUMENTS: r2Bucket,
     AI: ai,
-  },
-  vars: {
-    ALCHEMY_MANAGED: "true",
-    CONTAINER_VERSION: "1.0.0",
-    DEPLOYMENT_STRATEGY: "alchemy",
-    STAGE: "dev",
+    ASSETS: assets,
+    JWT_SECRET: alchemy.secret("JWT_SECRET"),
+    ENCRYPTION_KEY: alchemy.secret("ENCRYPTION_KEY"),
     ENVIRONMENT: "development",
-    AUTH_SESSION_DURATION: "7d",
-    AWS_REGION: "us-east-1",
-    SES_FROM_EMAIL: "noreply@finance-manager.com",
-    SES_FROM_NAME: "Finance Manager",
-  },
-  assets: {
-    path: "dist/client",
+    OPENROUTER_API_KEY: alchemy.secret("OPENROUTER_API_KEY"),
   },
 });
 
-export { worker, cacheKV, documentsBucket, database, ai };
+console.log({
+  url: worker.url,
+  kvNamespace: kvNamespace.title,
+  r2Bucket: r2Bucket.name,
+  d1Database: d1Database.name,
+});
+
+// Finalize the app
+await app.finalize();
+
+export { worker, kvNamespace, r2Bucket, d1Database, ai, assets };

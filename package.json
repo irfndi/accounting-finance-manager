@@ -12,7 +12,7 @@
     "build": "pnpm install --no-frozen-lockfile && astro check && astro build && echo '_worker.js' > dist/.assetsignore",
     "build:worker": "tsc --noEmit",
     "preview": "astro preview",
-    "deploy": "pnpm dlx ./alchemy.run.ts",
+    "deploy": "pnpm dlx exec ./alchemy.run.ts",
     "deploy:wrangler": "wrangler deploy",
     "deploy:prod": "alchemy deploy --env production",
     "deploy:prod:wrangler": "wrangler deploy --env production",

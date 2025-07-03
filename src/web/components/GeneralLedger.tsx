@@ -169,6 +169,9 @@ export default function GeneralLedger() {
         return;
       }
       
+      // Debug: Log the data being sent
+      console.log('Sending account data:', formData);
+      
       const response = await fetch(`${API_BASE_URL}/api/accounts`, {
         method: 'POST',
         headers: {

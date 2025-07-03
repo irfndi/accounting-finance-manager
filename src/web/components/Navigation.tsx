@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
+import { useAuth } from './AuthGuard';
 
 interface NavigationItem {
   id: string;
@@ -152,25 +153,92 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
       </div>
 
       {/* User Section */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
-        {!isCollapsed ? (
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">CF</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">Corporate Finance</p>
-              <p className="text-xs text-slate-400">Administrator</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex justify-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">CF</span>
-            </div>
-          </div>
-        )}
-      </div>
+      <UserSection isCollapsed={isCollapsed} />
     </nav>
+  );
+}
+
+// User section component with authentication
+function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
+  const { user, logout } = useAuth();
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const userInitials = user?.email ? user.email.substring(0, 2).toUpperCase() : 'U';
+
+  return (
+    <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+      {!isCollapsed ? (
+        <div className="relative">
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className="flex items-center w-full text-left hover:bg-slate-800 rounded-lg p-2 transition-colors"
+          >
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium">{userInitials}</span>
+            </div>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium truncate">{user?.email || 'User'}</p>
+              <p className="text-xs text-slate-400">Click to manage account</p>
+            </div>
+            <svg
+              className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          {showDropdown && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 rounded-lg shadow-lg border border-slate-600">
+              <div className="p-2">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex justify-center relative">
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+          >
+            <span className="text-sm font-medium">{userInitials}</span>
+          </button>
+          
+          {showDropdown && (
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-slate-800 rounded-lg shadow-lg border border-slate-600 whitespace-nowrap">
+              <div className="p-2">
+                <div className="px-3 py-2 text-xs text-slate-400 border-b border-slate-600">
+                  {user?.email || 'User'}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md transition-colors mt-1"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

@@ -81,6 +81,7 @@ function validateAccountName(name: string): string | null {
 }
 
 function validateAccountType(type: string): string | null {
+  console.log('Validating account type:', { type, typeOf: typeof type, accountTypes })
   if (!type || typeof type !== 'string') {
     return 'Account type is required'
   }
@@ -267,6 +268,9 @@ accounts.post('/', async (c) => {
   try {
     const body: CreateAccountRequest & { entityId?: string } = await c.req.json()
     const entityId = body.entityId || 'default'
+    
+    // Debug: Log received data
+    console.log('Received account creation request:', JSON.stringify(body, null, 2))
     
     // Enhanced validation using core logic
     const codeError = validateAccountCode(body.code)

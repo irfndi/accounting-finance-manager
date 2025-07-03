@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import RegisterForm from '../components/RegisterForm.tsx';
+---
+
+<Layout title="Register - Finance Manager" hideNavigation={true}>
+  <div class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-10">
+      <div class="text-center">
+        <h2 class="text-3xl font-extrabold text-slate-900">
+          Create your account
+        </h2>
+        <p class="mt-3 text-sm text-slate-600">
+          Get started with corporate finance management
+        </p>
+      </div>
+      
+      <div class="mt-12">
+        <RegisterForm client:load />
+      </div>
+      
+      <div class="text-center mt-8">
+        <p class="text-sm text-slate-600">
+          Already have an account?
+          <a href="/login" class="font-medium text-blue-600 hover:text-blue-500 ml-1">
+            Sign in here
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* Hide navigation for register page */
+  nav {
+    display: none;
+  }
+  
+  main {
+    margin-left: 0 !important;
+  }
+</style>
