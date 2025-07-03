@@ -160,5 +160,5 @@
     "logs": {
       "enabled": true
     }
-  }
+  },"name": "finance-manager"
 }
