@@ -9,7 +9,7 @@
     "dev": "astro dev",
     "dev:worker": "alchemy run --env development",
     "dev:all": "pnpm dev",
-    "build": "pnpm install --no-frozen-lockfile && astro check && astro build",
+    "build": "pnpm install --no-frozen-lockfile && astro check && astro build && echo '_worker.js' > dist/.assetsignore",
     "build:worker": "tsc --noEmit",
     "preview": "astro preview",
     "deploy": "pnpm dlx ./alchemy.run.ts",
