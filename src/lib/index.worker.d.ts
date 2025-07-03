@@ -1,7 +1,7 @@
 // Re-export from auth/index
 export * from './auth/index';
 
-// Re-export core classes and utilities from index.js
+// Re-export core classes and utilities from index.ts
 export { DatabaseAdapter } from './index.js';
 export { DatabaseAccountRegistry } from './index.js';
 export { TransactionBuilder } from './index.js';
@@ -31,7 +31,7 @@ export declare class FinancialReportsEngine {
   getFinancialMetrics(asOfDate: Date): Promise<any>;
 }
 
-// Re-export types from ../types/index.js
+// Re-export types from ../types/index.ts
 export type {
   Account,
   AccountType,

@@ -38,14 +38,14 @@ import {
 } from './ui/select';
 
 interface Account {
-  id: string;
+  id: number;
   code: string;
   name: string;
   type: string;
   subtype?: string;
   category?: string;
   description?: string;
-  parentId?: string;
+  parentId?: number | null;
   level: number;
   path: string;
   isActive: boolean;
@@ -72,7 +72,7 @@ interface CreateAccountData {
   subtype?: string;
   category?: string;
   description?: string;
-  parentId?: string;
+  parentId?: number | null;
   isActive: boolean;
   allowTransactions: boolean;
   reportOrder: number;
@@ -86,10 +86,9 @@ const ACCOUNT_TYPES = [
   { value: 'EXPENSE', label: 'Expense' },
 ];
 
-// Use environment variables in a way that's compatible with Astro
-const API_BASE_URL = typeof (import.meta as any).env !== 'undefined' && (import.meta as any).env.PUBLIC_API_URL
-  ? (import.meta as any).env.PUBLIC_API_URL
-  : 'http://localhost:8787';
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
+  : 'http://localhost:3000';
 
 export default function ChartOfAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -106,11 +105,11 @@ export default function ChartOfAccounts() {
   const [formData, setFormData] = useState<CreateAccountData>({
     code: '',
     name: '',
-    type: '',
+    type: 'ASSET', // Default to ASSET
     subtype: '',
     category: '',
     description: '',
-    parentId: '',
+    parentId: undefined,
     isActive: true,
     allowTransactions: true,
     reportOrder: 0,
@@ -120,7 +119,11 @@ export default function ChartOfAccounts() {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/accounts`);
+      const response = await fetch(`${API_BASE_URL}/api/accounts`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch accounts: ${response.statusText}`);
       }
@@ -128,6 +131,7 @@ export default function ChartOfAccounts() {
       setAccounts(data.accounts || []);
       setError(null);
     } catch (err) {
+      console.error('Error fetching accounts:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch accounts');
     } finally {
       setLoading(false);
@@ -136,7 +140,23 @@ export default function ChartOfAccounts() {
 
   // Create or update account
   const saveAccount = async () => {
+    console.log('saveAccount called with formData:', formData);
     try {
+      // Frontend validation
+      if (!formData.code.trim()) {
+        console.log('Setting error: Account code is required');
+        setError('Account code is required');
+        return;
+      }
+      if (!formData.name.trim()) {
+        setError('Account name is required');
+        return;
+      }
+      if (!formData.type) {
+        setError('Account type is required');
+        return;
+      }
+      
       const url = editingAccount
         ? `${API_BASE_URL}/api/accounts/${editingAccount.id}`
         : `${API_BASE_URL}/api/accounts`;
@@ -147,18 +167,20 @@ export default function ChartOfAccounts() {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
         },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-        const errorData = await response.json() as { message?: string };
-        throw new Error(errorData.message || 'Failed to save account');
+        const errorData = await response.json() as { error?: string; message?: string };
+        throw new Error(errorData.error || errorData.message || 'Failed to save account');
       }
 
       await fetchAccounts();
       setIsDialogOpen(false);
       resetForm();
+      setError(null); // Clear any previous errors
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save account');
     }
@@ -176,6 +198,9 @@ export default function ChartOfAccounts() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/accounts/${accountToDelete.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+        },
       });
 
       if (!response.ok) {
@@ -197,16 +222,39 @@ export default function ChartOfAccounts() {
     setFormData({
       code: '',
       name: '',
-      type: '',
+      type: 'ASSET', // Default to ASSET
       subtype: '',
       category: '',
       description: '',
-      parentId: '',
+      parentId: undefined,
       isActive: true,
       allowTransactions: true,
       reportOrder: 0,
     });
     setEditingAccount(null);
+    setError(null); // Clear any previous errors
+  };
+
+  // Export accounts
+  const exportAccounts = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/accounts/export`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export accounts');
+      }
+
+      const data = await response.json();
+      // Handle the export data (could download as file, etc.)
+      console.log('Exported accounts:', data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export accounts');
+    }
   };
 
   // Open edit dialog
@@ -219,7 +267,7 @@ export default function ChartOfAccounts() {
       subtype: account.subtype || '',
       category: account.category || '',
       description: account.description || '',
-      parentId: account.parentId || '',
+      parentId: account.parentId || null,
       isActive: account.isActive,
       allowTransactions: account.allowTransactions,
       reportOrder: account.reportOrder,
@@ -246,7 +294,7 @@ export default function ChartOfAccounts() {
 
   // Build hierarchical account structure
   const buildAccountHierarchy = (accounts: Account[]): Account[] => {
-    const accountMap = new Map<string, Account>();
+    const accountMap = new Map<number, Account>();
     const rootAccounts: Account[] = [];
 
     // Create map of all accounts
@@ -270,17 +318,19 @@ export default function ChartOfAccounts() {
 
   // Filter accounts
   const filteredAccounts = accounts.filter(account => {
-    const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (account.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (account.code || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || account.type === filterType;
     return matchesSearch && matchesType;
   });
+  
+
 
   // Render account row
   const renderAccountRow = (account: Account, level: number = 0): React.ReactNode[] => {
     const rows: React.ReactNode[] = [];
     const hasChildren = account.children && account.children.length > 0;
-    const isExpanded = expandedAccounts.has(account.id);
+    const isExpanded = expandedAccounts.has(account.id.toString());
     const indent = level * 20;
 
     rows.push(
@@ -289,7 +339,7 @@ export default function ChartOfAccounts() {
           <div className="flex items-center gap-2">
             {hasChildren && (
               <button
-                onClick={() => toggleExpanded(account.id)}
+                onClick={() => toggleExpanded(account.id.toString())}
                 className="w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-700"
               >
                 {isExpanded ? '−' : '+'}
@@ -395,9 +445,14 @@ export default function ChartOfAccounts() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Chart of Accounts</CardTitle>
-            <Button onClick={openCreateDialog}>
-              Add Account
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={exportAccounts}>
+                Export Accounts
+              </Button>
+              <Button onClick={openCreateDialog}>
+                Add Account
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -472,6 +527,12 @@ export default function ChartOfAccounts() {
             </DialogDescription>
           </DialogHeader>
 
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-800">{error}</p>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -486,7 +547,7 @@ export default function ChartOfAccounts() {
               <div>
                 <Label htmlFor="type">Type</Label>
                 <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="account-type-select">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -523,19 +584,20 @@ export default function ChartOfAccounts() {
             <div>
               <Label htmlFor="parentId">Parent Account</Label>
               <Select
-                value={formData.parentId || ''}
-                onValueChange={(value) => setFormData({ ...formData, parentId: value })}
+                value={formData.parentId?.toString() || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, parentId: value && value !== 'none' ? parseInt(value) : null })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a parent account (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value=""><em>No Parent</em></SelectItem>
+                  <SelectItem value="none">No Parent</SelectItem>
                   {accounts
-                    .filter(acc => ['ASSET', 'LIABILITY', 'EQUITY'].includes(acc.type) && acc.id !== editingAccount?.id)
-                    .map(parent => (
-                      <SelectItem key={parent.id} value={parent.id.toString()}>
-                        {parent.name} ({parent.code})
+                    .filter(acc => acc.accountingInfo?.canHaveChildren && acc.id !== editingAccount?.id)
+                    .filter(account => account.id && account.code && account.name) // Ensure valid data
+                    .map(account => (
+                      <SelectItem key={account.id} value={account.id.toString()}>
+                        {account.code} - {account.name}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -563,24 +625,7 @@ export default function ChartOfAccounts() {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="parentId">Parent Account</Label>
-              <Select value={formData.parentId} onValueChange={(value) => setFormData({ ...formData, parentId: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select parent (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">No Parent</SelectItem>
-                  {accounts
-                    .filter(acc => acc.accountingInfo?.canHaveChildren && acc.id !== editingAccount?.id)
-                    .map(account => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.code} - {account.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">

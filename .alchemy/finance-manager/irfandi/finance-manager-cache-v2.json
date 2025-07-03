@@ -4,7 +4,7 @@
   "fqn": "finance-manager/irfandi/finance-manager-cache-v2",
   "seq": 0,
   "data": {},
-  "status": "created",
+  "status": "updated",
   "output": {
     "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
     "Symbol(alchemy::ResourceID)": "finance-manager-cache-v2",
@@ -17,9 +17,10 @@
     "namespaceId": "08b151862b2a44f5bc352376eb0b9b85",
     "title": "finance-manager-cache-v2",
     "createdAt": 1751013987736,
-    "modifiedAt": 1751013987736
+    "modifiedAt": 1751259595158
   },
   "props": {
-    "title": "finance-manager-cache-v2"
+    "title": "finance-manager-cache-v2",
+    "adopt": true
   }
 }

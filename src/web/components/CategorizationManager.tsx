@@ -99,7 +99,7 @@ export default function CategorizationManager({
 
   // Get confidence color
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-600';
+    if (confidence >= 0.8) return 'text-green-700';
     if (confidence >= 0.6) return 'text-yellow-600';
     return 'text-red-600';
   };
