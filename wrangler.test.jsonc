@@ -1,0 +1,29 @@
+{
+  "name": "finance-manager-test",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-06-17",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": { "binding": "AI" },
+  "kv_namespaces": [
+    {
+      "binding": "FINANCE_MANAGER_CACHE",
+      "id": "test-cache",
+      "preview_id": "test-cache"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FINANCE_MANAGER_DOCUMENTS",
+      "bucket_name": "test-docs",
+      "preview_bucket_name": "test-docs"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "FINANCE_MANAGER_DB",
+      "database_id": "test-db",
+      "database_name": "test-db",
+      "preview_database_id": "test-db"
+    }
+  ]
+}

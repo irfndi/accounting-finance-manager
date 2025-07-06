@@ -12,7 +12,7 @@ const workersConfig = defineWorkersConfig({
     globals: true,
     poolOptions: {
       workers: {
-        wrangler: { configPath: './wrangler.jsonc' },
+        wrangler: { configPath: './wrangler.test.jsonc' },
         main: './src/worker/index.ts',
         isolatedStorage: false,
         singleWorker: true,
@@ -75,4 +75,4 @@ const nodeCoverageConfig = defineConfig({
 export default workersConfig
 
 // Export coverage config for coverage testing
-export const coverageConfig = nodeCoverageConfig 
+export const coverageConfig = nodeCoverageConfig
