@@ -11,9 +11,6 @@ import {
   getPBKDF2Config,
   DEFAULT_PBKDF2_CONFIG,
   PRODUCTION_PBKDF2_CONFIG,
-  type PBKDF2Config,
-  type HashResult,
-  type PasswordValidation,
 } from '../../src/lib/auth/password';
 
 // Simple deterministic mock for crypto operations
@@ -45,7 +42,6 @@ Object.defineProperty(global, 'crypto', {
 });
 
 describe('Password Authentication', () => {
-  const testPassword = 'SecurePassword123!';
 
   beforeEach(() => {
     vi.clearAllMocks();

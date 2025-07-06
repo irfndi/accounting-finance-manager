@@ -672,8 +672,6 @@ budgetsRouter.delete('/:id', async (c) => {
       return c.json({ success: false, error: 'Budget not found' }, 404)
     }
     
-    const budget = existing[0]
-    
     // For testing, allow deletion of any budget
     // In production, you might want stricter rules
     

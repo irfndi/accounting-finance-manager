@@ -76,7 +76,7 @@ Respond with a JSON object containing:
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
-    } catch(e) {
+    } catch {
       // Fallback if JSON parsing fails
       return {
         analysis: response.content,
@@ -133,7 +133,7 @@ ${merchant ? `Merchant: ${merchant}` : ''}`
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
-    } catch(e) {
+    } catch {
       throw new Error('Failed to parse AI response');
     }
   }
@@ -184,7 +184,7 @@ ${JSON.stringify(data, null, 2)}`
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
-    } catch(e) {
+    } catch {
       throw new Error('Failed to parse AI response');
     }
   }
@@ -233,7 +233,7 @@ ${JSON.stringify(data, null, 2)}`
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
-    } catch(e) {
+    } catch {
       throw new Error('Failed to parse AI response');
     }
   }
@@ -462,7 +462,7 @@ ${JSON.stringify(documentData, null, 2)}`
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
-    } catch(e) {
+    } catch {
       throw new Error('Failed to parse AI response for document analysis');
     }
   }
@@ -508,7 +508,7 @@ ${JSON.stringify(data, null, 2)}`
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
-    } catch(e) {
+    } catch {
       throw new Error('Failed to parse AI response for fraud detection');
     }
   }

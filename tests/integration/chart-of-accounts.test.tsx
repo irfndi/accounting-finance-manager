@@ -83,7 +83,7 @@ vi.mock('../../src/web/components/ui/alert-dialog', () => ({
 }));
 
 vi.mock('../../src/web/components/ui/dialog', () => ({
-  Dialog: ({ children, open, onOpenChange }: any) => (
+  Dialog: ({ children, open, _onOpenChange }: any) => (
     open ? <div role="dialog" data-testid="dialog" data-open={open}>{children}</div> : null
   ),
   DialogContent: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
@@ -148,7 +148,7 @@ const fillAccountForm = async (user: any, code: string, name: string, type: stri
   try {
     const typeSelect = screen.getByTestId('select');
     await user.selectOptions(typeSelect, type);
-  } catch (error) {
+  } catch {
     console.log(`Could not set account type to ${type}, using default`);
   }
 };
@@ -406,7 +406,7 @@ describe('ChartOfAccounts Component', () => {
 
   // Skip this test for now as it's having issues with the shadcn UI Select component
   it.skip('should filter accounts by type', async () => {
-    const user = userEvent.setup();
+    const _user = userEvent.setup();
     render(<ChartOfAccounts />);
     
     // Wait for accounts to load

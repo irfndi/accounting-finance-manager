@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { VectorizeService, type VectorizeConfig, type EmbeddingMetadata, type SearchOptions, type SearchResult } from '../../src/ai/services/vectorize-service.js';
+import { VectorizeService, type VectorizeConfig } from '../../src/ai/services/vectorize-service.js';
 import { AIServiceError } from '../../src/ai/types.js';
 
 // Mock Cloudflare Vectorize
@@ -43,7 +43,7 @@ describe.skip('VectorizeService', () => {
     }
   };
 
-  const mockEmbedding = new Array(1536).fill(0).map(() => Math.random());
+  const mockEmbedding = Array.from({ length: 1536 }, () => Math.random());
 
   beforeEach(() => {
     mockConfig = {

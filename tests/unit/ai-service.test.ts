@@ -1,11 +1,9 @@
-/// <reference types="vitest" />
-
 /**
  * Tests for AI Service
  * Comprehensive test coverage for the main AI service with fallback and retry logic
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, type TestFunction, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { AIService, createAIService } from '../../src/ai/services/ai-service.js';
 import type { AIProvider, AIMessage, AIResponse, AIStreamResponse, AIServiceConfig } from '../../src/ai/types.js';
 import { AIServiceError, AIProviderError, AIRateLimitError } from '../../src/ai/types.js';
@@ -183,6 +181,7 @@ describe('AIService', () => {
 
     it('should fallback to secondary provider for stream when primary fails', async () => {
       vi.mocked(mockPrimaryProvider.generateStream!).mockImplementation(async function* () {
+        yield mockStreamChunk; // This chunk will be yielded before the error
         throw new Error('Primary stream failed');
       });
 
@@ -196,15 +195,18 @@ describe('AIService', () => {
         chunks.push(chunk);
       }
 
-      expect(chunks).toEqual([mockStreamChunk, mockFinalChunk]);
+      // In streaming, chunks already yielded from primary provider before failure are included
+      expect(chunks).toEqual([mockStreamChunk, mockStreamChunk, mockFinalChunk]);
       expect(mockFallbackProvider.generateStream).toHaveBeenCalledWith(mockMessages, undefined);
     });
 
     it('should throw AIServiceError when all providers fail for stream', async () => {
       vi.mocked(mockPrimaryProvider.generateStream!).mockImplementation(async function* () {
+        yield mockStreamChunk; // Required for generator function
         throw new Error('Primary stream failed');
       });
       vi.mocked(mockFallbackProvider.generateStream!).mockImplementation(async function* () {
+        yield mockStreamChunk; // Required for generator function
         throw new Error('Fallback stream failed');
       });
 

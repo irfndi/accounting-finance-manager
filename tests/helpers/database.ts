@@ -6,7 +6,7 @@
 import { vi } from 'vitest';
 import * as schema from '../../src/db/schema';
 import type { SelectUser, SelectSession } from '../../src/db/schema';
-import type { Database } from '../../src/db/index';
+
 
 /**
  * Creates a mock that supports Drizzle ORM's chainable query pattern

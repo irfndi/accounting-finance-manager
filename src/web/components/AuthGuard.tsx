@@ -38,7 +38,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
             user,
             isLoading: false
           });
-        } catch (error) {
+        } catch {
           // Token is invalid, clear auth and redirect
           auth.logout();
           window.location.href = '/login';

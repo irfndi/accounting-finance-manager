@@ -5,13 +5,11 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  JWTManager,
   DEFAULT_JWT_CONFIG,
+  JWTManager,
   createJWTManager,
   extractUserIdFromToken,
   generateToken,
-  verifyToken,
-  refreshToken,
   validateToken
 } from '../../src/lib/auth/jwt';
 import type { AuthUser, JWTConfig } from '../../src/lib/auth/types';

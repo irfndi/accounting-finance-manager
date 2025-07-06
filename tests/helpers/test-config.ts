@@ -6,8 +6,6 @@
  */
 
 import { vi, type MockedFunction } from 'vitest';
-import { drizzle } from 'drizzle-orm/d1';
-import * as schema from '../../src/db/schema';
 import type { Database } from '../../src/db/index';
 
 /**

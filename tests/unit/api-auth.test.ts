@@ -27,7 +27,12 @@ Object.defineProperty(global, 'crypto', {
 // Mock dependencies BEFORE importing any modules
 vi.mock('hono/jwt', () => ({
   sign: vi.fn().mockResolvedValue('mock-jwt-token'),
-  verify: vi.fn().mockResolvedValue({ id: 'user-123', email: 'test@example.com', role: 'USER' }),
+  verify: vi.fn().mockImplementation(async (token: string) => {
+    if (token === 'mock-refresh-token' || token === 'mock-jwt-token') {
+      return { id: 'user-123', email: 'test@example.com', role: 'USER' };
+    }
+    throw new Error('Invalid token');
+  }),
 }));
 
 vi.mock('../../src/lib/auth/password', () => ({
@@ -47,9 +52,39 @@ vi.mock('../../src/lib/auth/password', () => ({
 
 // Mock auth middleware
 vi.mock('../../src/worker/middleware/auth', () => ({
-  authMiddleware: vi.fn(async (c, next) => {
-    c.set('user', { id: 'user-123', email: 'test@example.com' });
-    return await next();
+  authMiddleware: vi.fn().mockImplementation(async (c, next) => {
+    try {
+      const authHeader = c.req.header('Authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+
+      const token = authHeader.split(' ')[1];
+      if (!token) {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+
+      // Simulate JWT verification with our mock logic
+      if (token === 'mock-refresh-token' || token === 'mock-jwt-token') {
+        const decodedPayload = { id: 'user-123', email: 'test@example.com', role: 'USER' };
+        
+        // Mock user for authenticated requests
+        c.set('user', { id: 'user-123', email: 'test@example.com' });
+        c.set('jwtPayload', decodedPayload);
+        await next();
+      } else {
+        return c.json({ error: 'Unauthorized' }, 401);
+      }
+    } catch {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+  }),
+}));
+
+// Mock drizzle-orm functions
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn().mockImplementation((column, value) => {
+    return { column, value, operator: 'eq' };
   }),
 }));
 
@@ -87,7 +122,7 @@ function createQueryMock(returnValue: any = []) {
   const chain = {
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
+    where: vi.fn().mockResolvedValue(mockResult),
     orderBy: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     offset: vi.fn().mockReturnThis(),
@@ -96,18 +131,11 @@ function createQueryMock(returnValue: any = []) {
     innerJoin: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
-    returning: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue(mockResult),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
     delete: vi.fn().mockReturnThis(),
-    // Make it thenable
-    then: vi.fn((resolve) => resolve(mockResult)),
-    catch: vi.fn(),
-    finally: vi.fn(),
   };
-
-  // Override the final resolution methods
-  chain.returning = vi.fn().mockResolvedValue(mockResult);
   
   return chain;
 }
@@ -119,17 +147,14 @@ vi.mock('../../src/db/index', () => ({
   createDatabase: vi.fn(() => mockDb),
   // Schema objects that the router imports  
   users: {
-    id: 'users.id',
-    email: 'users.email',
-    passwordHash: 'users.passwordHash',
-    role: 'users.role',
-    entityId: 'users.entityId',
-    emailVerified: 'users.emailVerified',
-    isActive: 'users.isActive',
-    displayName: 'users.displayName',
-    createdAt: 'users.createdAt',
-    updatedAt: 'users.updatedAt',
-    lastLoginAt: 'users.lastLoginAt',
+    id: 'id',
+    email: 'email',
+    passwordHash: 'passwordHash',
+    displayName: 'displayName',
+    emailVerified: 'emailVerified',
+    createdAt: 'createdAt',
+    lastLoginAt: 'lastLoginAt',
+    updatedAt: 'updatedAt',
   },
   entities: {
     id: 'entities.id',
@@ -141,6 +166,9 @@ vi.mock('../../src/db/index', () => ({
     createdAt: 'entities.createdAt',
     updatedAt: 'entities.updatedAt',
   },
+  eq: vi.fn().mockImplementation((column, value) => {
+    return { column, value, operator: 'eq' };
+  }),
 }));
 
 // Import modules after setting up mocks
@@ -175,9 +203,19 @@ describe('Auth API Routes', () => {
     
     // Create comprehensive database mock
     mockDb = {
-      select: vi.fn(),
-      insert: vi.fn(),
-      update: vi.fn(),
+      select: vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue(createQueryMock([])),
+      }),
+      insert: vi.fn().mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([mockUser]),
+        }),
+      }),
+      update: vi.fn().mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([mockUser]),
+        }),
+      }),
       delete: vi.fn(),
     };
 
@@ -470,7 +508,7 @@ describe('Auth API Routes', () => {
 
   describe('POST /api/auth/refresh', () => {
     it('should refresh token successfully with valid session', async () => {
-      // Mock database to return user
+      // Mock database to return user when queried
       mockDb.select = vi.fn().mockReturnValue(createQueryMock([mockUser]));
 
       const response = await app.request(

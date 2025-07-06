@@ -16,11 +16,6 @@ function validateEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
-// Simple password validation function
-function validatePassword(password: string): boolean {
-  return Boolean(password && password.length >= 8);
-}
-
 // Enhanced password validation that returns detailed results
 function validatePasswordDetailed(password: string): { isValid: boolean; errors: string[]; score: number } {
   const errors: string[] = [];

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import GeneralLedger from '../../src/web/components/GeneralLedger';
 
 // Mock fetch globally
@@ -59,15 +58,15 @@ vi.mock('../../src/web/components/ui/select', () => ({
     </div>
   ),
   SelectContent: ({ children }: any) => <div style={{ display: 'none' }}>{children}</div>,
-  SelectItem: ({ children, value }: any) => null,
-  SelectTrigger: ({ children }: any) => null,
-  SelectValue: ({ placeholder }: any) => null,
+  SelectItem: ({ _children, _value }: any) => null,
+  SelectTrigger: ({ _children }: any) => null,
+  SelectValue: ({ _placeholder }: any) => null,
 }));
 
 vi.mock('../../src/web/components/ui/dialog', () => {
   let isOpen = false;
   return {
-    Dialog: ({ children, open, onOpenChange, ...props }: any) => {
+    Dialog: ({ children, open, _onOpenChange, ...props }: any) => {
       if (open !== undefined) isOpen = open;
       return <div data-testid="dialog" {...props}>{children}</div>;
     },

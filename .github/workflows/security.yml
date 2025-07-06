@@ -192,9 +192,11 @@ jobs:
         if: secrets.SNYK_TOKEN == ''
         run: |
           echo "🔍 Running OSV vulnerability scanner..."
-          curl -L https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
+          curl -L https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 \
+            -o osv-scanner
           chmod +x osv-scanner
-          ./osv-scanner --lockfile=pnpm-lock.yaml --output=json > osv-report.json || echo "OSV scan completed"
+          ./osv-scanner --lockfile=pnpm-lock.yaml --output=json > osv-report.json || \
+            echo "OSV scan completed"
           echo "✅ OSV scan completed"
 
       - name: Upload OSV report
@@ -243,7 +245,9 @@ jobs:
       - name: Check licenses
         run: |
           echo "📋 Checking package licenses..."
-          license-checker --summary --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;Unlicense' || echo "License check completed with findings"
+          license-checker --summary \
+            --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;Unlicense' || \
+            echo "License check completed with findings"
           echo "✅ License check completed"
 
       - name: Generate license report
@@ -278,13 +282,16 @@ jobs:
       - name: Install TruffleHog
         run: |
           echo "📦 Installing TruffleHog..."
-          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL \
+            https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | \
+            sh -s -- -b /usr/local/bin
           echo "✅ TruffleHog installed"
 
       - name: Run TruffleHog secret scan
         run: |
           echo "🔍 Scanning for secrets with TruffleHog..."
-          trufflehog git file://. --branch=main --json > secret-scan-report.json || echo "Secret scan completed"
+          trufflehog git file://. --branch=main --json > secret-scan-report.json || \
+            echo "Secret scan completed"
           echo "✅ Secret scan completed"
 
       - name: Check for findings
@@ -340,17 +347,20 @@ jobs:
         run: |
           echo "🕵️ Checking for suspicious packages..."
           # Check for packages with suspicious names or patterns
-          cat pnpm-lock.yaml | grep -E "(bitcoin|crypto|wallet|mining|suspicious)" || echo "No suspicious packages found"
+          cat pnpm-lock.yaml | \
+            grep -E "(bitcoin|crypto|wallet|mining|suspicious)" || \
+            echo "No suspicious packages found"
           echo "✅ Suspicious package check completed"
 
       - name: Generate SBOM (Software Bill of Materials)
         run: |
           echo "📋 Generating Software Bill of Materials..."
           # Create a simple SBOM from package.json files
-          find . -name "package.json" -not -path "./node_modules/*" | while read file; do
-            echo "=== $file ===" >> sbom.txt
-            cat "$file" | jq '.dependencies // {}, .devDependencies // {}' >> sbom.txt
-          done
+          find . -name "package.json" -not -path "./node_modules/*" | \
+            while read file; do
+              echo "=== $file ===" >> sbom.txt
+              cat "$file" | jq '.dependencies // {}, .devDependencies // {}' >> sbom.txt
+            done
           echo "✅ SBOM generated"
 
       - name: Upload SBOM
@@ -381,12 +391,18 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Security Check | Status | Details |" >> $GITHUB_STEP_SUMMARY
           echo "|----------------|--------|---------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Dependency Audit | ${{ needs.dependency-audit.result }} | PNPM vulnerability scan |" >> $GITHUB_STEP_SUMMARY
-          echo "| GitHub Security | ${{ needs.github-security.result }} | CodeQL analysis |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vulnerability Scan | ${{ needs.vulnerability-scan.result }} | Snyk/OSV scanner |" >> $GITHUB_STEP_SUMMARY
-          echo "| License Check | ${{ needs.license-check.result }} | License compliance |" >> $GITHUB_STEP_SUMMARY
-          echo "| Secret Scan | ${{ needs.secret-scan.result }} | TruffleHog analysis |" >> $GITHUB_STEP_SUMMARY
-          echo "| Supply Chain | ${{ needs.supply-chain.result }} | Package integrity & SBOM |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Audit | ${{ needs.dependency-audit.result }} | PNPM vulnerability scan |" >> \
+            $GITHUB_STEP_SUMMARY
+          echo "| GitHub Security | ${{ needs.github-security.result }} | CodeQL analysis |" >> \
+            $GITHUB_STEP_SUMMARY
+          echo "| Vulnerability Scan | ${{ needs.vulnerability-scan.result }} | Snyk/OSV scanner |" >> \
+            $GITHUB_STEP_SUMMARY
+          echo "| License Check | ${{ needs.license-check.result }} | License compliance |" >> \
+            $GITHUB_STEP_SUMMARY
+          echo "| Secret Scan | ${{ needs.secret-scan.result }} | TruffleHog analysis |" >> \
+            $GITHUB_STEP_SUMMARY
+          echo "| Supply Chain | ${{ needs.supply-chain.result }} | Package integrity & SBOM |" >> \
+            $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Count failures
@@ -403,11 +419,13 @@ jobs:
             echo "No critical security issues detected." >> $GITHUB_STEP_SUMMARY
           else
             echo "## ⚠️ Security Issues Detected" >> $GITHUB_STEP_SUMMARY
-            echo "$FAILURES security check(s) failed. Please review the individual reports." >> $GITHUB_STEP_SUMMARY
+            echo "$FAILURES security check(s) failed. Please review the individual reports." >> \
+              $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📁 **Security reports** are available in the workflow artifacts." >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Security reports** are available in the workflow artifacts." >> \
+            $GITHUB_STEP_SUMMARY
 
       - name: Set workflow status
         run: |
@@ -424,7 +442,7 @@ jobs:
           if [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
             echo "❌ Critical: Secrets detected in repository"
             exit 1
-          elif [[ "${{ needs.dependency-audit.result }}" == "failure" && 
+          elif [[ "${{ needs.dependency-audit.result }}" == "failure" && \
                   "${{ needs.vulnerability-scan.result }}" == "failure" ]]; then
             echo "❌ Critical: Multiple vulnerability scanners failed"
             exit 1

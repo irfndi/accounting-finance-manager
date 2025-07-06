@@ -35,7 +35,7 @@ import type { RawDocument } from '../types/index.js';
 import type { users, sessions, budgets, transactions, categories } from '../db/schema';
 import type { Database } from '../db';
 import type { MagicLinkManager, MagicLinkRateLimiter } from '../lib/auth/magicLink';
-import type { VectorizeIndex } from '@cloudflare/workers-types';
+
 import type { AIService } from '../ai/services/ai-service';
 
 // Define type aliases using InferSelectModel
