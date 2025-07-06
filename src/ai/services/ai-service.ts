@@ -14,7 +14,8 @@ import type {
 import {
   AIServiceError,
   AIProviderError,
-  AIRateLimitError
+  AIRateLimitError,
+  AITimeoutError
 } from '../types.js';
 import { createProvider } from '../providers/factory.js';
 import { DEFAULT_AI_CONFIG, type AIProviderConfig } from '../config.js';
@@ -62,12 +63,11 @@ export class AIService {
         // Log provider failure
         console.warn(`AI Provider ${provider.name} failed:`, lastError.message);
         
-        // Don't try fallback for certain errors
-        if (error instanceof AIRateLimitError && error.retryAfter) {
-          // If we have a specific retry time, respect it
+        // Rethrow specific, non-retriable errors to prevent fallback
+        if (error instanceof AIProviderError || error instanceof AIRateLimitError || error instanceof AITimeoutError) {
           throw error;
         }
-        
+
         // Continue to next provider for other errors
         continue;
       }
@@ -185,7 +185,6 @@ export class AIService {
           throw error;
         }
 
-        // Don't retry on rate limit errors - let the fallback handle it
         if (error instanceof AIRateLimitError) {
           throw error;
         }
@@ -198,16 +197,12 @@ export class AIService {
       }
     }
 
-    throw new AIProviderError(
-      `Provider ${provider.name} failed after ${this.retryAttempts} attempts: ${lastError?.message}`,
-      provider.name,
-      lastError || undefined
-    );
+    throw lastError;
   }
 
   private async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Operation timed out')), timeoutMs);
+      setTimeout(() => reject(new AITimeoutError(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
     });
 
     return Promise.race([promise, timeoutPromise]);

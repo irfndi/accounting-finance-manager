@@ -34,6 +34,7 @@ export interface SearchOptions {
   filter?: Record<string, any>;
   returnMetadata?: boolean;
   includeValues?: boolean;
+  returnValues?: boolean;
 }
 
 export interface SearchResult {
@@ -129,6 +130,9 @@ export class VectorizeService {
       // console.log(`✅ Generated embeddings for document ${fileId} (${chunks.length} chunks)`);
       return { success: true, chunksCreated: chunks.length };
     } catch (error) {
+      if (error instanceof AIServiceError) {
+        throw error;
+      }
       console.error('Failed to generate embeddings:', error);
       return { 
         success: false, 

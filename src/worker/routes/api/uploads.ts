@@ -572,6 +572,14 @@ uploads.get('/:fileId', async (c) => {
 uploads.delete('/:fileId', async (c) => {
   try {
     const user = c.get('user');
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401);
+    }
+    
     const fileId = c.req.param('fileId');
 
     if (!fileId) {
@@ -682,6 +690,14 @@ uploads.delete('/:fileId', async (c) => {
 uploads.get('/', async (c) => {
   try {
     const user = c.get('user');
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401);
+    }
+    
     const limit = parseInt(c.req.query('limit') || '50');
     const _cursor = c.req.query('cursor');
     const tagFilter = c.req.query('tag');
@@ -776,6 +792,14 @@ uploads.get('/', async (c) => {
 uploads.get('/:fileId/metadata', async (c) => {
   try {
     const user = c.get('user');
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401);
+    }
+    
     const fileId = c.req.param('fileId');
 
     if (!fileId) {
@@ -902,6 +926,14 @@ uploads.get('/:fileId/metadata', async (c) => {
 uploads.post('/:fileId/ocr', async (c) => {
   try {
     const user = c.get('user');
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401);
+    }
+    
     const fileId = c.req.param('fileId');
     const reprocess = c.req.query('reprocess') === 'true';
 
@@ -1155,6 +1187,14 @@ uploads.post('/:fileId/ocr', async (c) => {
 uploads.get('/:fileId/ocr', async (c) => {
   try {
     const user = c.get('user');
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401);
+    }
+    
     const fileId = c.req.param('fileId');
     const fullText = c.req.query('full') === 'true';
 

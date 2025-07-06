@@ -201,6 +201,10 @@ categoriesRouter.post('/', async (c) => {
     const db = createDatabase(c.env.FINANCE_MANAGER_DB)
     const user = c.get('user')
     
+    if (!user) {
+      return c.json({ error: 'User not authenticated' }, 401)
+    }
+    
     // Check if code is unique (if provided)
     if (body.code) {
       const existingCode = await db.select()

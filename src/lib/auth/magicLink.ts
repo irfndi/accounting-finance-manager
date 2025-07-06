@@ -424,7 +424,7 @@ export class MagicLinkEmailTemplate {
     html: string;
     text: string;
   } {
-    const greeting = recipientName ? `Hi ${recipientName}` : 'Hello';
+    const greeting = recipientName ? `Hi ${recipientName}` : 'Hello!';
     const expiryText = `This link expires at ${expiresAt.toLocaleString()}.`;
 
     switch (purpose) {

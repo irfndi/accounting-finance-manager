@@ -1,51 +1,45 @@
 /**
  * Password Hashing Utilities
- * Using @noble/hashes argon2id for secure password hashing
+ * Using Web Crypto API (crypto.subtle) for secure password hashing
  */
-
-import { argon2id } from '@noble/hashes/argon2';
-import { randomBytes } from '@noble/hashes/utils';
 
 /**
- * Argon2id configuration for password hashing
+ * PBKDF2 configuration for password hashing
  * Optimized for Cloudflare Workers environment
  */
-export interface Argon2Config {
-  /** Time cost (iterations) - number of passes */
-  timeCost: number;
-  /** Memory cost in KiB */
-  memoryCost: number;
-  /** Parallelism factor */
-  parallelism: number;
-  /** Hash length in bytes */
-  hashLength: number;
+export interface PBKDF2Config {
+  /** Iterations count */
+  iterations: number;
+  /** Hash algorithm */
+  hash: 'SHA-256' | 'SHA-384' | 'SHA-512';
   /** Salt length in bytes */
   saltLength: number;
+  /** Key length in bytes */
+  keyLength: number;
 }
 
 /**
- * Default Argon2id configuration
+ * Default PBKDF2 configuration
  * Balanced for security and performance in Workers environment
  */
-export const DEFAULT_ARGON2_CONFIG: Argon2Config = {
-  timeCost: 3,        // 3 iterations for good security
-  memoryCost: 65536,  // 64 MiB memory usage
-  parallelism: 1,     // Single thread (Workers limitation)
-  hashLength: 32,     // 256-bit hash
+export const DEFAULT_PBKDF2_CONFIG: PBKDF2Config = {
+  iterations: 100000, // OWASP recommendation
+  hash: 'SHA-256',
   saltLength: 16,     // 128-bit salt
+  keyLength: 32,      // 256-bit key
 };
 
 /**
- * Production Argon2id configuration
+ * Production PBKDF2 configuration
  * Higher security parameters for production use
  */
-export const PRODUCTION_ARGON2_CONFIG: Argon2Config = {
-  timeCost: 4,        // 4 iterations for higher security
-  memoryCost: 65536,  // 64 MiB memory usage (Workers limit)
-  parallelism: 1,     // Single thread
-  hashLength: 32,     // 256-bit hash
-  saltLength: 16,     // 128-bit salt
+export const PRODUCTION_PBKDF2_CONFIG: PBKDF2Config = {
+    iterations: 200000, // Increased iterations
+    hash: 'SHA-256',
+    saltLength: 16,     // 128-bit salt
+    keyLength: 32,      // 256-bit key
 };
+
 
 /**
  * Hash result containing the hash and salt
@@ -58,49 +52,65 @@ export interface HashResult {
   /** Combined hash string for storage (salt:hash format) */
   combined: string;
   /** Configuration used for hashing */
-  config: Argon2Config;
+  config: PBKDF2Config;
 }
 
 /**
- * Hash a password using Argon2id
+ * Hash a password using PBKDF2
  * 
  * @param password - The password to hash
- * @param config - Argon2id configuration (optional)
+ * @param config - PBKDF2 configuration (optional)
+ * @param providedSalt - An optional salt to use for hashing (used for verification)
  * @returns Promise containing hash result
  */
 export async function hashPassword(
   password: string, 
-  config: Argon2Config = DEFAULT_ARGON2_CONFIG
+  config: PBKDF2Config = DEFAULT_PBKDF2_CONFIG,
+  providedSalt?: Uint8Array
 ): Promise<HashResult> {
   try {
-    // Generate cryptographically secure random salt
-    const salt = randomBytes(config.saltLength);
+    const encoder = new TextEncoder();
+    const salt = providedSalt || crypto.getRandomValues(new Uint8Array(config.saltLength));
+    const passwordBuffer = encoder.encode(password);
     
-    // Convert password to bytes
-    const passwordBytes = new TextEncoder().encode(password);
+    // 1. Import the password as a key
+    const passwordKey = await crypto.subtle.importKey(
+      "raw",
+      passwordBuffer,
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits"]
+    );
     
-    // Hash the password using Argon2id
-    const hash = argon2id(passwordBytes, salt, {
-      t: config.timeCost,
-      m: config.memoryCost,
-      p: config.parallelism,
-      dkLen: config.hashLength,
-    });
+    // 2. Derive the bits using PBKDF2
+    const hashBuffer = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt: salt as BufferSource,
+        iterations: config.iterations,
+        hash: config.hash,
+      },
+      passwordKey,
+      config.keyLength * 8 // keyLength is in bytes, deriveBits expects bits
+    );
     
-    // Convert to base64 for storage
-    const saltB64 = btoa(String.fromCharCode(...salt));
-    const hashB64 = btoa(String.fromCharCode(...hash));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     
-    // Create combined format for easy storage/retrieval
-    const combined = `${saltB64}:${hashB64}`;
+    const saltHex = Array.from(salt)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    
+    const combined = `${saltHex}:${hashHex}`;
     
     return {
-      hash: hashB64,
-      salt: saltB64,
+      hash: hashHex,
+      salt: saltHex,
       combined,
       config,
     };
   } catch (error) {
+    console.error('Error in hashPassword:', error);
     throw new Error(`Password hashing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -110,44 +120,29 @@ export async function hashPassword(
  * 
  * @param password - The password to verify
  * @param combined - The combined hash string (salt:hash format)
- * @param config - Argon2id configuration (optional)
+ * @param config - PBKDF2 configuration (optional)
  * @returns Promise<boolean> indicating if password matches
  */
 export async function verifyPassword(
   password: string,
   combined: string,
-  config: Argon2Config = DEFAULT_ARGON2_CONFIG
+  config: PBKDF2Config = DEFAULT_PBKDF2_CONFIG
 ): Promise<boolean> {
   try {
-    // Split the combined hash into salt and hash
-    const [saltB64, hashB64] = combined.split(':');
-    if (!saltB64 || !hashB64) {
+    const [saltHex, originalHashHex] = combined.split(':');
+    if (!saltHex || !originalHashHex) {
       throw new Error('Invalid hash format. Expected salt:hash');
     }
     
-    // Decode from base64
-    const salt = new Uint8Array(
-      atob(saltB64).split('').map(char => char.charCodeAt(0))
-    );
-    const expectedHash = new Uint8Array(
-      atob(hashB64).split('').map(char => char.charCodeAt(0))
-    );
+    const salt = new Uint8Array(saltHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
     
-    // Convert password to bytes
-    const passwordBytes = new TextEncoder().encode(password);
+    const hashResult = await hashPassword(password, config, salt);
     
-    // Hash the password with the stored salt
-    const computedHash = argon2id(passwordBytes, salt, {
-      t: config.timeCost,
-      m: config.memoryCost,
-      p: config.parallelism,
-      dkLen: config.hashLength,
-    });
+    const originalHash = new Uint8Array(originalHashHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    const computedHash = new Uint8Array(hashResult.hash.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
     
-    // Constant-time comparison
-    return constantTimeEqual(computedHash, expectedHash);
+    return constantTimeEqual(originalHash, computedHash);
   } catch (error) {
-    // Log the error for debugging, but don't reveal details to the user
     console.error('Password verification error:', error);
     return false;
   }
@@ -169,11 +164,12 @@ function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
   return result === 0;
 }
 
+
 /**
- * Get Argon2id configuration based on environment
+ * Get PBKDF2 configuration based on environment
  */
-export function getArgon2Config(environment: 'development' | 'production' = 'development'): Argon2Config {
-  return environment === 'production' ? PRODUCTION_ARGON2_CONFIG : DEFAULT_ARGON2_CONFIG;
+export function getPBKDF2Config(environment: 'development' | 'production' = 'development'): PBKDF2Config {
+  return environment === 'production' ? PRODUCTION_PBKDF2_CONFIG : DEFAULT_PBKDF2_CONFIG;
 }
 
 /**
@@ -193,10 +189,17 @@ export function validatePassword(password: string): PasswordValidation {
   // Length check
   if (password.length < 8) {
     errors.push('Password must be at least 8 characters long');
-  } else if (password.length >= 12) {
-    score += 20;
   } else {
-    score += 10;
+    // Scale score based on length - longer passwords get higher scores
+    if (password.length >= 8 && password.length < 12) {
+      score += 10;
+    } else if (password.length >= 12 && password.length < 16) {
+      score += 20;
+    } else if (password.length >= 16 && password.length < 20) {
+      score += 30;
+    } else if (password.length >= 20) {
+      score += 40; // Extra bonus for very long passwords
+    }
   }
   
   // Character variety checks
@@ -204,9 +207,6 @@ export function validatePassword(password: string): PasswordValidation {
   if (/[A-Z]/.test(password)) score += 10;
   if (/[0-9]/.test(password)) score += 10;
   if (/[^a-zA-Z0-9]/.test(password)) score += 15;
-  
-  // Complexity bonus
-  if (password.length >= 16) score += 10;
   if (/(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])/.test(password)) {
     score += 25;
   }

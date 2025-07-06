@@ -1,0 +1,40 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "types": [
+      "@cloudflare/vitest-pool-workers", // provides `cloudflare:test` types
+      "vitest/globals",
+      "@testing-library/jest-dom",
+      "@types/node"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2022", "WebWorker"],
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "../src/**/*.ts",
+    "../src/**/*.tsx",
+    "../worker-configuration.d.ts", // output of `wrangler types`
+    "../src/global.d.ts"
+  ],
+  "exclude": [
+    "../node_modules",
+    "../dist",
+    "../.astro"
+  ]
+} 

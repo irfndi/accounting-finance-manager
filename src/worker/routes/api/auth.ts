@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { sign } from 'hono/jwt';
+import { sign, verify } from 'hono/jwt';
 import { eq } from 'drizzle-orm';
 import { users, createDatabase } from '../../../db/index.js';
 import type { InferInsertModel } from 'drizzle-orm';
@@ -8,6 +8,7 @@ import { authMiddleware } from '../../middleware/auth';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { createEmailService } from '../../services';
+import { hashPassword, verifyPassword } from '../../../lib/auth/password.js';
 
 // Simple email validation function
 function validateEmail(email: string): boolean {
@@ -20,19 +21,49 @@ function validatePassword(password: string): boolean {
   return Boolean(password && password.length >= 8);
 }
 
-// Helper functions for password hashing using Web Crypto API
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// Enhanced password validation that returns detailed results
+function validatePasswordDetailed(password: string): { isValid: boolean; errors: string[]; score: number } {
+  const errors: string[] = [];
+  let score = 0;
+  
+  if (!password || password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
+  } else {
+    score += 20;
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  } else {
+    score += 20;
+  }
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  } else {
+    score += 20;
+  }
+  
+  if (!/\d/.test(password)) {
+    errors.push('Password must contain at least one number');
+  } else {
+    score += 20;
+  }
+  
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push('Password must contain at least one special character');
+  } else {
+    score += 20;
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    score
+  };
 }
 
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const hashedInput = await hashPassword(password);
-  return hashedInput === hash;
-}
+// Password utilities are imported from the shared auth library
 
 const authRouter = new Hono<AppContext>();
 
@@ -50,7 +81,7 @@ authRouter.post('/register', async (c) => {
 
   if (!jwtSecret) {
     // JWT_SECRET is missing
-    return c.json({ error: 'Server configuration error', message: 'Authentication not properly configured' }, 500);
+    return c.json({ success: false, error: 'Server configuration error', message: 'Authentication not properly configured' }, 500);
   }
 
   try {
@@ -59,28 +90,30 @@ authRouter.post('/register', async (c) => {
     // Request data parsed
 
     if (!email || !password) {
-      return c.json({ error: 'Missing required fields', message: 'Email and password are required' }, 400);
+      return c.json({ success: false, error: 'Missing required fields', message: 'Email and password are required' }, 400);
     }
 
     // Validating email
     if (!validateEmail(email)) {
-      return c.json({ error: 'Invalid email format', message: 'Please provide a valid email address' }, 400);
+      return c.json({ success: false, error: 'Invalid email format', message: 'Please provide a valid email address' }, 400);
     }
 
     // Validating password
-    if (!validatePassword(password)) {
-      return c.json({ error: 'Password must be at least 8 characters long', message: 'Password does not meet security requirements' }, 400);
+    const passwordValidation = validatePasswordDetailed(password);
+    if (!passwordValidation.isValid) {
+      return c.json({ success: false, error: 'Password requirements not met', message: passwordValidation.errors.join(', ') }, 400);
     }
 
     // Checking for existing user
     const existingUserResult = await db.select().from(users).where(eq(users.email, email));
     const existingUser = existingUserResult[0];
     if (existingUser) {
-      return c.json({ error: 'User already exists', message: 'A user with this email already exists' }, 409);
+      return c.json({ success: false, error: 'User already exists', message: 'A user with this email already exists' }, 409);
     }
 
     // Hashing password
-    const hashedPassword = await hashPassword(password);
+    const hashResult = await hashPassword(password);
+    const hashedPassword = hashResult.combined;
 
     // Inserting user into database
     const userData: InferInsertModel<typeof users> = {
@@ -105,6 +138,7 @@ authRouter.post('/register', async (c) => {
     }), { expirationTtl: 7 * 24 * 60 * 60 });
 
     return c.json({
+      success: true,
       message: 'User registered successfully',
       user: { id: user.id, email: user.email, name: user.displayName, emailVerified: user.emailVerified, createdAt: user.createdAt },
       token,
@@ -115,7 +149,7 @@ authRouter.post('/register', async (c) => {
     console.error('Registration error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Registration error occurred
-    return c.json({ error: 'Registration failed', message: errorMessage }, 500);
+    return c.json({ success: false, error: 'Registration failed', message: errorMessage }, 500);
   }
 });
 
@@ -128,18 +162,18 @@ authRouter.post('/login', async (c) => {
     const { email, password } = await c.req.json();
 
     if (!email || !password) {
-      return c.json({ error: 'Missing credentials', message: 'Email and password are required' }, 400);
+      return c.json({ success: false, error: 'Missing credentials', message: 'Email and password are required' }, 400);
     }
 
     const userResult = await db.select().from(users).where(eq(users.email, email));
     const user = userResult[0];
     if (!user) {
-      return c.json({ error: 'Invalid credentials', message: 'Email or password is incorrect' }, 401);
+      return c.json({ success: false, error: 'Invalid credentials', message: 'Email or password is incorrect' }, 401);
     }
 
     const isValidPassword = await verifyPassword(password, user.passwordHash as string);
     if (!isValidPassword) {
-      return c.json({ error: 'Invalid credentials', message: 'Email or password is incorrect' }, 401);
+      return c.json({ success: false, error: 'Invalid credentials', message: 'Email or password is incorrect' }, 401);
     }
 
     const sessionDuration = getSessionDuration(c.env);
@@ -159,6 +193,7 @@ authRouter.post('/login', async (c) => {
     }).where(eq(users.id, user.id));
 
     return c.json({
+      success: true,
       message: 'Login successful',
       user: { id: user.id, email: user.email, name: user.displayName, emailVerified: user.emailVerified, lastLoginAt: new Date() },
       token,
@@ -168,7 +203,7 @@ authRouter.post('/login', async (c) => {
     console.error('Login error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Login error occurred
-    return c.json({ error: 'Login failed', message: errorMessage }, 500);
+    return c.json({ success: false, error: 'Login failed', message: errorMessage }, 500);
   }
 });
 
@@ -177,15 +212,15 @@ authRouter.post('/logout', authMiddleware, async (c) => {
   try {
     const user = c.get('user');
     if (!user) {
-      return c.json({ error: 'User not authenticated' }, 401);
+      return c.json({ success: false, error: 'User not authenticated' }, 401);
     }
     const sessionKey = `session:${user.id}`;
     await c.env.FINANCE_MANAGER_CACHE.delete(sessionKey);
-    return c.json({ message: 'Logout successful' });
+    return c.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     // Logout error occurred
-    return c.json({ error: 'Logout failed', message: errorMessage }, 500);
+    return c.json({ success: false, error: 'Logout failed', message: errorMessage }, 500);
   }
 });
 
@@ -193,9 +228,18 @@ authRouter.post('/logout', authMiddleware, async (c) => {
 authRouter.get('/profile', authMiddleware, async (c) => {
   const user = c.get('user');
   if (!user) {
-    return c.json({ error: 'User not authenticated' }, 401);
+    return c.json({ success: false, error: 'User not authenticated' }, 401);
   }
-  return c.json({ user });
+  return c.json({ success: true, user });
+});
+
+// Get current user information (alias for /profile)
+authRouter.get('/me', authMiddleware, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    return c.json({ success: false, error: 'Unauthorized' }, 401);
+  }
+  return c.json({ success: true, user });
 });
 
 // Update user profile
@@ -203,7 +247,7 @@ authRouter.put('/profile', authMiddleware, async (c) => {
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
   const user = c.get('user');
   if (!user) {
-    return c.json({ error: 'User not authenticated' }, 401);
+    return c.json({ success: false, error: 'User not authenticated' }, 401);
   }
 
   try {
@@ -211,6 +255,7 @@ authRouter.put('/profile', authMiddleware, async (c) => {
     const [updatedUser] = await db.update(users).set({ displayName: name, updatedAt: new Date() }).where(eq(users.id, user.id)).returning();
 
     return c.json({
+      success: true,
       message: 'Profile updated successfully',
       user: { id: updatedUser.id, email: updatedUser.email, name: updatedUser.displayName, emailVerified: updatedUser.emailVerified, updatedAt: updatedUser.updatedAt },
     });
@@ -218,7 +263,7 @@ authRouter.put('/profile', authMiddleware, async (c) => {
     console.error('Profile update error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Profile update error occurred
-    return c.json({ error: 'Profile update failed', message: errorMessage }, 500);
+    return c.json({ success: false, error: 'Profile update failed', message: errorMessage }, 500);
   }
 });
 
@@ -228,7 +273,7 @@ authRouter.put('/password', authMiddleware, async (c) => {
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
   const user = c.get('user');
   if (!user) {
-    return c.json({ error: 'User not authenticated' }, 401);
+    return c.json({ success: false, error: 'User not authenticated' }, 401);
   }
   // User from middleware
 
@@ -237,35 +282,83 @@ authRouter.put('/password', authMiddleware, async (c) => {
     // Password change data received
 
     if (!currentPassword || !newPassword) {
-      return c.json({ error: 'Missing required fields', message: 'Current password and new password are required' }, 400);
+      return c.json({ success: false, error: 'Missing required fields', message: 'Current password and new password are required' }, 400);
     }
 
     const dbUserResult = await db.select().from(users).where(eq(users.id, user.id));
     const dbUser = dbUserResult[0];
     // Database user lookup
     if (!dbUser) {
-      return c.json({ error: 'User not found' }, 404); // Should not happen if authMiddleware works
+      return c.json({ success: false, error: 'User not found' }, 404); // Should not happen if authMiddleware works
     }
 
     // Verifying current password
     const isValidPassword = await verifyPassword(currentPassword, dbUser.passwordHash as string);
     // Password verification completed
     if (!isValidPassword) {
-      return c.json({ error: 'Invalid current password', message: 'Current password is incorrect' }, 401);
+      return c.json({ success: false, error: 'Invalid current password', message: 'Current password is incorrect' }, 401);
     }
 
     // Hashing new password
     const hashedNewPassword = await hashPassword(newPassword);
     // Updating password in database
-    await db.update(users).set({ passwordHash: hashedNewPassword, updatedAt: new Date() }).where(eq(users.id, user.id));
+    await db.update(users).set({ passwordHash: hashedNewPassword.combined, updatedAt: new Date() }).where(eq(users.id, user.id));
 
     // Password change successful
-    return c.json({ message: 'Password updated successfully' });
+    return c.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     console.error('Password change error:', error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     // Password change error occurred
-    return c.json({ error: 'Password change failed', message: errorMessage }, 500);
+    return c.json({ success: false, error: 'Password change failed', message: errorMessage }, 500);
+  }
+});
+
+// Refresh token endpoint
+authRouter.post('/refresh', async (c) => {
+  try {
+    const { refreshToken } = await c.req.json();
+    
+    if (!refreshToken) {
+      return c.json({ success: false, error: 'Refresh token required' }, 400);
+    }
+
+    const jwtSecret = c.env.JWT_SECRET;
+    const db = createDatabase(c.env.FINANCE_MANAGER_DB);
+
+    // Verify the refresh token
+    const payload = await verify(refreshToken, jwtSecret);
+    
+    // Get user from database
+    const userResult = await db.select().from(users).where(eq(users.id, payload.id as string));
+    const user = userResult[0];
+    
+    if (!user) {
+      return c.json({ success: false, error: 'Invalid token' }, 401);
+    }
+
+    // Generate new token
+    const sessionDuration = getSessionDuration(c.env);
+    const newToken = await sign({ id: user.id, email: user.email, role: 'USER' }, jwtSecret);
+
+    // Update session in cache
+    const sessionKey = `session:${user.id}`;
+    await c.env.FINANCE_MANAGER_CACHE.put(sessionKey, JSON.stringify({
+      userId: user.id,
+      email: user.email,
+      name: user.displayName,
+      createdAt: new Date().toISOString(),
+    }), { expirationTtl: 7 * 24 * 60 * 60 });
+
+    return c.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      token: newToken,
+      expiresIn: sessionDuration,
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error instanceof Error ? error.message : String(error));
+    return c.json({ success: false, error: 'Invalid or expired refresh token' }, 401);
   }
 });
 
@@ -273,9 +366,9 @@ authRouter.put('/password', authMiddleware, async (c) => {
 authRouter.get('/validate', authMiddleware, async (c) => {
   const user = c.get('user');
   if (!user) {
-    return c.json({ error: 'Unauthorized', message: 'Invalid session' }, 401);
+    return c.json({ success: false, error: 'Unauthorized', message: 'Invalid session' }, 401);
   }
-  return c.json({ valid: true, user });
+  return c.json({ success: true, valid: true, user });
 });
 
 // Magic Link Routes
@@ -580,7 +673,7 @@ authRouter.post('/magic-link/reset-password', zValidator('json', z.object({
     
     // Update user password
     await db.update(users).set({ 
-      passwordHash: hashedPassword,
+      passwordHash: hashedPassword.combined,
       updatedAt: new Date()
     }).where(eq(users.id, user.id));
     

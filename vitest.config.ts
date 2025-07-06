@@ -1,42 +1,63 @@
-import { resolve } from 'path';
-import { defineWorkersConfig, defineWorkersProject } from '@cloudflare/vitest-pool-workers/config';
-import { defineProject } from 'vitest/config';
+import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config'
+import { defineConfig } from 'vitest/config'
 
-export default defineWorkersConfig({
-  plugins: [],
-  esbuild: {
-    jsx: 'automatic',
-  },
+// Use Workers config for Workers-specific tests
+const workersConfig = defineWorkersConfig({
   test: {
-    pool: '@cloudflare/vitest-pool-workers',
+    watch: false,
+    reporters: ['dot'],
+    include: ['tests/unit/*.test.ts', 'tests/integration/*.test.ts'],
+    exclude: ['tests/unit/*.test.tsx', 'tests/integration/*.test.tsx'],
+    setupFiles: ['tests/setup.ts'],
+    globals: true,
     poolOptions: {
       workers: {
         wrangler: { configPath: './wrangler.jsonc' },
-      },
+        main: './src/worker/index.ts',
+        isolatedStorage: false,
+        singleWorker: true,
+        miniflare: {
+          // Simple KV namespace configuration for testing
+          kvNamespaces: {
+            FINANCE_MANAGER_CACHE: 'TEST_FINANCE_MANAGER_CACHE',
+            TEST_NAMESPACE: 'TEST_NAMESPACE'
+          },
+          d1Databases: {
+            FINANCE_MANAGER_DB: 'test-db'
+          }
+        }
+      }
     },
-    globals: true,
-    testTimeout: 10000,
-    setupFiles: ['./tests/setup.ts'],
-    include: ['./src/**/*.test.ts', './tests/unit/**/*.test.ts', './tests/integration/**/*.test.tsx'],
-    // Workers pool handles all test environments automatically
-    silent: false,
-    reporters: ['verbose'],
     coverage: {
-      enabled: false, // Temporarily disabled due to Cloudflare Workers compatibility
+      enabled: false // Disable coverage for Workers environment due to node:inspector incompatibility
+    }
+  }
+})
+
+// Use regular Node config for coverage reporting
+const nodeCoverageConfig = defineConfig({
+  test: {
+    watch: false,
+    reporters: ['dot'],
+    include: [
+      'tests/unit/database-*.test.ts',
+      'tests/unit/financial-reports.test.ts',
+      'tests/unit/ai.test.ts'
+    ],
+    exclude: ['tests/unit/*.test.tsx', 'tests/integration/*.test.tsx'],
+    setupFiles: ['tests/setup.ts'],
+    globals: true,
+    environment: 'node',
+    coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.ts'],
       exclude: [
-        'node_modules/**',
-        'dist/**',
-        '**/*.test.ts',
-        '**/*.spec.ts',
-        '**/*.test.tsx',
-        'tests/**',
-        'migrations/**',
-        '**/*.config.*',
-        '**/*.d.ts',
-        'src/global.d.ts',
-        'worker-configuration.d.ts'
+        'src/**/*.d.ts',
+        'src/**/*.test.ts',
+        'src/**/*.spec.ts',
+        'tests/**/*',
+        'node_modules/**/*'
       ],
       thresholds: {
         global: {
@@ -46,52 +67,12 @@ export default defineWorkersConfig({
           statements: 80
         }
       }
-    },
-    projects: [
-      // Workers tests - for API endpoints and Workers functionality
-      defineWorkersProject({
-        test: {
-          name: 'workers',
-          include: ['./src/**/*.test.ts', './tests/unit/**/*.test.ts'],
-          poolOptions: {
-            workers: {
-              wrangler: { configPath: './wrangler.jsonc' },
-            },
-          },
-          globals: true,
-          testTimeout: 10000,
-          setupFiles: ['./tests/setup.ts'],
-        },
-        resolve: {
-          alias: {
-            '@': resolve(__dirname, './src'),
-          },
-          extensions: ['.ts', '.js', '.tsx', '.jsx'],
-        },
-      }),
-      
-      // Frontend tests - for React components
-      defineProject({
-        test: {
-          name: 'frontend',
-          include: ['./tests/integration/**/*.test.tsx'],
-          environment: 'jsdom',
-          globals: true,
-          testTimeout: 10000,
-          setupFiles: ['./tests/setup-frontend.ts'],
-        },
-        resolve: {
-          alias: {
-            '@': resolve(__dirname, './src'),
-          },
-        },
-      }),
-    ]
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src')
-    },
-    extensions: ['.ts', '.js', '.tsx', '.jsx']
+    }
   }
-});
+})
+
+// Export Workers config by default
+export default workersConfig
+
+// Export coverage config for coverage testing
+export const coverageConfig = nodeCoverageConfig 

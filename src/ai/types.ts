@@ -93,6 +93,16 @@ export interface DocumentClassification {
 }
 
 // Error types
+export enum ErrorCode {
+  UNKNOWN_ERROR = "UNKNOWN_ERROR",
+  AI_PROVIDER_ERROR = "AI_PROVIDER_ERROR",
+  AI_RATE_LIMIT_ERROR = "AI_RATE_LIMIT_ERROR",
+  AI_TIMEOUT_ERROR = "AI_TIMEOUT_ERROR",
+  AI_SERVICE_ERROR = "AI_SERVICE_ERROR",
+  FINANCIAL_SERVICE_ERROR = "FINANCIAL_SERVICE_ERROR",
+  VECTORIZE_ERROR = "VECTORIZE_ERROR",
+}
+
 export class AIServiceError extends Error {
   constructor(
     message: string,
@@ -134,6 +144,13 @@ export class AIQuotaExceededError extends AIServiceError {
   ) {
     super(message, 'QUOTA_EXCEEDED', provider);
     this.name = 'AIQuotaExceededError';
+  }
+}
+
+export class AITimeoutError extends AIServiceError {
+  constructor(message: string) {
+    super(message, 'AI_TIMEOUT_ERROR');
+    this.name = 'AITimeoutError';
   }
 }
 

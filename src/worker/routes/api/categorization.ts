@@ -69,6 +69,13 @@ categorization.post('/suggest', async (c) => {
     const { description, amount, merchant, existingCategories, transactionId } = validatedData
     const user = c.get('user')
     
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401)
+    }
+    
     // Initialize AI service
     const primaryProvider = createProvider({
         provider: 'openrouter',
@@ -185,6 +192,13 @@ categorization.get('/pending', async (c) => {
   try {
     const user = c.get('user')
     
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401)
+    }
+    
     // List all categorization keys for the user
     const listResult = await c.env.FINANCE_MANAGER_CACHE.list({
       prefix: `categorization:${user.id}:`
@@ -231,6 +245,13 @@ categorization.post('/approve', async (c) => {
     
     const { suggestionId, approved, accountId } = validatedData
     const user = c.get('user')
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401)
+    }
     
     const kvKey = `categorization:${user.id}:${suggestionId}`
     
@@ -307,6 +328,14 @@ categorization.post('/approve', async (c) => {
 categorization.get('/history', async (c) => {
   try {
     const user = c.get('user')
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401)
+    }
+    
     const url = new URL(c.req.url)
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const status = url.searchParams.get('status') // 'approved', 'rejected', or 'all'
@@ -372,6 +401,13 @@ categorization.delete('/suggestion/:id', async (c) => {
   try {
     const suggestionId = c.req.param('id')
     const user = c.get('user')
+    
+    if (!user) {
+      return c.json({
+        success: false,
+        error: 'User not authenticated'
+      }, 401)
+    }
     
     const kvKey = `categorization:${user.id}:${suggestionId}`
     

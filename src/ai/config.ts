@@ -68,46 +68,73 @@ export const CLOUDFLARE_AI_CONFIG: AIProviderConfig = {
 // Model capabilities for different use cases
 export const AI_USE_CASES = {
   TRANSACTION_ANALYSIS: {
-    prompt: 'Analyze this financial transaction for accuracy and compliance:',
+    systemPrompt: 'Analyze this financial transaction for accuracy and compliance:',
     maxTokens: 2048,
     temperature: 0.05, // Very low for accuracy
   },
 
   EXPENSE_CATEGORIZATION: {
-    prompt: 'Categorize this expense according to standard accounting principles:',
+    systemPrompt: 'Categorize this expense according to standard accounting principles:',
     maxTokens: 1024,
     temperature: 0.1,
   },
 
   FINANCIAL_INSIGHTS: {
-    prompt: 'Provide financial insights and recommendations based on this data:',
+    systemPrompt: 'Provide financial insights and recommendations based on this data:',
     maxTokens: 4096,
     temperature: 0.3, // Higher for creative insights
   },
 
   REPORT_GENERATION: {
-    prompt: 'Generate a financial report summary:',
+    systemPrompt: 'Generate a financial report summary:',
     maxTokens: 3072,
     temperature: 0.2,
   },
 
   COMPLIANCE_CHECK: {
-    prompt: 'Check this financial data for compliance and potential issues:',
+    systemPrompt: 'Check this financial data for compliance and potential issues:',
     maxTokens: 2048,
     temperature: 0.05,
   },
 
   FRAUD_DETECTION: {
-    prompt: 'Analyze this financial data for potential fraud indicators:',
+    systemPrompt: 'Analyze this financial data for potential fraud indicators:',
     maxTokens: 2048,
     temperature: 0.1,
   },
 
   DOCUMENT_ANALYSIS: {
-    prompt: 'Analyze this financial document and extract relevant information:',
+    systemPrompt: 'Analyze this financial document and extract relevant information:',
     maxTokens: 3072,
     temperature: 0.2,
+  },
+
+  DOCUMENT_CLASSIFICATION: {
+    systemPrompt: 'Classify financial documents based on content and structure:',
+    maxTokens: 1024,
+    temperature: 0.1,
+  },
+
+  OCR_PROCESSING: {
+    systemPrompt: 'Extract structured data from OCR text of financial documents:',
+    maxTokens: 3072,
+    temperature: 0.1,
+  },
+
+  TRANSACTION_DRAFTING: {
+    systemPrompt: 'Generate double-entry accounting transactions from descriptions:',
+    maxTokens: 2048,
+    temperature: 0.1,
   }
 } as const;
 
 export type AIUseCase = keyof typeof AI_USE_CASES;
+
+/**
+ * Get API key from environment variables
+ */
+export function getAPIKey(provider: 'openrouter' | 'cloudflare'): string | undefined {
+  if (provider === 'openrouter') {
+    return process.env.OPENROUTER_API_KEY;
+  }
+}
