@@ -164,32 +164,32 @@ jobs:
         run: |
           echo "🔐 Authenticating with Snyk..."
           snyk auth ${{ secrets.SNYK_TOKEN }} || echo "Snyk authentication skipped (no token)"
-        if: secrets.SNYK_TOKEN != ''
+        if: ${{ secrets.SNYK_TOKEN != '' }}
 
       - name: Run Snyk security scan
+        if: ${{ secrets.SNYK_TOKEN != '' }}
         run: |
           echo "🔍 Running Snyk security scan..."
           snyk test --all-projects --severity-threshold=medium || echo "Snyk scan completed with findings"
           echo "✅ Snyk security scan completed"
-        if: secrets.SNYK_TOKEN != ''
 
       - name: Generate Snyk report
+        if: ${{ secrets.SNYK_TOKEN != '' }}
         run: |
           echo "📊 Generating Snyk report..."
           snyk test --all-projects --json > snyk-report.json || true
           echo "✅ Snyk report generated"
-        if: secrets.SNYK_TOKEN != ''
 
       - name: Upload Snyk report
         uses: actions/upload-artifact@v4
-        if: always() && secrets.SNYK_TOKEN != ''
+        if: ${{ always() && secrets.SNYK_TOKEN != '' }}
         with:
           name: snyk-vulnerability-report
           path: snyk-report.json
           retention-days: 30
 
-      - name: Alternative: OSV Scanner
-        if: secrets.SNYK_TOKEN == ''
+      - name: "Alternative: OSV Scanner"
+        if: ${{ secrets.SNYK_TOKEN == '' }}
         run: |
           echo "🔍 Running OSV vulnerability scanner..."
           curl -L https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 \
@@ -201,7 +201,7 @@ jobs:
 
       - name: Upload OSV report
         uses: actions/upload-artifact@v4
-        if: always() && secrets.SNYK_TOKEN == ''
+        if: ${{ always() && secrets.SNYK_TOKEN == '' }}
         with:
           name: osv-vulnerability-report
           path: osv-report.json
