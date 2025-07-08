@@ -51,12 +51,17 @@ vi.spyOn(Date.prototype, 'toISOString').mockImplementation(function() {
 });
 
 describe('Financial Reports', () => {
+  let consoleErrorSpy: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock console.error to suppress expected error messages during tests
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
   
   afterEach(() => {
     vi.clearAllMocks();
+    consoleErrorSpy.mockRestore();
   });
   
   describe('generateIncomeStatementPDF', () => {

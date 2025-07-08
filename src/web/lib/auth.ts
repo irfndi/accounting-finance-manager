@@ -6,10 +6,6 @@ export interface User {
   createdAt: string;
 }
 
-interface ApiError {
-  message: string;
-}
-
 export interface AuthState {
   user: User | null;
   token: string | null;
@@ -136,30 +132,38 @@ export const apiClient = {
 // Authentication API calls
 export const authApi = {
   async login(email: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    const response = await apiClient.post('/api/auth/login', { email, password });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Login failed' })) as ApiError;
-      throw new Error(error.message || 'Login failed');
+      let errorMessage = 'Login failed';
+      try {
+        const errorData = await response.json();
+        if (errorData && typeof errorData === 'object') {
+          errorMessage = (errorData as any).error || (errorData as any).message || errorMessage;
+        }
+      } catch {
+        // Use default error message if JSON parsing fails
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
   },
 
-  async register(email: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+  async register(email: string, password: string, firstName: string, lastName: string): Promise<{ user: User; token: string }> {
+    const response = await apiClient.post('/api/auth/register', { email, password, firstName, lastName });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Registration failed' })) as ApiError;
-      throw new Error(error.message || 'Registration failed');
+      let errorMessage = 'Registration failed';
+      try {
+        const errorData = await response.json();
+        if (errorData && typeof errorData === 'object') {
+          errorMessage = (errorData as any).error || (errorData as any).message || errorMessage;
+        }
+      } catch {
+        // Use default error message if JSON parsing fails
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -169,13 +173,7 @@ export const authApi = {
     const token = tokenStorage.get();
     if (token) {
       try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await apiClient.post('/api/auth/logout');
       } catch (error) {
         // Ignore logout errors, we'll clear local state anyway
         console.warn('Logout request failed:', error);

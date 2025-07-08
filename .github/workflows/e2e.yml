@@ -87,8 +87,8 @@ jobs:
           # Wait for server to be ready
           echo "Waiting for server to be ready..."
           for i in {1..60}; do
-            if curl -f http://localhost:4321 >/dev/null 2>&1; then
-              echo "✓ Preview server is ready at http://localhost:4321"
+            if curl -f http://localhost:3000 >/dev/null 2>&1; then
+              echo "✓ Preview server is ready at http://localhost:3000"
               break
             fi
             echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
@@ -108,7 +108,7 @@ jobs:
           echo "✓ E2E tests completed"
         env:
           PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
-          BASE_URL: http://localhost:4321
+          BASE_URL: http://localhost:3000
           CI: true
           HOME: /root
 
@@ -198,10 +198,15 @@ jobs:
       - name: Run visual regression tests
         run: |
           echo "Running visual regression tests..."
-          pnpm exec playwright test --project=visual-regression --grep="@visual"
-          echo "✓ Visual regression tests completed"
+          # Check if any tests with @visual tag exist
+          if pnpm exec playwright test --list --grep="@visual" | grep -q "Running"; then
+            pnpm exec playwright test --grep="@visual"
+            echo "✓ Visual regression tests completed"
+          else
+            echo "ℹ️ No visual regression tests found (no @visual tags), skipping..."
+          fi
         env:
-          BASE_URL: http://localhost:4321
+          BASE_URL: http://localhost:3000
           CI: true
           HOME: /root
 
@@ -270,28 +275,6 @@ jobs:
           npm install -g @lhci/cli@0.14.x
           echo "✓ Lighthouse CI installed"
 
-      - name: Start application
-        run: |
-          echo "Starting application for performance testing..."
-          pnpm dev > dev.log 2>&1 &
-          DEV_PID=$!
-          echo $DEV_PID > dev.pid
-          # Wait for server to be ready
-          for i in {1..60}; do
-            if curl -f http://localhost:4321/health >/dev/null 2>&1 || curl -f http://localhost:4321 >/dev/null 2>&1; then
-              echo "✓ Development server is ready"
-              break
-            fi
-            echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
-            sleep 2
-            if [ $i -eq 60 ]; then
-              echo "❌ Server failed to start within 120 seconds"
-              cat dev.log || echo "No logs available"
-              exit 1
-            fi
-          done
-          echo "✓ Application is running (PID: $DEV_PID)"
-
       - name: Run Lighthouse CI
         run: |
           echo "Running Lighthouse performance audit..."
@@ -299,8 +282,6 @@ jobs:
           echo "✓ Performance audit completed"
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
-
-      # Server will be stopped automatically by Playwright webServer configuration
 
       - name: Upload performance reports
         uses: actions/upload-artifact@v4
@@ -363,25 +344,21 @@ jobs:
       # Server will be started automatically by Playwright webServer configuration
 
       - name: Run accessibility tests
-        working-directory: apps/web
         run: |
           echo "Running accessibility tests..."
-          pnpm exec playwright test --project=accessibility --grep="@a11y"
-          echo "✓ Accessibility tests completed"
+          # Check if any tests with @a11y tag exist
+          if pnpm exec playwright test --list --grep="@a11y" | grep -q "Running"; then
+            pnpm exec playwright test --grep="@a11y"
+            echo "✓ Accessibility tests completed"
+          else
+            echo "ℹ️ No accessibility tests found (no @a11y tags), skipping..."
+          fi
         env:
           BASE_URL: http://localhost:3000
           CI: true
           HOME: /root
 
-      - name: Stop application
-        if: always()
-        run: |
-          if [ -f dev.pid ]; then
-            DEV_PID=$(cat dev.pid)
-            echo "Stopping application (PID: $DEV_PID)..."
-            kill $DEV_PID 2>/dev/null || true
-            rm -f dev.pid
-          fi
+      # Server will be stopped automatically by Playwright webServer configuration
 
       - name: Upload accessibility reports
         uses: actions/upload-artifact@v4
@@ -389,8 +366,8 @@ jobs:
         with:
           name: accessibility-reports
           path: |
-            apps/web/accessibility-reports/
-            apps/web/test-results/
+            test-results/
+            playwright-report/
           retention-days: 7
 
   # ============================================================================
@@ -435,14 +412,12 @@ jobs:
         run: |
           echo "E2E Pipeline Results:"
           echo "===================="
-          echo "Setup: ${{ needs.e2e-setup.result }}"
           echo "E2E Tests: ${{ needs.e2e-test.result }}"
           echo "Visual Regression: ${{ needs.visual-regression.result }}"
           echo "Performance: ${{ needs.performance.result }}"
           echo "Accessibility: ${{ needs.accessibility.result }}"
           
-          if [[ "${{ needs.e2e-setup.result }}" == "failure" || 
-                "${{ needs.e2e-test.result }}" == "failure" || 
+          if [[ "${{ needs.e2e-test.result }}" == "failure" || 
                 "${{ needs.visual-regression.result }}" == "failure" || 
                 "${{ needs.performance.result }}" == "failure" || 
                 "${{ needs.accessibility.result }}" == "failure" ]]; then

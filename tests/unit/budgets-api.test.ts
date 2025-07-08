@@ -3,7 +3,7 @@
  * Comprehensive test coverage for budget management endpoints
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Hono } from 'hono';
 import type { AppContext } from '../../src/worker/types';
 
@@ -175,6 +175,7 @@ describe('Budgets API Routes', () => {
   let env: any;
   let ctx: any;
   let mockDb: any;
+  let consoleErrorSpy: any;
 
   // Mock data for testing
   const mockBudgetPeriod = {
@@ -230,6 +231,9 @@ describe('Budgets API Routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
+    // Mock console.error to suppress expected error messages during tests
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    
     // Create fresh database mock for each test
     mockDb = createMockDatabase();
     
@@ -256,6 +260,10 @@ describe('Budgets API Routes', () => {
     // Create fresh app for each test
     app = new Hono<AppContext>();
     app.route('/api/budgets', budgetsRouter);
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   describe('GET /api/budgets', () => {

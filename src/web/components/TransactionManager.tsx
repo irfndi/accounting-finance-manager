@@ -597,7 +597,7 @@ export default function TransactionManager() {
                 Loading transactions...
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" data-testid="transactions-list">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">

@@ -64,7 +64,7 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('finance_manager_token') || ''}`,
         },
         body: JSON.stringify({
           query: query.trim(),

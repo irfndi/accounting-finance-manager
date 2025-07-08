@@ -1,4 +1,4 @@
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import cloudflare from '@astrojs/cloudflare';
@@ -7,6 +7,14 @@ import { fileURLToPath } from 'url';
 export default defineConfig({
   integrations: [react()],
   output: 'server',
+  devToolbar: {
+    enabled: false
+  },
+  env: {
+    schema: {
+      JWT_SECRET: envField.string({ context: 'server', access: 'secret' })
+    }
+  },
   adapter: cloudflare({
     platformProxy: {
       enabled: true,

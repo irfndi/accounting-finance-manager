@@ -9,12 +9,16 @@ interface RegisterFormData {
   email: string;
   password: string;
   confirmPassword: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  firstName?: string;
+  lastName?: string;
   general?: string;
 }
 
@@ -22,13 +26,25 @@ export default function RegisterForm() {
   const [formData, setFormData] = useState<RegisterFormData>({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    firstName: '',
+    lastName: ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
+
+    // First name validation
+    if (!formData.firstName) {
+      newErrors.firstName = 'First name is required';
+    }
+
+    // Last name validation
+    if (!formData.lastName) {
+      newErrors.lastName = 'Last name is required';
+    }
 
     // Email validation
     if (!formData.email) {
@@ -78,7 +94,7 @@ export default function RegisterForm() {
     setErrors({});
 
     try {
-      const { user, token } = await authApi.register(formData.email, formData.password);
+      const { user, token } = await authApi.register(formData.email, formData.password, formData.firstName, formData.lastName);
       
       // Store authentication data
       auth.login(token, user);
@@ -100,12 +116,50 @@ export default function RegisterForm() {
         <CardTitle className="text-center">Create Account</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-testid="register-form">
           {errors.general && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
               {errors.general}
             </div>
           )}
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                type="text"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                placeholder="Enter your first name"
+                className={errors.firstName ? 'border-red-500' : ''}
+                disabled={isLoading}
+                data-testid="firstName-input"
+              />
+              {errors.firstName && (
+                <p className="text-red-500 text-sm">{errors.firstName}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                placeholder="Enter your last name"
+                className={errors.lastName ? 'border-red-500' : ''}
+                disabled={isLoading}
+                data-testid="lastName-input"
+              />
+              {errors.lastName && (
+                <p className="text-red-500 text-sm">{errors.lastName}</p>
+              )}
+            </div>
+          </div>
           
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
@@ -118,6 +172,7 @@ export default function RegisterForm() {
               placeholder="Enter your email"
               className={errors.email ? 'border-red-500' : ''}
               disabled={isLoading}
+              data-testid="email-input"
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email}</p>
@@ -135,6 +190,7 @@ export default function RegisterForm() {
               placeholder="Create a password"
               className={errors.password ? 'border-red-500' : ''}
               disabled={isLoading}
+              data-testid="password-input"
             />
             {errors.password && (
               <p className="text-red-500 text-sm">{errors.password}</p>
@@ -155,6 +211,7 @@ export default function RegisterForm() {
               placeholder="Confirm your password"
               className={errors.confirmPassword ? 'border-red-500' : ''}
               disabled={isLoading}
+              data-testid="confirmPassword-input"
             />
             {errors.confirmPassword && (
               <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
@@ -162,9 +219,11 @@ export default function RegisterForm() {
           </div>
           
           <Button 
-            type="submit" 
+            type="button" 
             className="w-full" 
             disabled={isLoading}
+            data-testid="register-button"
+            onClick={handleSubmit}
           >
             {isLoading ? (
               <>

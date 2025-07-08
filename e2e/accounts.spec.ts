@@ -1,63 +1,93 @@
 import { test, expect } from '@playwright/test';
+import { setupGlobalApiMocks, E2EApiMocker } from './helpers/api-mocks';
 
 test.describe('Account Management', () => {
+  let _apiMocker: E2EApiMocker;
+
   test.beforeEach(async ({ page }) => {
-    // Wait for the app to be ready
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    // Set up API mocks
+    _apiMocker = await setupGlobalApiMocks(page);
+    
+    // Set up authentication state in localStorage
+    await page.addInitScript(() => {
+      localStorage.setItem('finance_manager_token', 'mock-jwt-token');
+      localStorage.setItem('finance_manager_user', JSON.stringify({
+        id: '1',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'user',
+        createdAt: new Date().toISOString()
+      }));
+    });
+    
+    await page.goto('/chart-of-accounts');
+    // Wait for sidebar navigation to hydrate
+    await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
+    // Wait for chart title to appear
+    await page.waitForSelector('[data-testid="chart-title"]', { timeout: 20000 });
   });
 
   test('should display Chart of Accounts page', async ({ page }) => {
-    await page.goto('/chart-of-accounts');
-    await page.waitForLoadState('networkidle');
+    // Check page title
+    await expect(page).toHaveTitle(/Chart of Accounts - Finance Manager/);
     
-    // Wait for the page to load and check for the heading
-    await expect(page.locator('h1, h2, [data-testid="page-title"]')).toContainText('Chart of Accounts');
-    await expect(page.getByText('Add Account')).toBeVisible();
+    // Wait for the Chart of Accounts title to be visible
+    await expect(page.locator('[data-testid="chart-title"]')).toBeVisible({ timeout: 10000 });
+    
+    // Wait for the Add Account button to be visible
+    await expect(page.locator('[data-testid="add-account-button"]')).toBeVisible({ timeout: 10000 });
   });
 
   test('should display General Ledger page', async ({ page }) => {
     await page.goto('/general-ledger');
-    await page.waitForLoadState('networkidle');
     
-    // Wait for the page to load and check for the heading
-    await expect(page.locator('h1, h2, [data-testid="page-title"]')).toContainText('General Ledger');
-    await expect(page.getByText('Add Account')).toBeVisible();
+    // Wait for sidebar navigation to hydrate
+    await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
+    // Wait for page title to appear
+    await page.waitForSelector('[data-testid="page-title"]', { timeout: 20000 });
+    // Wait for add account button to appear
+    await page.waitForSelector('[data-testid="add-account-button"]', { timeout: 20000 });
+    
+    // Wait for page content to be ready - look for the actual title in the component
+    await expect(page.locator('[data-testid="page-title"]')).toContainText('General Ledger');
+    await expect(page.locator('[data-testid="add-account-button"]')).toBeVisible();
   });
 
   test.describe('Chart of Accounts', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/chart-of-accounts');
-      await page.waitForLoadState('networkidle');
+      // Wait for navigation title, chart title, and add account button
+      await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="chart-title"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="add-account-button"]', { timeout: 20000 });
     });
 
     test('should validate required fields when creating account', async ({ page }) => {
-      // Click Add Account button
+      // Click Add Account button and wait for dialog
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500); // Wait for dialog to open
+      await expect(page.getByText('Create Account')).toBeVisible();
       
       // Try to submit without filling required fields
       await page.getByText('Create Account').click();
       
       // Should show validation errors
-      await expect(page.getByText('Account code is required')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('Account name is required')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Account code is required')).toBeVisible();
+      await expect(page.getByText('Account name is required')).toBeVisible();
     });
 
     test('should successfully create new account', async ({ page }) => {
-      // Click Add Account button
+      // Click Add Account button and wait for form
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       // Fill in the form
       await page.getByPlaceholder(/code/i).fill('1001');
       await page.getByPlaceholder(/name/i).fill('Test Cash Account');
       
       // Select account type (ASSET should be default)
-      const typeSelect = page.locator('select, [role="combobox"]').first();
-      if (await typeSelect.isVisible()) {
-        await typeSelect.selectOption('ASSET');
-      }
+      await page.getByTestId('account-type-select').click();
+      await page.getByRole('option', { name: 'Asset' }).click();
       
       // Fill description if available
       const descriptionField = page.getByPlaceholder(/description/i);
@@ -65,12 +95,9 @@ test.describe('Account Management', () => {
         await descriptionField.fill('Test account for E2E testing');
       }
       
-      // Submit the form
+      // Submit the form and wait for success
       await page.getByText('Create Account').click();
-      
-      // Wait for success and check if account appears
-      await page.waitForTimeout(2000);
-      await expect(page.getByText('Test Cash Account')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Test Cash Account')).toBeVisible();
     });
 
     test('should handle API errors gracefully', async ({ page }) => {
@@ -88,25 +115,22 @@ test.describe('Account Management', () => {
       });
       
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       await page.getByPlaceholder(/code/i).fill('1003');
       await page.getByPlaceholder(/name/i).fill('Duplicate Account');
       await page.getByText('Create Account').click();
       
       // Should show error message
-      await expect(page.getByText('Account code already exists')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Account code already exists')).toBeVisible();
     });
 
     test('should filter accounts by type', async ({ page }) => {
-      // Wait for accounts to load
-      await page.waitForTimeout(2000);
-      
       // Look for filter dropdown
       const filterSelect = page.locator('select, [role="combobox"]').filter({ hasText: /type|filter/i }).first();
       if (await filterSelect.isVisible()) {
-        await filterSelect.selectOption('ASSET');
-        await page.waitForTimeout(1000);
+        await filterSelect.click();
+        await page.getByRole('option', { name: 'Asset' }).click();
         
         // Check if filtering worked
         const accountRows = page.locator('[data-testid="account-row"], tr').filter({ hasText: /ASSET|Asset/ });
@@ -117,14 +141,10 @@ test.describe('Account Management', () => {
     });
 
     test('should search accounts', async ({ page }) => {
-      // Wait for accounts to load
-      await page.waitForTimeout(2000);
-      
       // Look for search input
       const searchInput = page.getByPlaceholder(/search/i);
       if (await searchInput.isVisible()) {
         await searchInput.fill('Cash');
-        await page.waitForTimeout(1000);
         
         // Check if search worked
         const searchResults = page.locator('[data-testid="account-row"], tr').filter({ hasText: /Cash/i });
@@ -138,70 +158,67 @@ test.describe('Account Management', () => {
   test.describe('General Ledger', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/general-ledger');
-      await page.waitForLoadState('networkidle');
+      // Wait for navigation and page title
+      await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="page-title"]', { timeout: 20000 });
     });
 
     test('should validate required fields when creating account', async ({ page }) => {
-      // Click Add Account button
+      // Click Add Account button and wait for form
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByText('Create Account')).toBeVisible();
       
       // Try to submit without filling required fields
       await page.getByText('Create Account').click();
       
       // Should show validation errors
-      await expect(page.getByText('Account code is required')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('Account name is required')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Account code is required')).toBeVisible();
+      await expect(page.getByText('Account name is required')).toBeVisible();
     });
 
     test('should successfully create new account', async ({ page }) => {
-      // Click Add Account button
+      // Click Add Account button and wait for form
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       // Fill in the form
       await page.getByPlaceholder(/code/i).fill('2001');
       await page.getByPlaceholder(/name/i).fill('Test Liability Account');
       
       // Select account type
-      const typeSelects = page.locator('select, [role="combobox"]');
-      const typeSelect = typeSelects.first();
-      if (await typeSelect.isVisible()) {
-        await typeSelect.selectOption('LIABILITY');
-      }
+      await page.getByTestId('account-type-select').click();
+      await page.getByRole('option', { name: 'Liability' }).click();
       
       // Select normal balance if available
-      const normalBalanceSelect = typeSelects.nth(1);
-      if (await normalBalanceSelect.isVisible()) {
-        await normalBalanceSelect.selectOption('credit');
+      try {
+        const normalBalanceSelect = page.locator('select, [role="combobox"]').nth(1);
+        if (await normalBalanceSelect.isVisible({ timeout: 2000 })) {
+          await normalBalanceSelect.click();
+          await page.getByRole('option', { name: 'Credit' }).click();
+        }
+      } catch (error) {
+        // Normal balance selection is optional, continue if it fails
+        console.log('Normal balance selection skipped:', error.message);
       }
       
       // Submit the form
       await page.getByText('Create Account').click();
       
-      // Wait for success and check if account appears
-      await page.waitForTimeout(2000);
-      await expect(page.getByText('Test Liability Account')).toBeVisible({ timeout: 10000 });
+      // Check if account appears
+      await expect(page.getByText('Test Liability Account')).toBeVisible();
     });
 
     test('should display account statistics', async ({ page }) => {
-      // Wait for statistics to load
-      await page.waitForTimeout(2000);
-      
       // Should show statistics cards
-      await expect(page.getByText('Total Accounts')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('Active Accounts')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Total Accounts')).toBeVisible();
+      await expect(page.getByText('Active Accounts')).toBeVisible();
     });
 
     test('should search accounts in general ledger', async ({ page }) => {
-      // Wait for accounts to load
-      await page.waitForTimeout(2000);
-      
       // Look for search input
       const searchInput = page.getByPlaceholder(/search/i);
       if (await searchInput.isVisible()) {
         await searchInput.fill('Cash');
-        await page.waitForTimeout(1000);
         
         // Check if search worked
         const searchResults = page.locator('[data-testid="account-row"], tr').filter({ hasText: /Cash/i });
@@ -219,7 +236,6 @@ test.describe('Account Management', () => {
       
       // Reload the page to trigger the error
       await page.reload();
-      await page.waitForTimeout(2000);
       
       // Should show error message or loading state
       const errorMessage = page.getByText(/failed|error|retry/i);
@@ -230,7 +246,7 @@ test.describe('Account Management', () => {
 
     test('should validate account type selection', async ({ page }) => {
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       // Check that account type select is available
       const typeSelect = page.locator('select, [role="combobox"]').first();
@@ -255,21 +271,24 @@ test.describe('Account Management', () => {
       });
       
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       await page.getByPlaceholder(/code/i).fill('9999');
       await page.getByPlaceholder(/name/i).fill('Invalid Account');
       await page.getByText('Create Account').click();
       
       // Should show error message
-      await expect(page.getByText('Account type must be one of: ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Account type must be one of: ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE')).toBeVisible();
     });
   });
 
   test.describe('API Error Handling', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/chart-of-accounts');
-      await page.waitForLoadState('networkidle');
+      // Wait for navigation, chart title, and add account button
+      await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="chart-title"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="add-account-button"]', { timeout: 20000 });
     });
 
     test('should handle 500 server errors', async ({ page }) => {
@@ -284,7 +303,6 @@ test.describe('Account Management', () => {
       
       // Reload to trigger the error
       await page.reload();
-      await page.waitForTimeout(2000);
       
       // Should show error message
       const errorMessage = page.getByText(/failed|error|server/i);
@@ -302,7 +320,6 @@ test.describe('Account Management', () => {
       
       // Reload to trigger the timeout
       await page.reload();
-      await page.waitForTimeout(3000);
       
       // Should show timeout or error message
       const timeoutMessage = page.getByText(/timeout|failed|error/i);
@@ -323,7 +340,6 @@ test.describe('Account Management', () => {
       
       // Reload to trigger the error
       await page.reload();
-      await page.waitForTimeout(2000);
       
       // Should handle JSON parse error gracefully
       const parseError = page.getByText(/parse|invalid|error/i);
@@ -344,7 +360,6 @@ test.describe('Account Management', () => {
       
       // Reload to trigger the auth error
       await page.reload();
-      await page.waitForTimeout(2000);
       
       // Should show auth error or redirect
       const authError = page.getByText(/unauthorized|login|auth/i);
@@ -372,13 +387,11 @@ test.describe('Account Management', () => {
       
       // Reload to trigger the error
       await page.reload();
-      await page.waitForTimeout(2000);
       
       // Look for retry button or error message
       const retryButton = page.getByText(/retry/i);
       if (await retryButton.isVisible()) {
         await retryButton.click();
-        await page.waitForTimeout(2000);
         
         // Should eventually succeed
         const successIndicator = page.getByText(/chart of accounts|accounts/i);
@@ -392,64 +405,59 @@ test.describe('Account Management', () => {
   test.describe('Edge Cases', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/chart-of-accounts');
-      await page.waitForLoadState('networkidle');
+      // Wait for navigation, chart title, and add account button
+      await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="chart-title"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="add-account-button"]', { timeout: 20000 });
     });
 
     test('should handle special characters in account names', async ({ page }) => {
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       // Fill form with special characters
       await page.getByPlaceholder(/code/i).fill('9999');
       await page.getByPlaceholder(/name/i).fill('Test Account with Special Chars: @#$%^&*()');
       
       // Select account type
-      const typeSelect = page.locator('select, [role="combobox"]').first();
-      if (await typeSelect.isVisible()) {
-        await typeSelect.selectOption('ASSET');
-      }
+      await page.getByTestId('account-type-select').click();
+      await page.getByText('Asset').click();
       
       await page.getByText('Create Account').click();
-      await page.waitForTimeout(2000);
       
       // Should handle special characters properly
-      await expect(page.getByText('Test Account with Special Chars: @#$%^&*()')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Test Account with Special Chars: @#$%^&*()')).toBeVisible();
     });
 
     test('should validate account code format', async ({ page }) => {
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       // Test with empty code first
       await page.getByPlaceholder(/name/i).fill('Test Account');
       
-      const typeSelect = page.locator('select, [role="combobox"]').first();
-      if (await typeSelect.isVisible()) {
-        await typeSelect.selectOption('ASSET');
-      }
+      await page.getByTestId('account-type-select').click();
+      await page.getByText('Asset').click();
       
       await page.getByText('Create Account').click();
       
       // Should show validation error for empty code
-      await expect(page.getByText('Account code is required')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Account code is required')).toBeVisible();
     });
 
     test('should handle very long account names', async ({ page }) => {
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       const longName = 'A'.repeat(256); // Very long name
       
       await page.getByPlaceholder(/code/i).fill('8888');
       await page.getByPlaceholder(/name/i).fill(longName);
       
-      const typeSelect = page.locator('select, [role="combobox"]').first();
-      if (await typeSelect.isVisible()) {
-        await typeSelect.selectOption('ASSET');
-      }
+      await page.getByTestId('account-type-select').click();
+      await page.getByText('Asset').click();
       
       await page.getByText('Create Account').click();
-      await page.waitForTimeout(2000);
       
       // Should either truncate or show validation error
       const errorMessage = page.getByText(/too long|invalid|error/i);
@@ -467,22 +475,18 @@ test.describe('Account Management', () => {
     test('should handle concurrent account creation attempts', async ({ page }) => {
       // Simulate rapid successive account creation attempts
       await page.getByText('Add Account').click();
-      await page.waitForTimeout(500);
+      await expect(page.getByPlaceholder(/code/i)).toBeVisible();
       
       await page.getByPlaceholder(/code/i).fill('7777');
       await page.getByPlaceholder(/name/i).fill('Concurrent Test Account');
       
-      const typeSelect = page.locator('select, [role="combobox"]').first();
-      if (await typeSelect.isVisible()) {
-        await typeSelect.selectOption('ASSET');
-      }
+      await page.getByTestId('account-type-select').click();
+      await page.getByText('Asset').click();
       
       // Click create button multiple times rapidly
       const createButton = page.getByText('Create Account');
       await createButton.click();
       await createButton.click(); // Second click should be ignored or handled gracefully
-      
-      await page.waitForTimeout(2000);
       
       // Should handle the duplicate submission gracefully
       const successMessage = page.getByText(/created|success/i);

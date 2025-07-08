@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GeneralLedgerComponent from "../components/GeneralLedger";
+---
+
+<Layout title="Transactions - Finance Manager" currentPath="/transactions">
+    <div class="p-6">
+        <GeneralLedgerComponent client:load />
+    </div>
+</Layout>
+

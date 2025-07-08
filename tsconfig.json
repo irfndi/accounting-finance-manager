@@ -6,7 +6,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "build"
+    "build",
+    "e2e/**/*"
   ],
   "compilerOptions": {
     "target": "ES2022",

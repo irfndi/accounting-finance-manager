@@ -17,6 +17,9 @@ interface FormErrors {
 }
 
 export default function LoginForm() {
+  // Don't use auth context on login page - user isn't authenticated yet
+  const authContext = null;
+  
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''
@@ -61,7 +64,7 @@ export default function LoginForm() {
     }
 
     setIsLoading(true);
-    setErrors({});
+    setErrors({ general: undefined });
 
     try {
       const { user, token } = await authApi.login(formData.email, formData.password);
@@ -69,7 +72,7 @@ export default function LoginForm() {
       // Store authentication data
       auth.login(token, user);
       
-      // Redirect to dashboard
+      // Force a page reload to ensure proper state initialization
       window.location.href = '/';
     } catch (error) {
       setErrors({ 
@@ -86,9 +89,9 @@ export default function LoginForm() {
         <CardTitle className="text-center">Welcome Back</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
           {errors.general && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm" data-testid="error-message">
               {errors.general}
             </div>
           )}
@@ -104,6 +107,7 @@ export default function LoginForm() {
               placeholder="Enter your email"
               className={errors.email ? 'border-red-500' : ''}
               disabled={isLoading}
+              data-testid="email-input"
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email}</p>
@@ -121,6 +125,7 @@ export default function LoginForm() {
               placeholder="Enter your password"
               className={errors.password ? 'border-red-500' : ''}
               disabled={isLoading}
+              data-testid="password-input"
             />
             {errors.password && (
               <p className="text-red-500 text-sm">{errors.password}</p>
@@ -131,6 +136,7 @@ export default function LoginForm() {
             type="submit" 
             className="w-full" 
             disabled={isLoading}
+            data-testid="login-button"
           >
             {isLoading ? (
               <>

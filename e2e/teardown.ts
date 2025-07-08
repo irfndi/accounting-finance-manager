@@ -1,10 +1,9 @@
-import { test as teardown } from '@playwright/test';
+import type { FullConfig } from '@playwright/test';
 import { getTestDatabaseUrl } from './config/environments';
 import { unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 
-// Clean up test environment
-teardown('cleanup test environment', async () => {
+async function globalTeardown(_config: FullConfig) {
   console.log('Cleaning up test environment...');
   
   const testDbUrl = getTestDatabaseUrl();
@@ -38,4 +37,6 @@ teardown('cleanup test environment', async () => {
   }
   
   console.log('Test environment cleanup complete');
-});
+}
+
+export default globalTeardown;

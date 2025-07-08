@@ -305,10 +305,19 @@ export function extractUserIdFromToken(token: string): string | null {
   }
 }
 
-// Default JWT manager instance
-const defaultJWTManager = new JWTManager({
-  secret: process.env.JWT_SECRET || 'default-secret-for-testing'
-});
+// Lazy initialization of default JWT manager instance
+let defaultJWTManager: JWTManager | null = null;
+
+function getDefaultJWTManager(): JWTManager {
+  if (!defaultJWTManager) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET environment variable is required for production');
+    }
+    defaultJWTManager = new JWTManager({ secret });
+  }
+  return defaultJWTManager;
+}
 
 export const generateToken = async (user: { id?: string; userId?: string; role: UserRole; entityId?: string; email?: string; emailVerified?: boolean; isActive?: boolean }, expiresIn?: string): Promise<string> => {
   const sessionId = crypto.randomUUID();
@@ -329,17 +338,17 @@ export const generateToken = async (user: { id?: string; userId?: string; role: 
       email: user.email,
       type: 'access' as const
     };
-    return await defaultJWTManager.signToken(expiredPayload);
+    return await getDefaultJWTManager().signToken(expiredPayload);
   }
   
-  return await defaultJWTManager.createAccessToken(user, sessionId);
+  return await getDefaultJWTManager().createAccessToken(user, sessionId);
 };
 
 /**
  * Verify a JWT token and return the payload
  */
 export async function verifyToken(token: string): Promise<any> {
-  const payload = await defaultJWTManager.verifyToken(token);
+  const payload = await getDefaultJWTManager().verifyToken(token);
   return {
     userId: payload.sub,
     role: payload.role,

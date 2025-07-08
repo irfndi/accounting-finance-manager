@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FinanceDashboard from "../components/FinanceDashboard.tsx";
+---
+
+<Layout title="Dashboard - Finance Manager" currentPath="/dashboard">
+    <div class="p-6">
+        <FinanceDashboard client:load />
+    </div>
+</Layout>
+

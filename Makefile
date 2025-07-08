@@ -96,13 +96,13 @@ e2e: ## Run end-to-end tests
 	@echo "$(CYAN)Running E2E tests...$(RESET)"
 	@echo "$(YELLOW)Building project first...$(RESET)"
 	$(MAKE) build
-	pnpm playwright test
+	pnpm exec playwright test --max-failures=1
 	@echo "$(GREEN)✓ E2E tests complete$(RESET)"
 
 e2e/headed: ## Run E2E tests in headed mode
 	@echo "$(CYAN)Running E2E tests in headed mode...$(RESET)"
 	$(MAKE) build
-	pnpm playwright test --headed
+	pnpm exec playwright test --headed --max-failures=1
 	@echo "$(GREEN)✓ E2E tests complete$(RESET)"
 
 test/integration: ## Run comprehensive integration tests
@@ -273,6 +273,7 @@ ci/typecheck: ## Run TypeScript type checking
 ci/test: ## Run comprehensive test suite with coverage
 	@echo "$(CYAN)Running comprehensive test suite...$(RESET)"
 	$(MAKE) unit/coverage || (echo "$(RED)Unit tests failed$(RESET)" && exit 1)
+	$(MAKE) e2e || (echo "$(RED)E2E tests failed$(RESET)" && exit 1)
 	$(MAKE) test/integration || (echo "$(RED)Integration tests failed$(RESET)" && exit 1)
 	@echo "$(GREEN)✓ All tests completed$(RESET)"
 

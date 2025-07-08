@@ -3,7 +3,7 @@
  * Tests for password hashing, verification, and validation utilities
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   hashPassword,
   verifyPassword,
@@ -42,11 +42,18 @@ Object.defineProperty(global, 'crypto', {
 });
 
 describe('Password Authentication', () => {
+  let consoleErrorSpy: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset crypto mocks to default behavior
     (global.crypto.subtle.deriveBits as any).mockResolvedValue(mockArrayBuffer.slice());
+    // Mock console.error to suppress expected error messages during tests
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   describe('PBKDF2 Configuration', () => {

@@ -39,34 +39,9 @@ export default function FinanceDashboard() {
   const [showAIPanel, setShowAIPanel] = useState(true);
 
   const metrics: FinancialMetric[] = [
-    { 
-      label: 'Total Revenue', 
-      value: '$2,847,392', 
-      change: '+12.3%', 
-      trend: 'up',
-      aiInsight: 'Revenue growth accelerating, on track to exceed Q4 targets by 8%'
-    },
-    { 
-      label: 'Operating Expenses', 
-      value: '$1,923,847', 
-      change: '+5.7%', 
-      trend: 'up',
-      aiInsight: 'Expense growth within acceptable range, consider optimization in office supplies'
-    },
-    { 
-      label: 'Net Income', 
-      value: '$923,545', 
-      change: '+18.9%', 
-      trend: 'up',
-      aiInsight: 'Strong profit margins, 15% above industry average'
-    },
-    { 
-      label: 'Cash Flow', 
-      value: '$1,234,567', 
-      change: '-2.1%', 
-      trend: 'down',
-      aiInsight: 'Temporary dip due to inventory investment, expected to normalize next month'
-    },
+    { label: 'Total Assets', value: '$0', change: '', trend: 'neutral' },
+    { label: 'Total Liabilities', value: '$0', change: '', trend: 'neutral' },
+    { label: 'Net Worth', value: '$0', change: '', trend: 'neutral' },
   ];
 
   const modules = [
@@ -238,7 +213,7 @@ export default function FinanceDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((metric) => (
           <Card key={metric.label} className="relative overflow-hidden">
-            <CardContent className="p-6">
+            <CardContent data-testid={metric.label.toLowerCase().replace(/ /g, '-')} className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className="text-sm font-medium text-slate-600">{metric.label}</p>

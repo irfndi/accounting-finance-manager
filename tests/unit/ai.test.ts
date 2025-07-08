@@ -3,7 +3,7 @@
  * Comprehensive tests for AI functionality including providers and services
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AIService, createAIService } from '../../src/ai/services/ai-service.js';
 import { FinancialAIService } from '../../src/ai/services/financial-ai.js';
 import { OpenRouterProvider } from '../../src/ai/providers/openrouter.js';
@@ -192,8 +192,12 @@ describe('AI Service Tests', () => {
     let primaryProvider: any;
     let fallbackProvider: any;
     let aiService: AIService;
+    let consoleWarnSpy: any;
 
     beforeEach(() => {
+      // Mock console.warn to suppress expected error messages during tests
+      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
       primaryProvider = {
         name: 'primary',
         generateText: vi.fn(),
@@ -212,6 +216,10 @@ describe('AI Service Tests', () => {
         retryAttempts: 2,
         retryDelay: 100
       });
+    });
+
+    afterEach(() => {
+      consoleWarnSpy.mockRestore();
     });
 
     it('should use primary provider when available', async () => {
@@ -436,6 +444,17 @@ describe('AI Service Tests', () => {
   });
 
   describe('AI Service Factory', () => {
+    let consoleErrorSpy: any;
+
+    beforeEach(() => {
+      // Mock console.error to suppress expected error messages during tests
+      consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
     it('should create AI service with default configuration', () => {
       // Mock environment variables
       process.env.OPENROUTER_API_KEY = 'test-key';

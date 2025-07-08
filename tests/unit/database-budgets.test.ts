@@ -371,8 +371,6 @@ describe('BudgetService', () => {
 
   describe('getBudgetsByPeriod', () => {
     it('should return budgets within date range', async () => {
-      const _startDate = new Date('2024-01-01');
-      const _endDate = new Date('2024-12-31');
       const mockBudgets = [
         { id: 1, name: 'Q1 Budget', startDate: new Date('2024-01-01'), endDate: new Date('2024-03-31') },
         { id: 2, name: 'Q2 Budget', startDate: new Date('2024-04-01'), endDate: new Date('2024-06-30') },

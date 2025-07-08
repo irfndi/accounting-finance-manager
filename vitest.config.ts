@@ -7,7 +7,7 @@ const workersConfig = defineWorkersConfig({
     watch: false,
     reporters: ['dot'],
     include: ['tests/unit/*.test.ts', 'tests/integration/*.test.ts'],
-    exclude: ['tests/unit/*.test.tsx', 'tests/integration/*.test.tsx'],
+    exclude: ['tests/unit/*.test.tsx', 'tests/integration/*.test.tsx', 'tests/e2e/**/*'],
     setupFiles: ['tests/setup.ts'],
     globals: true,
     poolOptions: {
@@ -44,7 +44,7 @@ const nodeCoverageConfig = defineConfig({
       'tests/unit/financial-reports.test.ts',
       'tests/unit/ai.test.ts'
     ],
-    exclude: ['tests/unit/*.test.tsx', 'tests/integration/*.test.tsx'],
+    exclude: ['tests/unit/*.test.tsx', 'tests/integration/*.test.tsx', 'tests/e2e/**/*'],
     setupFiles: ['tests/setup.ts'],
     globals: true,
     environment: 'node',

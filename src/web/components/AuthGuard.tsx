@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, authApi, type User } from '../lib/auth';
 
 interface AuthGuardProps {
@@ -12,101 +12,191 @@ interface AuthState {
   isLoading: boolean;
 }
 
-export default function AuthGuard({ children, fallback }: AuthGuardProps) {
+interface AuthContextType extends AuthState {
+  login: (token: string, user: User) => void;
+  logout: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     user: null,
     isLoading: true
   });
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const currentState = auth.getState();
-        
-        if (!currentState.isAuthenticated) {
-          // No token or user data, redirect to login
-          window.location.href = '/login';
-          return;
-        }
+  const refreshAuth = async () => {
+    // Only run auth check on client side
+    if (typeof window === 'undefined') {
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false
+      });
+      return;
+    }
 
-        // Verify token is still valid by fetching profile
-        try {
-          const user = await authApi.getProfile();
-          setAuthState({
-            isAuthenticated: true,
-            user,
-            isLoading: false
-          });
-        } catch {
-          // Token is invalid, clear auth and redirect
-          auth.logout();
-          window.location.href = '/login';
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+    try {
+      const currentState = auth.getState();
+      
+      if (!currentState.isAuthenticated) {
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          isLoading: false
+        });
+        return;
+      }
+
+      // Verify token is still valid by fetching profile
+      try {
+        const user = await authApi.getProfile();
+        setAuthState({
+          isAuthenticated: true,
+          user,
+          isLoading: false
+        });
+      } catch {
+        // Token is invalid, clear auth
         auth.logout();
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          isLoading: false
+        });
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      auth.logout();
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false
+      });
+    }
+  };
+
+  const login = (token: string, user: User) => {
+    auth.login(token, user);
+    setAuthState({
+      isAuthenticated: true,
+      user,
+      isLoading: false
+    });
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      auth.logout();
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false
+      });
+      if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
-    };
+    }
+  };
 
-    checkAuth();
+  useEffect(() => {
+    refreshAuth();
   }, []);
 
-  if (authState.isLoading) {
+  const contextValue: AuthContextType = {
+    ...authState,
+    login,
+    logout,
+    refreshAuth
+  };
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export default function AuthGuard({ children, fallback }: AuthGuardProps) {
+  return (
+    <AuthGuardContent fallback={fallback}>
+      {children}
+    </AuthGuardContent>
+  );
+}
+
+function AuthGuardContent({ children, fallback }: AuthGuardProps) {
+  // During SSR, render children to include protected content in initial HTML
+  if (typeof window === 'undefined') {
+    return <>{children}</>;
+  }
+  const [isClient, setIsClient] = useState(false);
+  const authContext = useContext(AuthContext);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  // During SSR or before hydration, show loading state
+  if (!isClient) {
     return (
       fallback || (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        </div>
+      )
+    );
+  }
+  
+  if (!authContext) {
+    throw new Error('AuthGuardContent must be used within AuthProvider');
+  }
+
+  const { isAuthenticated, isLoading } = authContext;
+
+  if (isLoading) {
+    return (
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        </div>
+      )
+    );
+  }
+
+  if (!isAuthenticated) {
+    // Use useEffect to handle redirect to avoid issues during render
+    React.useEffect(() => {
+      window.location.href = '/login';
+    }, []);
+    
+    return (
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p className="mt-2 text-slate-600">Loading...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to login...</p>
           </div>
         </div>
       )
     );
   }
 
-  if (!authState.isAuthenticated) {
-    // This shouldn't happen as we redirect above, but just in case
-    return null;
-  }
-
   return <>{children}</>;
 }
 
-// Hook to use authentication state in components
 export function useAuth() {
-  const [authState, setAuthState] = useState(() => auth.getState());
-
-  useEffect(() => {
-    // Set up a listener for auth state changes
-    const checkAuth = () => {
-      setAuthState(auth.getState());
-    };
-
-    // Check auth state periodically
-    const interval = setInterval(checkAuth, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const logout = async () => {
-    try {
-      await authApi.logout();
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // Force logout even if API call fails
-      auth.logout();
-      window.location.href = '/login';
-    }
-  };
-
-  return {
-    ...authState,
-    logout
-  };
+  const authContext = useContext(AuthContext);
+  
+  if (!authContext) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  
+  return authContext;
 }

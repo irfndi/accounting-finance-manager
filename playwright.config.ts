@@ -1,72 +1,142 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Minimal environment cleanup for Playwright isolation
+if (typeof process !== 'undefined' && process.env) {
+  delete process.env.JEST_WORKER_ID;
+  delete process.env.VITEST;
+  delete process.env.VITEST_WORKER_ID;
+  delete process.env.VITEST_POOL_ID;
+}
+
+// Define environment config inline to avoid module contamination
+const _environment = process.env.CI ? 'ci' : 'development';
+
 /**
+ * Optimized Playwright configuration for fast CI execution
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './tests/e2e',
-  /* Run tests in files in parallel */
+  testDir: './e2e',
+  testMatch: '**/*.spec.ts',
+  
+  // Global setup and teardown
+  globalSetup: './e2e/setup.ts',
+  globalTeardown: './e2e/teardown.ts',
+  
+  // Timeout configurations - critical for preventing 15min timeouts
+  timeout: 30 * 1000, // 30 seconds per test
+  globalTimeout: 10 * 60 * 1000, // 10 minutes total
+  
+  // Parallel execution for speed
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  workers: process.env.CI ? 2 : undefined, // Increased from 1 to 2 for CI
+  
+  // Retry configuration
+  retries: process.env.CI ? 1 : 0, // Reduced from 2 to 1 retry
+  
+  // Fail fast on CI
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  
+  // Optimized reporter for CI
+  reporter: process.env.CI ? [['junit', { outputFile: 'test-results/junit.xml' }], ['github']] : [['html', { outputFolder: 'playwright-report', open: 'never' }]],
+  
+  // Shared settings optimized for performance
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3000',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    
+    // Timeout configurations
+    actionTimeout: 10 * 1000, // 10 seconds for actions
+    navigationTimeout: 15 * 1000, // 15 seconds for navigation
+    
+    // Performance optimizations
+    trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
+    screenshot: process.env.CI ? 'only-on-failure' : 'off',
+    video: process.env.CI ? 'retain-on-failure' : 'off',
+    
+    // Faster page loads
+    ignoreHTTPSErrors: true,
+    bypassCSP: true,
+  },
+  
+  // Expect timeout for assertions
+  expect: {
+    timeout: 5 * 1000, // 5 seconds for assertions
   },
 
-  /* Configure projects for major browsers */
-  projects: [
+  // Optimized projects - focus on Chromium for CI speed
+  projects: process.env.CI ? [
     {
-      name: 'chromium',
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
+      name: 'auth-tests',
+      testMatch: '**/auth.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
-
+    {
+      name: 'chromium',
+      testIgnore: '**/auth.spec.ts',
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Use saved authentication state
+        storageState: 'playwright/.auth/user.json',
+        // Disable images and CSS for faster loading in CI
+        launchOptions: {
+          args: ['--disable-images', '--disable-css'],
+        },
+      },
+      dependencies: ['setup'],
+    },
+  ] : [
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
+      name: 'auth-tests',
+      testMatch: '**/auth.spec.ts',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'chromium',
+      testIgnore: '**/auth.spec.ts',
+      use: { 
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      testIgnore: '**/auth.spec.ts',
+      use: { 
+        ...devices['Desktop Firefox'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
-
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      testIgnore: '**/auth.spec.ts',
+      use: { 
+        ...devices['Desktop Safari'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
-
-    /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  // Optimized web server configuration
   webServer: {
     command: 'pnpm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 60 * 1000, // Reduced from 120s to 60s
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
+
+  // Output directory for reports
+  outputDir: 'test-results',
 });

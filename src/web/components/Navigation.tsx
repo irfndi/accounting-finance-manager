@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { useAuth } from './AuthGuard';
 
@@ -19,16 +19,16 @@ const navigationItems: NavigationItem[] = [
     description: 'Overview and key metrics'
   },
   {
-    id: 'chart-of-accounts',
-    label: 'Chart of Accounts',
-    href: '/chart-of-accounts',
+    id: 'accounts',
+    label: 'Accounts',
+    href: '/accounts',
     icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
-    description: 'Manage chart of accounts'
+    description: 'Manage accounts'
   },
   {
-    id: 'general-ledger',
-    label: 'General Ledger',
-    href: '/general-ledger',
+    id: 'transactions',
+    label: 'Transactions',
+    href: '/transactions',
     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
     description: 'Transactions and journal entries'
   },
@@ -40,9 +40,9 @@ const navigationItems: NavigationItem[] = [
     description: 'P&L, Balance Sheet, Cash Flow'
   },
   {
-    id: 'budget-forecast',
-    label: 'Budget & Forecast',
-    href: '/budget',
+    id: 'budgets',
+    label: 'Budgets',
+    href: '/budgets',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
     description: 'Planning and forecasting tools'
   },
@@ -160,11 +160,55 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
 
 // User section component with authentication
 function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
-  const { user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Only render on client side to avoid SSR issues
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  // Safely get auth context
+  let authContext;
+  try {
+    authContext = useAuth();
+  } catch {
+    // If useAuth fails, it means we're not within AuthProvider
+    if (isClient) {
+      console.warn('UserSection rendered outside AuthProvider context');
+    }
+    return null;
+  }
+  
+  const { user, logout } = authContext;
+  
+  // Don't render until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+        <div className="animate-pulse">
+          {!isCollapsed ? (
+            <div className="flex items-center p-2">
+              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
+              <div className="ml-3 flex-1">
+                <div className="h-4 bg-slate-700 rounded w-24 mb-1"></div>
+                <div className="h-3 bg-slate-700 rounded w-32"></div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     await logout();
+    // Redirect to login page after logout
+    window.location.href = '/login';
   };
 
   const userInitials = user?.email ? user.email.substring(0, 2).toUpperCase() : 'U';
@@ -174,6 +218,7 @@ function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
       {!isCollapsed ? (
         <div className="relative">
           <button
+            data-testid="user-menu"
             onClick={() => setShowDropdown(!showDropdown)}
             className="flex items-center w-full text-left hover:bg-slate-800 rounded-lg p-2 transition-colors"
           >
@@ -198,6 +243,7 @@ function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
             <div className="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 rounded-lg shadow-lg border border-slate-600">
               <div className="p-2">
                 <button
+                  data-testid="logout-button"
                   onClick={handleLogout}
                   className="flex items-center w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md transition-colors"
                 >
@@ -213,6 +259,7 @@ function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
       ) : (
         <div className="flex justify-center relative">
           <button
+            data-testid="user-menu"
             onClick={() => setShowDropdown(!showDropdown)}
             className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
           >
@@ -226,6 +273,7 @@ function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
                   {user?.email || 'User'}
                 </div>
                 <button
+                  data-testid="logout-button"
                   onClick={handleLogout}
                   className="flex items-center w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md transition-colors mt-1"
                 >

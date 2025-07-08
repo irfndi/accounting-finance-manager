@@ -1,10 +1,12 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import LoginForm from '../components/LoginForm.tsx';
+import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/LoginForm.tsx";
 ---
 
 <Layout title="Login - Finance Manager" hideNavigation={true}>
-  <div class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div
+    class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8"
+  >
     <div class="max-w-md w-full space-y-10">
       <div class="text-center">
         <h2 class="text-3xl font-extrabold text-slate-900">
@@ -14,15 +16,18 @@ import LoginForm from '../components/LoginForm.tsx';
           Access your corporate finance dashboard
         </p>
       </div>
-      
+
       <div class="mt-12">
         <LoginForm client:load />
       </div>
-      
+
       <div class="text-center mt-8">
         <p class="text-sm text-slate-600">
           Don't have an account?
-          <a href="/register" class="font-medium text-blue-600 hover:text-blue-500 ml-1">
+          <a
+            href="/register"
+            class="font-medium text-blue-600 hover:text-blue-500 ml-1"
+          >
             Sign up here
           </a>
         </p>
@@ -36,7 +41,7 @@ import LoginForm from '../components/LoginForm.tsx';
   nav {
     display: none;
   }
-  
+
   main {
     margin-left: 0 !important;
   }

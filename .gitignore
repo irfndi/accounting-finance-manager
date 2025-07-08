@@ -47,3 +47,6 @@ dist/
 # tasks/ 
 
 test-results
+
+# Playwright authentication files
+playwright/.auth

@@ -88,12 +88,13 @@ const ACCOUNT_TYPES = [
 
 const API_BASE_URL = typeof window !== 'undefined' 
   ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
-  : 'http://localhost:3000';
+  : 'http://localhost:3001';
 
 export default function ChartOfAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
@@ -101,6 +102,19 @@ export default function ChartOfAccounts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set<string>());
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure component is mounted before doing any client-side operations
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Only fetch accounts after component is mounted
+  useEffect(() => {
+    if (isMounted) {
+      fetchAccounts();
+    }
+  }, [isMounted]);
 
   const [formData, setFormData] = useState<CreateAccountData>({
     code: '',
@@ -117,11 +131,18 @@ export default function ChartOfAccounts() {
 
   // Fetch accounts from API
   const fetchAccounts = async () => {
+    // Only fetch if we're in the browser
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
+      const authToken = localStorage.getItem('finance_manager_token') || '';
       const response = await fetch(`${API_BASE_URL}/api/accounts`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       if (!response.ok) {
@@ -141,19 +162,28 @@ export default function ChartOfAccounts() {
   // Create or update account
   const saveAccount = async () => {
     console.log('saveAccount called with formData:', formData);
+    
+    // Clear previous errors
+    setFormErrors({});
+    setError(null);
+    
     try {
-      // Frontend validation
+      // Frontend validation - collect all errors
+      const errors: {[key: string]: string} = {};
+      
       if (!formData.code.trim()) {
-        console.log('Setting error: Account code is required');
-        setError('Account code is required');
-        return;
+        errors.code = 'Account code is required';
       }
       if (!formData.name.trim()) {
-        setError('Account name is required');
-        return;
+        errors.name = 'Account name is required';
       }
       if (!formData.type) {
-        setError('Account type is required');
+        errors.type = 'Account type is required';
+      }
+      
+      // If there are validation errors, set them and return
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
         return;
       }
       
@@ -167,7 +197,7 @@ export default function ChartOfAccounts() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('finance_manager_token') || ''}`,
         },
         body: JSON.stringify(formData),
       });
@@ -181,8 +211,17 @@ export default function ChartOfAccounts() {
       setIsDialogOpen(false);
       resetForm();
       setError(null); // Clear any previous errors
+      setFormErrors({}); // Clear form errors
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save account');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save account';
+      // Try to parse backend validation errors
+      if (errorMessage.includes('code') && errorMessage.includes('required')) {
+        setFormErrors({ code: 'Account code is required' });
+      } else if (errorMessage.includes('name') && errorMessage.includes('required')) {
+        setFormErrors({ name: 'Account name is required' });
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 
@@ -199,7 +238,7 @@ export default function ChartOfAccounts() {
       const response = await fetch(`${API_BASE_URL}/api/accounts/${accountToDelete.id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('finance_manager_token') || ''}`,
         },
       });
 
@@ -233,6 +272,7 @@ export default function ChartOfAccounts() {
     });
     setEditingAccount(null);
     setError(null); // Clear any previous errors
+    setFormErrors({}); // Clear form errors
   };
 
   // Export accounts
@@ -334,7 +374,7 @@ export default function ChartOfAccounts() {
     const indent = level * 20;
 
     rows.push(
-      <TableRow key={account.id} className={level > 0 ? 'bg-gray-50' : ''}>
+      <TableRow key={account.id} className={level > 0 ? 'bg-gray-50' : ''} data-testid="account-row">
         <TableCell style={{ paddingLeft: `${16 + indent}px` }}>
           <div className="flex items-center gap-2">
             {hasChildren && (
@@ -403,11 +443,22 @@ export default function ChartOfAccounts() {
     return rows;
   };
 
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
+  // Removed duplicate useEffect - fetchAccounts is now called from the isMounted useEffect
 
   const hierarchicalAccounts = buildAccountHierarchy(filteredAccounts);
+
+  // Don't render until component is mounted to prevent hydration issues
+  if (!isMounted) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="text-gray-500">Loading...</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (loading) {
     return (
@@ -444,12 +495,12 @@ export default function ChartOfAccounts() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Chart of Accounts</CardTitle>
+            <CardTitle data-testid="chart-title">Chart of Accounts</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" onClick={exportAccounts}>
                 Export Accounts
               </Button>
-              <Button onClick={openCreateDialog}>
+              <Button data-testid="add-account-button" onClick={openCreateDialog}>
                 Add Account
               </Button>
             </div>
@@ -473,7 +524,7 @@ export default function ChartOfAccounts() {
             </div>
             <div className="w-48">
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="account-type-filter">
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -541,8 +592,11 @@ export default function ChartOfAccounts() {
                   id="code"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="e.g., 1000"
+                  placeholder="Account code (e.g., 1000)"
                 />
+                {formErrors.code && (
+                  <p className="text-sm text-red-600 mt-1">{formErrors.code}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="type">Type</Label>
@@ -558,6 +612,9 @@ export default function ChartOfAccounts() {
                     ))}
                   </SelectContent>
                 </Select>
+                {formErrors.type && (
+                  <p className="text-sm text-red-600 mt-1">{formErrors.type}</p>
+                )}
               </div>
             </div>
 
@@ -567,8 +624,11 @@ export default function ChartOfAccounts() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., Cash and Cash Equivalents"
+                placeholder="Account name (e.g., Cash and Cash Equivalents)"
               />
+              {formErrors.name && (
+                <p className="text-sm text-red-600 mt-1">{formErrors.name}</p>
+              )}
             </div>
 
             <div>

@@ -6,7 +6,7 @@
  * for reliable and fast testing.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Hono } from 'hono';
 import type { AppContext } from '../../src/worker/types';
 
@@ -196,8 +196,11 @@ describe('Auth API Routes', () => {
   let app: Hono<AppContext>;
   let env: any;
   let ctx: any;
+  let consoleErrorSpy: any;
 
   beforeEach(() => {
+    // Mock console.error to suppress expected error messages during tests
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     // Reset mock implementations
     vi.clearAllMocks();
     
@@ -250,6 +253,10 @@ describe('Auth API Routes', () => {
     });
     (passwordUtils.verifyPassword as any).mockResolvedValue(true);
     (jwtUtils.sign as any).mockResolvedValue('mock-jwt-token');
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   describe('POST /api/auth/register', () => {

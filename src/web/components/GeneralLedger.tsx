@@ -121,7 +121,7 @@ export default function GeneralLedger() {
       const url = `${API_BASE_URL}/api/accounts?${params}`;
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('finance_manager_token') || ''}`,
         },
       });
       if (!response.ok) {
@@ -155,17 +155,23 @@ export default function GeneralLedger() {
       setIsSubmitting(true);
       setFormErrors({});
       
-      // Frontend validation
+      // Frontend validation - collect all errors
+      const errors: Record<string, string> = {};
+      
       if (!formData.code.trim()) {
-        setFormErrors({ code: 'Account code is required' });
-        return;
+        errors.code = 'Account code is required';
       }
       if (!formData.name.trim()) {
-        setFormErrors({ name: 'Account name is required' });
-        return;
+        errors.name = 'Account name is required';
       }
       if (!formData.type.trim()) {
-        setFormErrors({ type: 'Account type is required' });
+        errors.type = 'Account type is required';
+      }
+      
+      // If there are validation errors, set them and return
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        setIsSubmitting(false);
         return;
       }
       
@@ -176,7 +182,7 @@ export default function GeneralLedger() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('finance_manager_token') || ''}`,
         },
         body: JSON.stringify(formData),
       });
@@ -185,6 +191,7 @@ export default function GeneralLedger() {
         const errorData = await response.json() as { errors?: any; error?: string };
         if (errorData.errors) {
           setFormErrors(errorData.errors);
+          setIsSubmitting(false);
           return;
         }
         throw new Error(errorData.error || 'Failed to save account');
@@ -275,7 +282,7 @@ export default function GeneralLedger() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 data-testid="page-title" className="text-2xl font-bold text-slate-900">
             General Ledger
           </h1>
           <p className="text-slate-600 mt-1">
@@ -284,7 +291,7 @@ export default function GeneralLedger() {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">
+            <Button data-testid="add-account-button" className="bg-blue-600 text-white hover:bg-blue-700">
               Add Account
             </Button>
           </DialogTrigger>
@@ -305,7 +312,7 @@ export default function GeneralLedger() {
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   className="col-span-3"
-                  placeholder="e.g., 1000"
+                  placeholder="Account code (e.g., 1000)"
                 />
                 {formErrors.code && (
                   <p className="col-span-4 text-sm text-red-600">{formErrors.code}</p>
@@ -320,7 +327,7 @@ export default function GeneralLedger() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="col-span-3"
-                  placeholder="e.g., Cash - Operating Account"
+                  placeholder="Account name (e.g., Cash - Operating Account)"
                 />
                 {formErrors.name && (
                   <p className="col-span-4 text-sm text-red-600">{formErrors.name}</p>
@@ -334,7 +341,7 @@ export default function GeneralLedger() {
                   value={formData.type}
                   onValueChange={(value) => setFormData({ ...formData, type: value })}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger className="col-span-3" data-testid="account-type-select">
                     <SelectValue placeholder="Select account type" />
                   </SelectTrigger>
                   <SelectContent>

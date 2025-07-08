@@ -49,8 +49,8 @@ const mockD1 = {
 let testDbInstance: any = null;
 
 // Mock the entire database module
-vi.mock('../src/db/index.js', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+vi.mock('../src/db/index.js', async (_importOriginal) => {
+  const actual = await _importOriginal() as any;
   return {
     ...actual,
     // Provide a mock implementation for createDatabase that returns our test instance

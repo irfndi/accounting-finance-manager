@@ -15,8 +15,8 @@ vi.mock('../../src/ai/providers/factory.js', () => ({
 }));
 
 // Mock the config and getAPIKey function
-vi.mock('../../src/ai/config.js', async (importOriginal) => {
-  const original = await importOriginal() as any;
+vi.mock('../../src/ai/config.js', async (_importOriginal) => {
+  const original = await _importOriginal() as any;
   return {
     ...original,
     getAPIKey: vi.fn((provider: string) => `${provider}-key`)
@@ -28,6 +28,7 @@ describe('AIService', () => {
   let mockFallbackProvider: AIProvider;
   let aiService: AIService;
   let config: AIServiceConfig;
+  let consoleWarnSpy: any;
 
   const mockMessages: AIMessage[] = [
     { role: 'user', content: 'Test message' }
@@ -45,6 +46,9 @@ describe('AIService', () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks();
+    
+    // Mock console.warn to suppress expected error messages during tests
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Create mock providers
     mockPrimaryProvider = {
@@ -82,6 +86,7 @@ describe('AIService', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    consoleWarnSpy.mockRestore();
   });
 
   describe('generateText', () => {
