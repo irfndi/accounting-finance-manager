@@ -81,7 +81,7 @@
     "@axe-core/playwright": "^4.10.2",
     "@cloudflare/vitest-pool-workers": "^0.8.47",
     "@cloudflare/workers-types": "^4.20250627.0",
-    "@playwright/test": "^1.53.1",
+    "@playwright/test": "^1.54.0",
     "@tailwindcss/vite": "^4.1.11",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.0.10",
