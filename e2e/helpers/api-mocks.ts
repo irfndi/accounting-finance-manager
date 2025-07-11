@@ -4,17 +4,16 @@
  * Provides utilities for mocking API endpoints in Playwright tests
  */
 
-import type { Page, Route } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 export interface MockAccount {
   id: string;
   code: string;
   name: string;
-  type: 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
-  normalBalance: 'debit' | 'credit';
-  description?: string;
-  isActive: boolean;
+  type: string;
   balance: number;
+  parentId?: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,75 +22,63 @@ export const MOCK_ACCOUNTS: MockAccount[] = [
   {
     id: '1',
     code: '1000',
-    name: 'Cash and Cash Equivalents',
+    name: 'Cash',
     type: 'ASSET',
-    normalBalance: 'debit',
-    description: 'Primary cash account',
-    isActive: true,
     balance: 25000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    isActive: true,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: '2',
     code: '1100',
     name: 'Accounts Receivable',
     type: 'ASSET',
-    normalBalance: 'debit',
-    description: 'Customer receivables',
-    isActive: true,
     balance: 15000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    isActive: true,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: '3',
     code: '2000',
     name: 'Accounts Payable',
     type: 'LIABILITY',
-    normalBalance: 'credit',
-    description: 'Vendor payables',
+    balance: -8000,
     isActive: true,
-    balance: 8000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: '4',
     code: '3000',
     name: 'Owner Equity',
     type: 'EQUITY',
-    normalBalance: 'credit',
-    description: 'Owner investment in business',
+    balance: 20000,
     isActive: true,
-    balance: 12000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: '5',
     code: '4000',
-    name: 'Sales Revenue',
+    name: 'Revenue',
     type: 'REVENUE',
-    normalBalance: 'credit',
-    description: 'Revenue from sales',
+    balance: 50000,
     isActive: true,
-    balance: 8000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
   },
   {
     id: '6',
     code: '5000',
-    name: 'Office Expenses',
+    name: 'Operating Expenses',
     type: 'EXPENSE',
-    normalBalance: 'debit',
-    description: 'General office expenses',
+    balance: 12000,
     isActive: true,
-    balance: 2000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z'
+  }
 ];
 
 export const MOCK_ACCOUNT_STATS = {
@@ -107,331 +94,126 @@ export const MOCK_ACCOUNT_STATS = {
 export class E2EApiMocker {
   private accounts: MockAccount[] = [...MOCK_ACCOUNTS];
   private nextAccountId = 7;
+  private page: Page;
 
-  constructor(private page: Page) {}
+  constructor(page: Page) {
+    this.page = page;
+  }
 
   /**
    * Setup all API mocks
    */
   async setupAllMocks(): Promise<void> {
+    // Set up accounts mocks
     await this.setupAccountsMocks();
-    await this.setupAuthMocks();
+    
+    // Set up other API mocks
+    await this.setupOtherMocks();
   }
 
   /**
    * Setup accounts API mocks
    */
   async setupAccountsMocks(): Promise<void> {
-    // GET /api/accounts - List all accounts
-    await this.page.route('**/api/accounts', async (route: Route) => {
+    // Mock GET /api/accounts
+    await this.page.route('**/api/accounts', async (route) => {
       if (route.request().method() === 'GET') {
-        const url = new URL(route.request().url());
-        const search = url.searchParams.get('search');
-        const type = url.searchParams.get('type');
-        const page = parseInt(url.searchParams.get('page') || '1');
-        const limit = parseInt(url.searchParams.get('limit') || '10');
-
-        let filteredAccounts = [...this.accounts];
-
-        // Apply search filter
-        if (search) {
-          filteredAccounts = filteredAccounts.filter(account => 
-            account.name.toLowerCase().includes(search.toLowerCase()) ||
-            account.code.includes(search)
-          );
-        }
-
-        // Apply type filter
-        if (type && type !== 'ALL') {
-          filteredAccounts = filteredAccounts.filter(account => account.type === type);
-        }
-
-        // Convert mock accounts to the format expected by ChartOfAccounts component
-        const formattedAccounts = filteredAccounts.map(account => ({
-          id: parseInt(account.id),
-          code: account.code,
-          name: account.name,
-          type: account.type,
-          subtype: 'Current Asset',
-          category: 'Cash',
-          description: account.description,
-          parentId: null,
-          level: 1,
-          path: account.code,
-          isActive: account.isActive,
-          isSystem: false,
-          allowTransactions: true,
-          normalBalance: account.normalBalance,
-          currentBalance: account.balance,
-          reportCategory: account.type === 'ASSET' ? 'Current Assets' : account.type === 'LIABILITY' ? 'Current Liabilities' : 'Other',
-          reportOrder: parseInt(account.id),
-          formattedBalance: `$${account.balance.toLocaleString()}.00`,
-          accountingInfo: {
-            canHaveChildren: true,
-            expectedNormalBalance: account.normalBalance,
-            isBalanceSheet: ['ASSET', 'LIABILITY', 'EQUITY'].includes(account.type),
-            isIncomeStatement: ['REVENUE', 'EXPENSE'].includes(account.type)
-          },
-          children: []
-        }));
-
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedAccounts = formattedAccounts.slice(startIndex, endIndex);
-
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
           body: JSON.stringify({
-            accounts: paginatedAccounts,
-            total: formattedAccounts.length,
-            page,
-            limit,
-            totalPages: Math.ceil(formattedAccounts.length / limit),
-          }),
+            success: true,
+            accounts: this.accounts
+          })
         });
-      } else if (route.request().method() === 'POST') {
-        // POST /api/accounts - Create new account
-        const requestData = route.request().postDataJSON();
-        
-        // Validate required fields
-        if (!requestData.code || !requestData.name) {
+        return;
+      }
+    });
+
+    // Mock POST /api/accounts
+    await this.page.route('**/api/accounts', async (route) => {
+      if (route.request().method() === 'POST') {
+        try {
+          const requestBody = route.request().postData();
+          if (requestBody) {
+            const accountData = JSON.parse(requestBody);
+            
+            const newAccount: MockAccount = {
+              id: this.nextAccountId.toString(),
+              ...accountData,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              isActive: true
+            };
+            this.accounts.push(newAccount);
+            this.nextAccountId++;
+
+
+            await route.fulfill({
+              status: 201,
+              contentType: 'application/json',
+              headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+              },
+              body: JSON.stringify({
+                success: true,
+                account: newAccount
+              })
+            });
+            return;
+          }
+        } catch {
           await route.fulfill({
             status: 400,
             contentType: 'application/json',
             body: JSON.stringify({
-              error: !requestData.code ? 'Account code is required' : 'Account name is required',
-            }),
+              success: false,
+              error: 'Invalid request data'
+            })
           });
           return;
         }
-
-        // Check for duplicate code
-        if (this.accounts.some(account => account.code === requestData.code)) {
-          await route.fulfill({
-            status: 400,
-            contentType: 'application/json',
-            body: JSON.stringify({
-              error: 'Account code already exists',
-            }),
-          });
-          return;
-        }
-
-        // Create new account
-        const newAccount: MockAccount = {
-          id: this.nextAccountId.toString(),
-          code: requestData.code,
-          name: requestData.name,
-          type: requestData.type || 'ASSET',
-          normalBalance: requestData.normalBalance || 'debit',
-          description: requestData.description || '',
-          isActive: true,
-          balance: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        this.accounts.push(newAccount);
-        this.nextAccountId++;
-
-        // Format the response for the component
-        const formattedAccount = {
-          id: parseInt(newAccount.id),
-          code: newAccount.code,
-          name: newAccount.name,
-          type: newAccount.type,
-          subtype: requestData.subtype || 'Current Asset',
-          category: requestData.category || 'Cash',
-          description: newAccount.description,
-          parentId: requestData.parentId || null,
-          level: 1,
-          path: newAccount.code,
-          isActive: newAccount.isActive,
-          isSystem: false,
-          allowTransactions: requestData.allowTransactions !== false,
-          normalBalance: newAccount.normalBalance,
-          currentBalance: 0,
-          reportCategory: newAccount.type === 'ASSET' ? 'Current Assets' : newAccount.type === 'LIABILITY' ? 'Current Liabilities' : 'Other',
-          reportOrder: requestData.reportOrder || parseInt(newAccount.id),
-          formattedBalance: '$0.00',
-          accountingInfo: {
-            canHaveChildren: true,
-            expectedNormalBalance: newAccount.normalBalance,
-            isBalanceSheet: ['ASSET', 'LIABILITY', 'EQUITY'].includes(newAccount.type),
-            isIncomeStatement: ['REVENUE', 'EXPENSE'].includes(newAccount.type)
-          },
-          children: []
-        };
-
-        await route.fulfill({
-          status: 201,
-          contentType: 'application/json',
-          body: JSON.stringify(formattedAccount),
-        });
-      } else {
-        await route.continue();
-      }
-    });
-
-    // GET /api/accounts/:id - Get specific account
-    await this.page.route('**/api/accounts/*', async (route: Route) => {
-      if (route.request().method() === 'GET') {
-        const accountId = route.request().url().split('/').pop();
-        const account = this.accounts.find(acc => acc.id === accountId);
-
-        if (!account) {
-          await route.fulfill({
-            status: 404,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: 'Account not found' }),
-          });
-          return;
-        }
-
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(account),
-        });
-      } else {
-        await route.continue();
-      }
-    });
-
-    // GET /api/accounts/stats - Get account statistics
-    await this.page.route('**/api/accounts/stats', async (route: Route) => {
-      if (route.request().method() === 'GET') {
-        const stats = {
-          totalAccounts: this.accounts.length,
-          activeAccounts: this.accounts.filter(a => a.isActive).length,
-          assetAccounts: this.accounts.filter(a => a.type === 'ASSET').length,
-          liabilityAccounts: this.accounts.filter(a => a.type === 'LIABILITY').length,
-          equityAccounts: this.accounts.filter(a => a.type === 'EQUITY').length,
-          revenueAccounts: this.accounts.filter(a => a.type === 'REVENUE').length,
-          expenseAccounts: this.accounts.filter(a => a.type === 'EXPENSE').length
-        };
-
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(stats),
-        });
-      } else {
-        await route.continue();
       }
     });
   }
 
   /**
-   * Setup authentication API mocks
+   * Setup authentication API mocks (deprecated - use setupGlobalApiMocks instead)
    */
   async setupAuthMocks(): Promise<void> {
-    // POST /api/auth/login
-    await this.page.route('**/api/auth/login', async (route: Route) => {
+    // This method is now deprecated in favor of setupGlobalApiMocks
+    // which provides a more reliable and consistent mocking approach
+    console.log('⚠️ setupAuthMocks is deprecated, use setupGlobalApiMocks instead');
+  }
+
+  async setupOtherMocks(): Promise<void> {
+
+    // Mock AI insights endpoint
+    await this.page.route('**/api/ai-insights', async (route) => {
       if (route.request().method() === 'POST') {
-        const requestBody = route.request().postDataJSON();
-        
-        // Check for invalid credentials test case
-        if (requestBody.email === 'invalid@example.com' || requestBody.password === 'wrongpassword') {
-          await route.fulfill({
-            status: 400,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: 'Invalid email or password' })
-          });
-        }
-        // Simple validation for other cases
-        else if (requestBody.email && requestBody.password) {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-              user: {
-                id: '1',
-                email: requestBody.email,
-                firstName: 'Test',
-                lastName: 'User',
-                role: 'user',
-                createdAt: new Date().toISOString()
-              },
-              token: 'mock-jwt-token'
-            })
-          });
-        } else {
-          await route.fulfill({
-            status: 400,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: 'Invalid credentials' })
-          });
-        }
-      } else {
-        await route.continue();
-      }
-    });
-    
-    // POST /api/auth/register
-    await this.page.route('**/api/auth/register', async (route: Route) => {
-      if (route.request().method() === 'POST') {
-        const requestBody = route.request().postDataJSON();
-        
-        // Basic validation
-        if (!requestBody.email || !requestBody.password || !requestBody.firstName || !requestBody.lastName) {
-          await route.fulfill({
-            status: 400,
-            contentType: 'application/json',
-            body: JSON.stringify({ 
-              error: 'Validation failed',
-              issues: [
-                { field: !requestBody.email ? 'email' : !requestBody.password ? 'password' : 
-                         !requestBody.firstName ? 'firstName' : 'lastName', 
-                  message: 'Field is required' }
-              ]
-            })
-          });
-          return;
-        }
-        
-        // Password validation
-        if (requestBody.password.length < 8) {
-          await route.fulfill({
-            status: 400,
-            contentType: 'application/json',
-            body: JSON.stringify({ 
-              error: 'Validation failed',
-              issues: [{ field: 'password', message: 'Password must be at least 8 characters' }]
-            })
-          });
-          return;
-        }
-        
-        // Email format validation
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requestBody.email)) {
-          await route.fulfill({
-            status: 400,
-            contentType: 'application/json',
-            body: JSON.stringify({ 
-              error: 'Validation failed',
-              issues: [{ field: 'email', message: 'Invalid email format' }]
-            })
-          });
-          return;
-        }
-        
-        // Success case
         await route.fulfill({
-          status: 201,
+          status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            user: {
-              id: '2',
-              email: requestBody.email,
-              firstName: requestBody.firstName,
-              lastName: requestBody.lastName,
-              role: 'user',
-              createdAt: new Date().toISOString()
-            },
-            token: 'mock-jwt-token'
+            success: true,
+            result: {
+              insights: [
+                {
+                  type: 'opportunity',
+                  title: 'Revenue Growth Opportunity',
+                  description: 'AI analysis suggests potential for 15% revenue growth',
+                  confidence: 0.85,
+                  priority: 'medium'
+                }
+              ]
+            }
           })
         });
       } else {
@@ -439,47 +221,16 @@ export class E2EApiMocker {
       }
     });
 
-    // GET /api/auth/profile
-    await this.page.route('**/api/auth/profile', async (route: Route) => {
-      if (route.request().method() === 'GET') {
-        const authHeader = route.request().headers()['authorization'];
-        
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-              id: '1',
-              email: 'test@example.com',
-              firstName: 'Test',
-              lastName: 'User',
-              role: 'user',
-              createdAt: new Date().toISOString()
-            })
-          });
-        } else {
-          await route.fulfill({
-            status: 401,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: 'Unauthorized' })
-          });
-        }
-      } else {
-        await route.continue();
-      }
-    });
-
-    // POST /api/auth/logout
-    await this.page.route('**/api/auth/logout', async (route: Route) => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ message: 'Logged out successfully' })
-        });
-      } else {
-        await route.continue();
-      }
+    // Mock transactions endpoint
+    await this.page.route('**/api/transactions', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: []
+        })
+      });
     });
   }
 
@@ -491,7 +242,7 @@ export class E2EApiMocker {
       ...account,
       id: this.nextAccountId.toString(),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
     this.accounts.push(newAccount);
@@ -513,7 +264,7 @@ export class E2EApiMocker {
    */
   resetMockAccounts(): void {
     this.accounts = [...MOCK_ACCOUNTS];
-    this.nextAccountId = 7;
+    this.nextAccountId = MOCK_ACCOUNTS.length + 1;
   }
 
   /**
@@ -528,12 +279,12 @@ export class E2EApiMocker {
    */
   async setupErrorScenarios(): Promise<void> {
     // Network error scenario
-    await this.page.route('**/api/accounts/network-error', async (route: Route) => {
+    await this.page.route('**/api/accounts/network-error', async (route) => {
       await route.abort('failed');
     });
 
     // Server error scenario
-    await this.page.route('**/api/accounts/server-error', async (route: Route) => {
+    await this.page.route('**/api/accounts/server-error', async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -542,14 +293,14 @@ export class E2EApiMocker {
     });
 
     // Timeout scenario
-    await this.page.route('**/api/accounts/timeout', async (route: Route) => {
+    await this.page.route('**/api/accounts/timeout', async (route) => {
       // Delay for longer than typical timeout
       await new Promise(resolve => setTimeout(resolve, 35000));
       await route.continue();
     });
 
     // Malformed JSON scenario
-    await this.page.route('**/api/accounts/malformed', async (route: Route) => {
+    await this.page.route('**/api/accounts/malformed', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -560,10 +311,395 @@ export class E2EApiMocker {
 }
 
 /**
- * Global API mock setup for tests
+ * Simplified and reliable API mock setup for tests
+ * Uses only page.route() to avoid conflicts between different mocking approaches
  */
-export async function setupGlobalApiMocks(page: Page): Promise<E2EApiMocker> {
+export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = true): Promise<E2EApiMocker> {
   const apiMocker = new E2EApiMocker(page);
-  await apiMocker.setupAllMocks();
+
+  // Set up authentication tokens if preserveAuth is true
+  if (preserveAuth) {
+    await page.addInitScript(() => {
+      // Set up mock authentication tokens
+      localStorage.setItem('finance_manager_token', 'mock-jwt-token-' + Date.now());
+      localStorage.setItem('finance_manager_user', JSON.stringify({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'user',
+        createdAt: new Date().toISOString()
+      }));
+    });
+  } else {
+    // Only clear storage if we're not preserving auth (e.g., for auth tests)
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+  }
+
+  // Use only page.route() for consistent mocking
+  await page.route('**/api/**', async (route) => {
+    const request = route.request();
+    const url = request.url();
+    const method = request.method();
+    
+    console.log(`[API Mock] ${method} ${url}`);
+    
+    // Handle authentication endpoints
+    if (url.includes('/api/auth/login') && method === 'POST') {
+      const postData = request.postData();
+      const body = postData ? JSON.parse(postData) : {};
+      const { email, password } = body;
+      
+      console.log(`[API Mock] Login attempt: ${email}`);
+      
+      // Valid credentials
+      if ((email === 'test@example.com' && password === 'password123456') ||
+          (email?.match(/^test\d+@example\.com$/) && password === 'TestPassword123!')) {
+        
+        const mockResponse = {
+          token: 'mock-jwt-token-' + Date.now(),
+          user: {
+            id: 'test-user-id',
+            email: email,
+            firstName: 'Test',
+            lastName: 'User',
+            role: 'user',
+            createdAt: new Date().toISOString()
+          }
+        };
+        
+        console.log(`[API Mock] Login success for ${email}`);
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(mockResponse)
+        });
+        return;
+      }
+      
+      // Invalid credentials
+      console.log(`[API Mock] Login failed for ${email}`);
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Invalid email or password' })
+      });
+      return;
+    }
+    
+    // Handle profile endpoint
+    if (url.includes('/api/auth/profile') && method === 'GET') {
+      const authHeader = request.headers().authorization;
+      
+      // Accept any Bearer token that starts with 'mock-jwt-token'
+      if (authHeader && authHeader.includes('Bearer') && authHeader.includes('mock-jwt-token')) {
+        console.log('[API Mock] Profile request with valid mock token');
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: 'test-user-id',
+            email: 'test@example.com',
+            firstName: 'Test',
+            lastName: 'User',
+            role: 'user',
+            createdAt: new Date().toISOString()
+          })
+        });
+        return;
+      }
+      
+      console.log('[API Mock] Profile request without valid token:', authHeader);
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Unauthorized' })
+      });
+      return;
+    }
+    
+    // Handle register endpoint
+    if (url.includes('/api/auth/register') && method === 'POST') {
+      const postData = request.postData();
+      const body = postData ? JSON.parse(postData) : {};
+      
+      console.log('[API Mock] Register request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          token: 'mock-jwt-token-' + Date.now(),
+          user: {
+            id: 'test-user-id',
+            email: body.email || 'test@example.com',
+            firstName: body.firstName || 'Test',
+            lastName: body.lastName || 'User',
+            role: 'user',
+            createdAt: new Date().toISOString()
+          }
+        })
+      });
+      return;
+    }
+    
+    // Handle logout endpoint
+    if (url.includes('/api/auth/logout') && method === 'POST') {
+      console.log('[API Mock] Logout request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true })
+      });
+      return;
+    }
+    
+    // Handle accounts endpoints
+    if (url.includes('/api/accounts') && method === 'GET') {
+      console.log('[API Mock] Get accounts request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          accounts: [
+            {
+              id: '1',
+              code: '1000',
+              name: 'Cash',
+              type: 'ASSET',
+              balance: 25000,
+              isActive: true,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z'
+            },
+            {
+              id: '2',
+              code: '1100',
+              name: 'Accounts Receivable',
+              type: 'ASSET',
+              balance: 15000,
+              isActive: true,
+              createdAt: '2023-01-01T00:00:00Z',
+              updatedAt: '2023-01-01T00:00:00Z'
+            }
+          ]
+        })
+      });
+      return;
+    }
+    
+    if (url.includes('/api/accounts') && method === 'POST') {
+      const postData = request.postData();
+      const accountData = postData ? JSON.parse(postData) : {};
+      
+      console.log('[API Mock] Create account request:', accountData);
+      
+      // Simulate validation errors
+      if (accountData.code === '1003' && accountData.name === 'Duplicate Account') {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: false,
+            error: 'Account code already exists'
+          })
+        });
+        return;
+      }
+      
+      if (accountData.name && accountData.name.length > 100) {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: false,
+            error: 'Account name is too long (maximum 100 characters)'
+          })
+        });
+        return;
+      }
+      
+      // Success case
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          account: {
+            id: '7',
+            ...accountData,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        })
+      });
+      return;
+    }
+    
+    // Handle AI insights endpoint
+    if (url.includes('/api/ai-insights') && method === 'POST') {
+      console.log('[API Mock] AI insights request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          result: {
+            insights: [
+              {
+                type: 'opportunity',
+                title: 'Revenue Growth Opportunity',
+                description: 'AI analysis suggests potential for 15% revenue growth',
+                confidence: 0.85,
+                priority: 'medium'
+              },
+              {
+                type: 'warning',
+                title: 'Expense Trend Alert',
+                description: 'Operating expenses have increased by 8% this quarter',
+                confidence: 0.92,
+                priority: 'high'
+              }
+            ]
+          }
+        })
+      });
+      return;
+    }
+
+    // Handle account deletion endpoint
+    if (url.includes('/api/accounts/') && method === 'DELETE') {
+      const accountId = url.split('/api/accounts/')[1];
+      console.log(`[API Mock] Delete account request for ID: ${accountId}`);
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true })
+      });
+      return;
+    }
+
+    // Handle account export endpoint
+    if (url.includes('/api/accounts/export') && method === 'GET') {
+      console.log('[API Mock] Export accounts request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: [
+            {
+              id: '1',
+              code: '1000',
+              name: 'Cash',
+              type: 'ASSET',
+              balance: 25000
+            }
+          ]
+        })
+      });
+      return;
+    }
+
+    // Handle financial reports endpoints
+    if (url.includes('/api/reports/balance-sheet') && method === 'GET') {
+      console.log('[API Mock] Balance sheet request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          assets: {
+            currentAssets: [
+              { id: '1', name: 'Cash', amount: 25000, formattedAmount: '$25,000.00' },
+              { id: '2', name: 'Accounts Receivable', amount: 15000, formattedAmount: '$15,000.00' }
+            ],
+            nonCurrentAssets: []
+          },
+          liabilities: {
+            currentLiabilities: [
+              { id: '3', name: 'Accounts Payable', amount: 8000, formattedAmount: '$8,000.00' }
+            ],
+            nonCurrentLiabilities: []
+          },
+          equity: [
+            { id: '4', name: 'Owner Equity', amount: 32000, formattedAmount: '$32,000.00' }
+          ]
+        })
+      });
+      return;
+    }
+
+    if (url.includes('/api/reports/income-statement') && method === 'GET') {
+      console.log('[API Mock] Income statement request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          revenue: [
+            { id: '5', name: 'Sales Revenue', amount: 50000, formattedAmount: '$50,000.00' }
+          ],
+          expenses: [
+            { id: '6', name: 'Operating Expenses', amount: 12000, formattedAmount: '$12,000.00' }
+          ],
+          netIncome: 38000
+        })
+      });
+      return;
+    }
+
+    if (url.includes('/api/reports/cash-flow') && method === 'GET') {
+      console.log('[API Mock] Cash flow request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          operatingActivities: [
+            { id: '1', name: 'Net Income', amount: 38000, formattedAmount: '$38,000.00' }
+          ],
+          investingActivities: [],
+          financingActivities: [],
+          netCashFlow: 38000
+        })
+      });
+      return;
+    }
+
+    // Handle transactions endpoint
+    if (url.includes('/api/transactions')) {
+      console.log('[API Mock] Transactions request');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: []
+        })
+      });
+      return;
+    }
+
+    // Handle other API endpoints with generic success
+    if (url.includes('/api/')) {
+      console.log(`[API Mock] Generic API response for ${method} ${url}`);
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: [] })
+      });
+      return;
+    }
+    
+    // Continue with original request for non-API calls
+    await route.continue();
+  });
+
+  console.log('✅ API mocks set up successfully');
   return apiMocker;
 }

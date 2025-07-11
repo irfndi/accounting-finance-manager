@@ -1,16 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { E2EAuthHelper, cleanupAuth } from './helpers/auth';
-import { setupGlobalApiMocks, E2EApiMocker } from './helpers/api-mocks';
+import { setupGlobalApiMocks } from './helpers/api-mocks';
 
 test.describe('Authentication', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear any existing auth state
-    await cleanupAuth(page);
+    // Set up API mocks and clear auth state for auth tests
+    await setupGlobalApiMocks(page, false);
     
-    // Setup API mocks using the proper mocker
-    await setupGlobalApiMocks(page);
+    // Navigate to login page and wait for it to load
+    await page.goto('/login', { waitUntil: 'networkidle' });
     
-    await page.goto('/login');
+    // Wait for React to hydrate
+    await page.waitForFunction(() => {
+      return window.React !== undefined || document.querySelector('[data-testid="login-form"]') !== null;
+    }, { timeout: 10000 });
   });
 
   test('should display login form', async ({ page }) => {
@@ -45,83 +47,38 @@ test.describe('Authentication', () => {
   });
 
   test('should login successfully with valid credentials', async ({ page }) => {
-    let apiRequestMade = false;
-    let apiResponse: any = null;
-    const consoleMessages: string[] = [];
-    const jsErrors: string[] = [];
-
-    // Capture console messages and JS errors
-    page.on('console', msg => {
-      consoleMessages.push(`${msg.type()}: ${msg.text()}`);
-      console.log('🖥️ Console:', msg.type(), msg.text());
-    });
-
-    page.on('pageerror', error => {
-      jsErrors.push(error.message);
-      console.log('❌ JS Error:', error.message);
-    });
-
-    // Debug: Log ALL requests to see what's happening
-    page.on('request', request => {
-      console.log('🌐 Request:', request.method(), request.url());
-      if (request.url().includes('/api/auth/login')) {
-        console.log('🔍 Intercepted login request:', request.url(), request.method());
-        console.log('📤 Request body:', request.postData());
-        apiRequestMade = true;
-      }
-    });
-
-    // Debug: Log ALL responses
-    page.on('response', response => {
-      console.log('📥 Response:', response.status(), response.url());
-      if (response.url().includes('/api/auth/login')) {
-        console.log('📥 Login response:', response.status(), response.url());
-        response.json().then(data => {
-          apiResponse = data;
-          console.log('📄 Response data:', data);
-        }).catch(() => {});
-      }
-    });
-
-    await page.goto('/login');
+    // Wait for form to be ready
+    const emailInput = page.getByTestId('email-input');
+    const passwordInput = page.getByTestId('password-input');
+    const loginButton = page.getByTestId('login-button');
     
-    // Fill in the form
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'password123456');
+    await expect(emailInput).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(loginButton).toBeVisible();
     
-    // Debug: Check form state before submission
-    const emailValue = await page.inputValue('[data-testid="email-input"]');
-    const passwordValue = await page.inputValue('[data-testid="password-input"]');
-    console.log('📝 Form values before submit:', { email: emailValue, password: passwordValue });
+    // Use pressSequentially for better React state management
+    await emailInput.click();
+    await emailInput.clear();
+    await emailInput.pressSequentially('test@example.com');
     
-    console.log('🖱️ Clicking login button...');
-    await page.click('[data-testid="login-button"]');
+    await passwordInput.click();
+    await passwordInput.clear();
+    await passwordInput.pressSequentially('password123456');
     
-    // Wait for any async operations
-    await page.waitForTimeout(3000);
+    // Wait for React state to update
+    await page.waitForTimeout(500);
     
-    console.log('🌐 Current URL after submission:', page.url());
-    console.log('🔍 API request made:', apiRequestMade);
-    console.log('📄 API response:', apiResponse);
-    console.log('🖥️ Console messages:', consoleMessages.slice(-10)); // Last 10 messages
-    console.log('❌ JS errors:', jsErrors);
+    // Submit the form and wait for navigation
+    await loginButton.click();
     
-    // Check if we navigated successfully
-    if (page.url().includes('/login')) {
-      // Still on login page, check for errors
-      const errorElement = page.locator('[data-testid="error-message"]');
-      const hasError = await errorElement.isVisible();
-      
-      if (hasError) {
-        const errorText = await errorElement.textContent();
-        throw new Error(`Login failed with error: ${errorText}`);
-      }
-      
-      throw new Error('Form submission failed - still on login page');
-    }
+    // Wait for navigation to complete - use waitForURL with load state
+    await page.waitForURL('/', { timeout: 15000, waitUntil: 'networkidle' });
     
-    // Verify we're on the home page
-    await expect(page).toHaveURL('/');
+    // Verify we're no longer on the login page
+    expect(page.url()).not.toContain('/login');
+    
+    // Verify we can see dashboard content
+    await expect(page.getByTestId('dashboard-title')).toBeVisible();
   });
 
   test('should show error for invalid credentials', async ({ page }) => {
@@ -148,49 +105,125 @@ test.describe('Authentication', () => {
   });
 
   test('should navigate to register page', async ({ page }) => {
-    // Wait for register link to appear
-    await page.waitForSelector('a[href="/register"]', { timeout: 10000 });
-    await page.click('a[href="/register"]');
+    await page.goto('/login');
     
-    await expect(page).toHaveURL('/register');
-  });
+    // Wait for the page to be fully loaded
+    await page.waitForLoadState('networkidle');
+    
+    // Click the register link
+    await page.getByText('Sign up here').click();
+    
+    // Wait for navigation to complete
+    await page.waitForURL('/register', { waitUntil: 'networkidle' });
+    
+    // Wait for register page content to be visible
+    await expect(page.getByText('Create your account')).toBeVisible({ timeout: 15000 });
+    
+    // Verify register form is present
+    await expect(page.getByTestId('register-form')).toBeVisible({ timeout: 10000 });
+  }); 
 
   test('should register new user successfully', async ({ page }) => {
-    await page.goto('/register');
+    // Clear any existing auth state to ensure clean test
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
     
-    // Wait for registration inputs to appear (after hydration)
-    await page.waitForSelector('[data-testid="firstName-input"]', { timeout: 20000 });
+    // Navigate directly to register page
+    await page.goto('/register', { waitUntil: 'networkidle' });
     
-    const uniqueEmail = `test${Date.now()}@example.com`;
+    // Wait for register form to be visible
+    await expect(page.getByTestId('register-form')).toBeVisible({ timeout: 15000 });
     
-    await page.fill('[data-testid="firstName-input"]', 'Test');
-    await page.fill('[data-testid="lastName-input"]', 'User');
-    await page.fill('[data-testid="email-input"]', uniqueEmail);
-    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-    await page.fill('[data-testid="confirmPassword-input"]', 'TestPassword123!');
-    await page.click('[data-testid="register-button"]');
+    // Verify we're on the register page
+    await expect(page.getByText('Create your account')).toBeVisible({ timeout: 10000 });
     
-    await expect(page).toHaveURL('/');
+    // Fill registration form with proper React event triggering
+    const firstNameInput = page.getByTestId('firstName-input');
+    await firstNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await firstNameInput.click();
+    await firstNameInput.clear();
+    await firstNameInput.pressSequentially('John', { delay: 50 });
+    await page.waitForTimeout(300);
+    
+    const lastNameInput = page.getByTestId('lastName-input');
+    await lastNameInput.waitFor({ state: 'visible' });
+    await lastNameInput.click();
+    await lastNameInput.clear();
+    await lastNameInput.pressSequentially('Doe', { delay: 50 });
+    await page.waitForTimeout(300);
+    
+    const emailInput = page.getByTestId('email-input');
+    await emailInput.waitFor({ state: 'visible' });
+    await emailInput.click();
+    await emailInput.clear();
+    await emailInput.pressSequentially('test123@example.com', { delay: 50 });
+    await page.waitForTimeout(300);
+    
+    const passwordInput = page.getByTestId('password-input');
+    await passwordInput.waitFor({ state: 'visible' });
+    await passwordInput.click();
+    await passwordInput.clear();
+    await passwordInput.pressSequentially('TestPassword123!', { delay: 50 });
+    await page.waitForTimeout(300);
+    
+    const confirmPasswordInput = page.getByTestId('confirmPassword-input');
+    await confirmPasswordInput.waitFor({ state: 'visible' });
+    await confirmPasswordInput.click();
+    await confirmPasswordInput.clear();
+    await confirmPasswordInput.pressSequentially('TestPassword123!', { delay: 50 });
+    await page.waitForTimeout(300);
+    
+    // Verify all fields are filled
+    await expect(firstNameInput).toHaveValue('John');
+    await expect(lastNameInput).toHaveValue('Doe');
+    await expect(emailInput).toHaveValue('test123@example.com');
+    await expect(passwordInput).toHaveValue('TestPassword123!');
+    await expect(confirmPasswordInput).toHaveValue('TestPassword123!');
+    
+    // Submit form
+    await page.getByTestId('register-button').click();
+    
+    // Should redirect to dashboard after successful registration
+    await page.waitForURL('/', { timeout: 15000, waitUntil: 'networkidle' });
+    await expect(page.getByTestId('dashboard-title')).toBeVisible();
   });
 
   test('should logout successfully', async ({ page }) => {
-    // First login
-    const authHelper = new E2EAuthHelper(page);
-    const testUser = await authHelper.createTestUser();
-    await authHelper.loginViaUI(testUser.email, testUser.password);
+    // Set up API mocks with authentication enabled BEFORE navigation
+    await setupGlobalApiMocks(page, true);
     
-    // Ensure user menu is visible before interacting
-    await page.waitForSelector('[data-testid="user-menu"]', { timeout: 10000 });
+    // Navigate directly to dashboard since we're setting up auth state
+    await page.goto('/', { waitUntil: 'networkidle' });
     
-    // Should be on the dashboard (home page)
-    await expect(page).toHaveURL('/');
+    // Wait for dashboard to load and user menu to be visible
+    await expect(page.getByTestId('dashboard-title')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('user-menu')).toBeVisible({ timeout: 10000 });
     
-    // Open user menu and click logout
-    await page.click('[data-testid="user-menu"]');
-    await page.waitForSelector('[data-testid="logout-button"]', { timeout: 5000 });
-    await page.click('[data-testid="logout-button"]');
+    // Click the user menu to open dropdown
+    const userMenuButton = page.getByTestId('user-menu');
+    await userMenuButton.click();
     
-    // Should redirect to login page
-    await expect(page).toHaveURL('/login');
+    // Wait for dropdown menu and click logout
+    const logoutButton = page.getByTestId('logout-button');
+    await expect(logoutButton).toBeVisible({ timeout: 5000 });
+    
+    await logoutButton.click();
+    
+    // Wait for navigation to login page
+    await page.waitForURL('/login', { timeout: 10000, waitUntil: 'networkidle' });
+    
+    // Verify we're redirected to login page
+    expect(page.url()).toContain('/login');
+    
+    // Verify login form is visible
+    await expect(page.getByTestId('login-form')).toBeVisible();
+    
+    // Verify auth state is cleared
+    const authCleared = await page.evaluate(() => {
+      return localStorage.getItem('finance_manager_token') === null;
+    });
+    expect(authCleared).toBe(true);
   });
 });

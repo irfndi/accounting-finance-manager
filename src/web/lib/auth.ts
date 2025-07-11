@@ -96,10 +96,17 @@ export const apiClient = {
 
     // Handle 401 responses by clearing auth state
     if (response.status === 401) {
-      auth.logout();
-      // Redirect to login if we're in the browser
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+      // Don't auto-redirect on login endpoint - let the login form handle the error
+      if (!endpoint.includes('/api/auth/login')) {
+        auth.logout();
+        // Redirect to login if we're in the browser and not on auth pages
+        if (typeof window !== 'undefined') {
+          const currentPath = window.location.pathname;
+          const isAuthPage = currentPath === '/login' || currentPath === '/register';
+          if (!isAuthPage) {
+            window.location.href = '/login';
+          }
+        }
       }
     }
 

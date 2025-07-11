@@ -137,8 +137,8 @@ test.describe('Simple Login Test', () => {
     console.log('Console messages:', consoleMessages.slice(-10)); // Last 10 messages
     console.log('JavaScript errors:', jsErrors);
 
-    // Try to submit the form
-    await page.click('button[type="submit"]');
+    // Try to submit the form using the correct selector
+    await page.click('[data-testid="login-button"]');
 
     // Wait for potential navigation or API call
     await page.waitForTimeout(1000);

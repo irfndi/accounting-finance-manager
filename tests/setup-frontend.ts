@@ -51,6 +51,11 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// Mock Astro modules that are not available in test environment
+vi.mock('astro:transitions/client', () => ({
+  navigate: vi.fn(),
+}));
+
 // Global test setup
 beforeEach(() => {
   // Reset all mocks before each test

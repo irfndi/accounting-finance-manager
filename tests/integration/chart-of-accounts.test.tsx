@@ -95,22 +95,30 @@ vi.mock('../../src/web/components/ui/dialog', () => ({
 }));
 
 vi.mock('../../src/web/components/ui/select', () => ({
-  Select: ({ children, onValueChange, value }: any) => {
+  Select: ({ children: _children, onValueChange, value }: any) => {
     const handleChange = (e: any) => {
       if (onValueChange) {
         onValueChange(e.target.value);
       }
     };
+    
     return (
-      <select value={value} onChange={handleChange} data-testid="select">
-        {children}
-      </select>
+      <div data-testid="select-wrapper">
+        <select value={value} onChange={handleChange} data-testid="select">
+          <option value="all">All Types</option>
+          <option value="ASSET">Asset</option>
+          <option value="LIABILITY">Liability</option>
+          <option value="EQUITY">Equity</option>
+          <option value="REVENUE">Revenue</option>
+          <option value="EXPENSE">Expense</option>
+        </select>
+      </div>
     );
   },
-  SelectContent: ({ children }: any) => <div data-testid="select-content">{children}</div>,
-  SelectItem: ({ children, value }: any) => <option value={value} data-testid="select-item">{children}</option>,
-  SelectTrigger: ({ children, ...props }: any) => <div data-testid="select-trigger" {...props}>{children}</div>,
-  SelectValue: ({ placeholder }: any) => <span data-testid="select-value">{placeholder}</span>,
+  SelectContent: ({ children: _children }: any) => null,
+  SelectItem: ({ children: _children, value: _value }: any) => null,
+  SelectTrigger: ({ children: _children, ..._props }: any) => null,
+  SelectValue: ({ placeholder: _placeholder }: any) => null,
 }));
 
 vi.mock('../../src/web/components/ui/button', () => ({

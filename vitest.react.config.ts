@@ -8,5 +8,10 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['tests/setup-frontend.ts'],
     globals: true,
-  }
-}) 
+  },
+  resolve: {
+    alias: {
+      'astro:transitions/client': new URL('./tests/mocks/astro-transitions.ts', import.meta.url).pathname,
+    },
+  },
+})

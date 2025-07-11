@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { useAuth } from './AuthGuard';
 
@@ -163,26 +163,11 @@ function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isClient, setIsClient] = useState(false);
   
-  // Only render on client side to avoid SSR issues
   useEffect(() => {
     setIsClient(true);
   }, []);
   
-  // Safely get auth context
-  let authContext;
-  try {
-    authContext = useAuth();
-  } catch {
-    // If useAuth fails, it means we're not within AuthProvider
-    if (isClient) {
-      console.warn('UserSection rendered outside AuthProvider context');
-    }
-    return null;
-  }
-  
-  const { user, logout } = authContext;
-  
-  // Don't render until client-side hydration is complete
+  // During SSR, show a placeholder to maintain layout
   if (!isClient) {
     return (
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
@@ -203,6 +188,77 @@ function UserSection({ isCollapsed }: { isCollapsed: boolean }) {
         </div>
       </div>
     );
+  }
+  
+  // Use a wrapper component that handles auth context safely
+  return <UserSectionContent isCollapsed={isCollapsed} showDropdown={showDropdown} setShowDropdown={setShowDropdown} />;
+}
+
+// Separate component that uses auth context
+function UserSectionContent({ 
+  isCollapsed, 
+  showDropdown, 
+  setShowDropdown 
+}: { 
+  isCollapsed: boolean;
+  showDropdown: boolean;
+  setShowDropdown: (show: boolean) => void;
+}) {
+  let authContext;
+  
+  try {
+    authContext = useAuth();
+  } catch {
+    // If useAuth fails, show loading state
+    return (
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+        <div className="animate-pulse">
+          {!isCollapsed ? (
+            <div className="flex items-center p-2">
+              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
+              <div className="ml-3 flex-1">
+                <div className="h-4 bg-slate-700 rounded w-24 mb-1"></div>
+                <div className="h-3 bg-slate-700 rounded w-32"></div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+  
+  const { user, logout, isLoading, isAuthenticated } = authContext;
+  
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+        <div className="animate-pulse">
+          {!isCollapsed ? (
+            <div className="flex items-center p-2">
+              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
+              <div className="ml-3 flex-1">
+                <div className="h-4 bg-slate-700 rounded w-24 mb-1"></div>
+                <div className="h-3 bg-slate-700 rounded w-32"></div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-8 h-8 bg-slate-700 rounded-full"></div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, don't show user section
+  if (!isAuthenticated || !user) {
+    return null;
   }
 
   const handleLogout = async () => {

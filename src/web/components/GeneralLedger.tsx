@@ -295,7 +295,7 @@ export default function GeneralLedger() {
               Add Account
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent data-testid="add-account-modal" className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add New Account</DialogTitle>
               <DialogDescription>
@@ -309,6 +309,7 @@ export default function GeneralLedger() {
                 </Label>
                 <Input
                   id="code"
+                  data-testid="account-code-input"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   className="col-span-3"
@@ -324,6 +325,7 @@ export default function GeneralLedger() {
                 </Label>
                 <Input
                   id="name"
+                  data-testid="account-name-input"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="col-span-3"
@@ -346,7 +348,7 @@ export default function GeneralLedger() {
                   </SelectTrigger>
                   <SelectContent>
                     {ACCOUNT_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
+                      <SelectItem key={type.value} value={type.value} data-testid={`account-type-option-${type.value}`}>
                         {type.label}
                       </SelectItem>
                     ))}
@@ -364,12 +366,12 @@ export default function GeneralLedger() {
                   value={formData.normalBalance}
                   onValueChange={(value: 'debit' | 'credit') => setFormData({ ...formData, normalBalance: value })}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger className="col-span-3" data-testid="normal-balance-select">
                     <SelectValue placeholder="Select normal balance" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="debit">Debit</SelectItem>
-                    <SelectItem value="credit">Credit</SelectItem>
+                    <SelectItem value="debit" data-testid="normal-balance-option-debit">Debit</SelectItem>
+                    <SelectItem value="credit" data-testid="normal-balance-option-credit">Credit</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -403,6 +405,7 @@ export default function GeneralLedger() {
                 onClick={saveAccount}
                 disabled={isSubmitting}
                 className="bg-blue-600 text-white hover:bg-blue-700"
+                data-testid="create-account-button"
               >
                 {isSubmitting ? 'Creating...' : 'Create Account'}
               </Button>

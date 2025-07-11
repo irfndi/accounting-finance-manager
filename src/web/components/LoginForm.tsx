@@ -17,9 +17,6 @@ interface FormErrors {
 }
 
 export default function LoginForm() {
-  // Don't use auth context on login page - user isn't authenticated yet
-  const authContext = null;
-  
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''
@@ -57,8 +54,12 @@ export default function LoginForm() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // Prevent default form submission and trigger login
     e.preventDefault();
-    
+    await handleLogin();
+  };
+
+  const handleLogin = async () => {
     if (!validateForm()) {
       return;
     }
@@ -69,14 +70,25 @@ export default function LoginForm() {
     try {
       const { user, token } = await authApi.login(formData.email, formData.password);
       
-      // Store authentication data
+      // Store auth data using auth library and redirect
       auth.login(token, user);
       
-      // Force a page reload to ensure proper state initialization
-      window.location.href = '/';
+      // Navigate to dashboard using Astro's client-side navigation
+      if (typeof window !== 'undefined') {
+        try {
+          const { navigate } = await import('astro:transitions/client');
+          navigate('/');
+        } catch (navError) {
+          console.warn('Astro navigation failed, falling back to window.location:', navError);
+          // Fallback to window.location for compatibility
+          window.location.href = '/';
+        }
+      }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      
       setErrors({ 
-        general: error instanceof Error ? error.message : 'Login failed. Please try again.' 
+        general: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -89,7 +101,7 @@ export default function LoginForm() {
         <CardTitle className="text-center">Welcome Back</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
+        <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form" method="post">
           {errors.general && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm" data-testid="error-message">
               {errors.general}

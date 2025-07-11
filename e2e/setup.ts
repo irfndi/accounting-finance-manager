@@ -5,21 +5,32 @@ import { testConfig } from './config/test-config';
 import fs from 'fs';
 import path from 'path';
 
-async function globalSetup(_config: FullConfig) {
+async function globalSetup(config: FullConfig) {
   // Set test environment variables
   process.env.DATABASE_URL = getTestDatabaseUrl();
   process.env.JWT_SECRET = testConfig.auth.jwtSecret;
   process.env.NODE_ENV = 'test';
   
-  // Wait for the development server to be ready
+  console.log('🚀 Starting global setup...');
+  
+  // Get baseURL from config
+  const baseURL = config.projects[0]?.use?.baseURL || 'http://localhost:3000';
+  
+  // Launch browser for setup
   const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
   
   try {
-    // Wait for server to be available
-    await page.goto('http://localhost:3000', { waitUntil: 'networkidle' });
-    console.log('✅ Development server is ready');
+    console.log(`🔗 Connecting to server at ${baseURL}`);
+    
+    // Navigate to login page which doesn't require authentication
+    await page.goto(`${baseURL}/login`, { 
+      waitUntil: 'domcontentloaded',
+      timeout: 30000 
+    });
+    
+    console.log('✅ Server is ready and accessible');
     
     // Setup authentication and create test users
     await setupGlobalAuth(page);
@@ -45,8 +56,15 @@ async function globalSetup(_config: FullConfig) {
 
 async function seedTestData(page: any) {
   try {
-    // Get auth token for API requests
-    const authToken = await page.evaluate(() => localStorage.getItem('finance_manager_token'));
+    // Get auth token from storage state instead of localStorage
+    let authToken = null;
+    try {
+      const storageState = await page.context().storageState();
+      const localStorage = storageState.origins?.[0]?.localStorage;
+      authToken = localStorage?.find(item => item.name === 'finance_manager_token')?.value;
+    } catch {
+      console.log('ℹ️ Could not access storage state for auth token');
+    }
     
     const headers = authToken ? {
       'Authorization': `Bearer ${authToken}`,

@@ -1,0 +1,2405 @@
+🚀 Starting global setup...
+🔗 Connecting to server at http://localhost:3000
+✅ Server is ready and accessible
+✅ Test users created and authenticated
+✅ Saved authenticated storage state
+✅ Test data seeded successfully
+Cleaning up test environment...
+Test artifacts will be preserved in: ./test-results
+Test artifacts will be preserved in: ./playwright-report
+Test environment cleanup complete
+{
+  "config": {
+    "configFile": "/Users/irfandi/Coding/2025/finance-manager/playwright.config.ts",
+    "rootDir": "/Users/irfandi/Coding/2025/finance-manager/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/irfandi/Coding/2025/finance-manager/e2e/setup.ts",
+    "globalTeardown": "/Users/irfandi/Coding/2025/finance-manager/e2e/teardown.ts",
+    "globalTimeout": 600000,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/irfandi/Coding/2025/finance-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "/Users/irfandi/Coding/2025/finance-manager/e2e",
+        "testIgnore": [
+          "**/debug-*.spec.ts"
+        ],
+        "testMatch": [
+          "/.*\\.setup\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/irfandi/Coding/2025/finance-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "auth-tests",
+        "name": "auth-tests",
+        "testDir": "/Users/irfandi/Coding/2025/finance-manager/e2e",
+        "testIgnore": [
+          "**/debug-*.spec.ts"
+        ],
+        "testMatch": [
+          "**/auth.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/irfandi/Coding/2025/finance-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/irfandi/Coding/2025/finance-manager/e2e",
+        "testIgnore": [
+          "**/auth.spec.ts",
+          "**/*.setup.ts"
+        ],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/irfandi/Coding/2025/finance-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/irfandi/Coding/2025/finance-manager/e2e",
+        "testIgnore": [
+          "**/auth.spec.ts",
+          "**/*.setup.ts"
+        ],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.53.2",
+    "workers": 4,
+    "webServer": {
+      "command": "pnpm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "stdout": "pipe",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.setup.ts",
+      "file": "auth.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 13798,
+                  "error": {
+                    "message": "Error: Form fields not filled properly. Email: \"\", Password: \"password123456\"",
+                    "stack": "Error: Form fields not filled properly. Email: \"\", Password: \"password123456\"\n    at /Users/irfandi/Coding/2025/finance-manager/e2e/auth.setup.ts:47:11",
+                    "location": {
+                      "file": "/Users/irfandi/Coding/2025/finance-manager/e2e/auth.setup.ts",
+                      "column": 11,
+                      "line": 47
+                    },
+                    "snippet": "  45 |   \n  46 |   if (!emailValue || !passwordValue) {\n> 47 |     throw new Error(`Form fields not filled properly. Email: \"${emailValue}\", Password: \"${passwordValue}\"`);\n     |           ^\n  48 |   }\n  49 |   \n  50 |   // Wait a moment for React state to update"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/irfandi/Coding/2025/finance-manager/e2e/auth.setup.ts",
+                        "column": 11,
+                        "line": 47
+                      },
+                      "message": "Error: Form fields not filled properly. Email: \"\", Password: \"password123456\"\n\n  45 |   \n  46 |   if (!emailValue || !passwordValue) {\n> 47 |     throw new Error(`Form fields not filled properly. Email: \"${emailValue}\", Password: \"${passwordValue}\"`);\n     |           ^\n  48 |   }\n  49 |   \n  50 |   // Wait a moment for React state to update\n    at /Users/irfandi/Coding/2025/finance-manager/e2e/auth.setup.ts:47:11"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "✅ API mocks set up successfully\n"
+                    },
+                    {
+                      "text": "🔐 Starting authentication setup...\n"
+                    },
+                    {
+                      "text": "📝 Filling email field...\n"
+                    },
+                    {
+                      "text": "📝 Filling password field...\n"
+                    },
+                    {
+                      "text": "📝 Email value: \"\", Password value: \"password123456\"\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-07-10T03:20:43.670Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/irfandi/Coding/2025/finance-manager/test-results/auth.setup.ts-authenticate-setup/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/irfandi/Coding/2025/finance-manager/e2e/auth.setup.ts",
+                    "column": 11,
+                    "line": 47
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-60f085b113a677673906",
+          "file": "auth.setup.ts",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication",
+          "file": "auth.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display login form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-2afc19fceddb20e5d027",
+              "file": "auth.spec.ts",
+              "line": 18,
+              "column": 3
+            },
+            {
+              "title": "should show validation errors for empty fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-adbd8c8d472fb1845000",
+              "file": "auth.spec.ts",
+              "line": 28,
+              "column": 3
+            },
+            {
+              "title": "should login successfully with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-c99e359697634a936733",
+              "file": "auth.spec.ts",
+              "line": 49,
+              "column": 3
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-92c3ac0ed379b4d4e83f",
+              "file": "auth.spec.ts",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "should have link to register page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-97a65d9f134f031eb9e4",
+              "file": "auth.spec.ts",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "should navigate to register page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-1318c6fc9c04c2b2412f",
+              "file": "auth.spec.ts",
+              "line": 107,
+              "column": 3
+            },
+            {
+              "title": "should register new user successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-2293deae7e79e9c963fd",
+              "file": "auth.spec.ts",
+              "line": 126,
+              "column": 3
+            },
+            {
+              "title": "should logout successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "auth-tests",
+                  "projectName": "auth-tests",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-c4f4b50ff5c889322cfe",
+              "file": "auth.spec.ts",
+              "line": 193,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts",
+      "file": "accounts.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Account Management",
+          "file": "accounts.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display Chart of Accounts page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-3f3a9c8f5272acadc8fc",
+              "file": "accounts.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "should display General Ledger page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-5a4767115e80e5c7c24b",
+              "file": "accounts.spec.ts",
+              "line": 24,
+              "column": 3
+            },
+            {
+              "title": "should display Chart of Accounts page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-33c07b7f5610f13f5577",
+              "file": "accounts.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "should display General Ledger page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-edf4df9b20db17b1de00",
+              "file": "accounts.spec.ts",
+              "line": 24,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "Chart of Accounts",
+              "file": "accounts.spec.ts",
+              "line": 30,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should validate required fields when creating account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-0a0946fca6a7e1e6a0a7",
+                  "file": "accounts.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-75073bf66e52699c3089",
+                  "file": "accounts.spec.ts",
+                  "line": 51,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-a27a0c9ee5463501801b",
+                  "file": "accounts.spec.ts",
+                  "line": 76,
+                  "column": 5
+                },
+                {
+                  "title": "should filter accounts by search term",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-ca528f3f8576b5a1d14d",
+                  "file": "accounts.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "should validate required fields when creating account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-10f76bb36ff13f67b8f7",
+                  "file": "accounts.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-62fd15dc573e983698c2",
+                  "file": "accounts.spec.ts",
+                  "line": 51,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-9f702291be44d2658263",
+                  "file": "accounts.spec.ts",
+                  "line": 76,
+                  "column": 5
+                },
+                {
+                  "title": "should filter accounts by search term",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-8d711c99cf9e42455829",
+                  "file": "accounts.spec.ts",
+                  "line": 98,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "General Ledger",
+              "file": "accounts.spec.ts",
+              "line": 111,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-d4f5cf6ff31d0c0174a2",
+                  "file": "accounts.spec.ts",
+                  "line": 117,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-4c5287a9f00b59aa2364",
+                  "file": "accounts.spec.ts",
+                  "line": 156,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors when creating accounts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-259c519db9a1a0d2c8af",
+                  "file": "accounts.spec.ts",
+                  "line": 181,
+                  "column": 5
+                },
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-37e29e10a3894c2fc1b8",
+                  "file": "accounts.spec.ts",
+                  "line": 117,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-917c2469e75d470b81ce",
+                  "file": "accounts.spec.ts",
+                  "line": 156,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors when creating accounts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-3513fb0fa518e4f25673",
+                  "file": "accounts.spec.ts",
+                  "line": 181,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "API Error Handling",
+              "file": "accounts.spec.ts",
+              "line": 207,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle 500 server errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-071b94f8ff54c3f57a6b",
+                  "file": "accounts.spec.ts",
+                  "line": 208,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network timeouts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-f32c00ce5422ac8457b7",
+                  "file": "accounts.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should handle malformed JSON responses",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-a62cad9f2220e14fedae",
+                  "file": "accounts.spec.ts",
+                  "line": 220,
+                  "column": 5
+                },
+                {
+                  "title": "should handle authentication errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-967267f917d9241b335e",
+                  "file": "accounts.spec.ts",
+                  "line": 226,
+                  "column": 5
+                },
+                {
+                  "title": "should handle retry functionality",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-ab2eb89e6790f1c275f7",
+                  "file": "accounts.spec.ts",
+                  "line": 232,
+                  "column": 5
+                },
+                {
+                  "title": "should handle 500 server errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-c10c048b61d0caa7dca4",
+                  "file": "accounts.spec.ts",
+                  "line": 208,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network timeouts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-970de4df6ea2092bb271",
+                  "file": "accounts.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should handle malformed JSON responses",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-23af6e4e6841ea1dcf03",
+                  "file": "accounts.spec.ts",
+                  "line": 220,
+                  "column": 5
+                },
+                {
+                  "title": "should handle authentication errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-ae6b7a80a11ccd70e2f6",
+                  "file": "accounts.spec.ts",
+                  "line": 226,
+                  "column": 5
+                },
+                {
+                  "title": "should handle retry functionality",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-95db97f82e2bf614ea4d",
+                  "file": "accounts.spec.ts",
+                  "line": 232,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Edge Cases",
+              "file": "accounts.spec.ts",
+              "line": 239,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle special characters in account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-812242c49131a567d386",
+                  "file": "accounts.spec.ts",
+                  "line": 240,
+                  "column": 5
+                },
+                {
+                  "title": "should validate account code format",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-8a53750f61e308c50381",
+                  "file": "accounts.spec.ts",
+                  "line": 264,
+                  "column": 5
+                },
+                {
+                  "title": "should handle very long account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-4d5b6e0c7c65af9095bd",
+                  "file": "accounts.spec.ts",
+                  "line": 288,
+                  "column": 5
+                },
+                {
+                  "title": "should handle concurrent account creation attempts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-953985b2b88519fdae9b",
+                  "file": "accounts.spec.ts",
+                  "line": 309,
+                  "column": 5
+                },
+                {
+                  "title": "should handle special characters in account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-e8bbdf7f4f5a8076ec78",
+                  "file": "accounts.spec.ts",
+                  "line": 240,
+                  "column": 5
+                },
+                {
+                  "title": "should validate account code format",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-7b2492bad7dea21d52b8",
+                  "file": "accounts.spec.ts",
+                  "line": 264,
+                  "column": 5
+                },
+                {
+                  "title": "should handle very long account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-2769f063f4a991a003b6",
+                  "file": "accounts.spec.ts",
+                  "line": 288,
+                  "column": 5
+                },
+                {
+                  "title": "should handle concurrent account creation attempts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-89dc2b3ee65c418b2292",
+                  "file": "accounts.spec.ts",
+                  "line": 309,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "chart-of-accounts-simple.spec.ts",
+      "file": "chart-of-accounts-simple.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Chart of Accounts - Simple",
+          "file": "chart-of-accounts-simple.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load chart of accounts page without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bb41e0ea34eff18524fe-793aeff8a6d23a9a570b",
+              "file": "chart-of-accounts-simple.spec.ts",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "should render chart title and add button with shorter timeout",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bb41e0ea34eff18524fe-4f142bda0d56d99a6bfd",
+              "file": "chart-of-accounts-simple.spec.ts",
+              "line": 57,
+              "column": 3
+            },
+            {
+              "title": "should load chart of accounts page without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bb41e0ea34eff18524fe-74c866e5b10ab4df3227",
+              "file": "chart-of-accounts-simple.spec.ts",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "should render chart title and add button with shorter timeout",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bb41e0ea34eff18524fe-710b3e53ccddac8f2fda",
+              "file": "chart-of-accounts-simple.spec.ts",
+              "line": 57,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "dashboard.spec.ts",
+      "file": "dashboard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard",
+          "file": "dashboard.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display dashboard title and description",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-d8430d7307e2c8a2fdfa",
+              "file": "dashboard.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "should display financial summary cards",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-2931458fb6a8b244cab7",
+              "file": "dashboard.spec.ts",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "should display navigation modules",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-7aec6c912da90f1f7e8e",
+              "file": "dashboard.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "should navigate to different modules",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-34eb838d08d49ed99a8c",
+              "file": "dashboard.spec.ts",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "should display AI insights section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-dfb1ada951d55cebcc58",
+              "file": "dashboard.spec.ts",
+              "line": 69,
+              "column": 3
+            },
+            {
+              "title": "should display quick actions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-6fdd67ec0e85d6f1ade1",
+              "file": "dashboard.spec.ts",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "should handle period selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-1210cd0ffa69f18daaf4",
+              "file": "dashboard.spec.ts",
+              "line": 91,
+              "column": 3
+            },
+            {
+              "title": "should display refresh AI button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-0bd91a497aef39d8d5a8",
+              "file": "dashboard.spec.ts",
+              "line": 110,
+              "column": 3
+            },
+            {
+              "title": "should display export report button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-f9fdbd871574a37b0684",
+              "file": "dashboard.spec.ts",
+              "line": 122,
+              "column": 3
+            },
+            {
+              "title": "should display AI insights toggle",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-abb653cf3c8e86a95fbd",
+              "file": "dashboard.spec.ts",
+              "line": 137,
+              "column": 3
+            },
+            {
+              "title": "should handle responsive design",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-10c4da6275e49f7686ea",
+              "file": "dashboard.spec.ts",
+              "line": 151,
+              "column": 3
+            },
+            {
+              "title": "should handle loading states",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-87177b17d6b9343c061f",
+              "file": "dashboard.spec.ts",
+              "line": 168,
+              "column": 3
+            },
+            {
+              "title": "should display error handling",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-480c393fa56ef7859c06",
+              "file": "dashboard.spec.ts",
+              "line": 179,
+              "column": 3
+            },
+            {
+              "title": "should display dashboard title and description",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-4f6ddf0f2e07b071c783",
+              "file": "dashboard.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "should display financial summary cards",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-2db82e9aeb1d169cf83b",
+              "file": "dashboard.spec.ts",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "should display navigation modules",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-c888df57a1616875d4f4",
+              "file": "dashboard.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "should navigate to different modules",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-6d29d434570a1e3261d7",
+              "file": "dashboard.spec.ts",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "should display AI insights section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-c6a2dc9eda86d0123085",
+              "file": "dashboard.spec.ts",
+              "line": 69,
+              "column": 3
+            },
+            {
+              "title": "should display quick actions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-157ace33f2eb92c54602",
+              "file": "dashboard.spec.ts",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "should handle period selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-24c3f05d1cf22a47c09b",
+              "file": "dashboard.spec.ts",
+              "line": 91,
+              "column": 3
+            },
+            {
+              "title": "should display refresh AI button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-ec9458c464688cf1dfea",
+              "file": "dashboard.spec.ts",
+              "line": 110,
+              "column": 3
+            },
+            {
+              "title": "should display export report button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-6468b5b059d0a5a4ff02",
+              "file": "dashboard.spec.ts",
+              "line": 122,
+              "column": 3
+            },
+            {
+              "title": "should display AI insights toggle",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-2610ad920722d5c9fb13",
+              "file": "dashboard.spec.ts",
+              "line": 137,
+              "column": 3
+            },
+            {
+              "title": "should handle responsive design",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-0fad06550eba9d861493",
+              "file": "dashboard.spec.ts",
+              "line": 151,
+              "column": 3
+            },
+            {
+              "title": "should handle loading states",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-0528cc7be6f7acee4ba1",
+              "file": "dashboard.spec.ts",
+              "line": 168,
+              "column": 3
+            },
+            {
+              "title": "should display error handling",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "90cda532ab82d274b30b-368e9e3c055bad63c544",
+              "file": "dashboard.spec.ts",
+              "line": 179,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "debug-auth-context.spec.ts",
+      "file": "debug-auth-context.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "debug auth context and API calls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "cfef80178c3c921cf1ad-44530cf9f3fd8eb0a433",
+          "file": "debug-auth-context.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "debug auth context and API calls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "cfef80178c3c921cf1ad-3ac64d6ddfa26e6a2785",
+          "file": "debug-auth-context.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "debug-auth-provider.spec.ts",
+      "file": "debug-auth-provider.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "debug AuthProvider refreshAuth execution",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "6c3a64bf6024f8094fa4-da377f2e02076c54958b",
+          "file": "debug-auth-provider.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "debug AuthProvider refreshAuth execution",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "6c3a64bf6024f8094fa4-ab2534338861030e8782",
+          "file": "debug-auth-provider.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "debug-auth-state.spec.ts",
+      "file": "debug-auth-state.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "debug auth.getState() vs localStorage",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "81c3605621782ac5ea5e-712edf7ff3e44f4a576d",
+          "file": "debug-auth-state.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "debug auth.getState() vs localStorage",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "81c3605621782ac5ea5e-c68425d23120e1120288",
+          "file": "debug-auth-state.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "debug-form-submit.spec.ts",
+      "file": "debug-form-submit.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Debug Form Submission",
+          "file": "debug-form-submit.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should submit form and handle response",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "eabfc9a7271dcef1a0c6-38a3a8a3bf7ab8f18a56",
+              "file": "debug-form-submit.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "should submit form and handle response",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "eabfc9a7271dcef1a0c6-e006db3d90559aa7f49f",
+              "file": "debug-form-submit.spec.ts",
+              "line": 11,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "debug-homepage.spec.ts",
+      "file": "debug-homepage.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "debug homepage after login",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "b55b9596913d9183750c-f443d5023eaaa3674808",
+          "file": "debug-homepage.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "debug homepage after login",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "b55b9596913d9183750c-42ae940e471f054e35b9",
+          "file": "debug-homepage.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "debug-login.spec.ts",
+      "file": "debug-login.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Debug Login",
+          "file": "debug-login.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "debug form submission",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5f1889fdd7b10a4db9e9-8a3bf5f0a3c9d67d14ff",
+              "file": "debug-login.spec.ts",
+              "line": 9,
+              "column": 3
+            },
+            {
+              "title": "debug form submission",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "5f1889fdd7b10a4db9e9-3cbffc6c0fedc692052a",
+              "file": "debug-login.spec.ts",
+              "line": 9,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "example.spec.ts",
+      "file": "example.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Application Tests",
+          "file": "example.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load homepage (redirects to login)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-663959f7653fbdcc6a15",
+              "file": "example.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "should load login page directly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-5beed22e80977a9461f4",
+              "file": "example.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-dedfb976e50217370606",
+              "file": "example.spec.ts",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "should navigate to register page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-66b2d10235c7f2c0efe4",
+              "file": "example.spec.ts",
+              "line": 68,
+              "column": 3
+            },
+            {
+              "title": "should load homepage (redirects to login)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-979c63cb64bdf0274ad8",
+              "file": "example.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "should load login page directly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-dd000976d66fe5c173fe",
+              "file": "example.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "should be responsive on login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-51f73181e5d189cfc50f",
+              "file": "example.spec.ts",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "should navigate to register page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-de72b857ed7a51a0960c",
+              "file": "example.spec.ts",
+              "line": 68,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "hydration-debug.spec.ts",
+      "file": "hydration-debug.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Hydration Debug",
+          "file": "hydration-debug.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "check React hydration",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "48fde817ab4661cd9cd8-b348e9964b72393341e1",
+              "file": "hydration-debug.spec.ts",
+              "line": 9,
+              "column": 3
+            },
+            {
+              "title": "check React hydration",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "48fde817ab4661cd9cd8-88d6724816be83ec9445",
+              "file": "hydration-debug.spec.ts",
+              "line": 9,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "simple-login.spec.ts",
+      "file": "simple-login.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Simple Login Test",
+          "file": "simple-login.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should render login form and submit via JavaScript",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "0dda8c2d402b0f81b083-b3e5cf107400bc334ff8",
+              "file": "simple-login.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "should render login form and submit via JavaScript",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "0dda8c2d402b0f81b083-c0eb4a074496cac021cb",
+              "file": "simple-login.spec.ts",
+              "line": 5,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-07-10T03:19:48.757Z",
+    "duration": 69767.924,
+    "expected": 0,
+    "skipped": 98,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

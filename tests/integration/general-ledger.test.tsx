@@ -66,21 +66,40 @@ vi.mock('../../src/web/components/ui/select', () => ({
 vi.mock('../../src/web/components/ui/dialog', () => {
   let isOpen = false;
   return {
-    Dialog: ({ children, open, _onOpenChange, ...props }: any) => {
+    Dialog: ({ children, open, onOpenChange: _onOpenChange, ...props }: any) => {
       if (open !== undefined) isOpen = open;
-      return <div data-testid="dialog" {...props}>{children}</div>;
+      // Remove asChild and other problematic props
+      const { asChild: _asChild, ...cleanProps } = props;
+      return <div data-testid="dialog" {...cleanProps}>{children}</div>;
     },
-    DialogContent: ({ children, ...props }: any) => 
-      isOpen ? <div data-testid="dialog-content" {...props}>{children}</div> : null,
-    DialogDescription: ({ children, ...props }: any) => <p {...props}>{children}</p>,
-    DialogFooter: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    DialogHeader: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    DialogTitle: ({ children, ...props }: any) => <h2 {...props}>{children}</h2>,
-    DialogTrigger: ({ children, onClick, ...props }: any) => (
-      <div data-testid="dialog-trigger" onClick={() => { isOpen = true; onClick?.(); }} {...props}>
-        {children}
-      </div>
-    ),
+    DialogContent: ({ children, ...props }: any) => {
+      const { asChild: _asChild, ...cleanProps } = props;
+      return isOpen ? <div data-testid="dialog-content" {...cleanProps}>{children}</div> : null;
+    },
+    DialogDescription: ({ children, ...props }: any) => {
+      const { asChild: _asChild, ...cleanProps } = props;
+      return <p {...cleanProps}>{children}</p>;
+    },
+    DialogFooter: ({ children, ...props }: any) => {
+      const { asChild: _asChild, ...cleanProps } = props;
+      return <div {...cleanProps}>{children}</div>;
+    },
+    DialogHeader: ({ children, ...props }: any) => {
+      const { asChild: _asChild, ...cleanProps } = props;
+      return <div {...cleanProps}>{children}</div>;
+    },
+    DialogTitle: ({ children, ...props }: any) => {
+      const { asChild: _asChild, ...cleanProps } = props;
+      return <h2 {...cleanProps}>{children}</h2>;
+    },
+    DialogTrigger: ({ children, onClick, ...props }: any) => {
+      const { asChild: _asChild, ...cleanProps } = props;
+      return (
+        <div data-testid="dialog-trigger" onClick={() => { isOpen = true; onClick?.(); }} {...cleanProps}>
+          {children}
+        </div>
+      );
+    },
   };
 });
 

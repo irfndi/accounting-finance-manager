@@ -100,7 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false
       });
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        // Use Astro's navigate for client-side navigation
+        import('astro:transitions/client').then(({ navigate }) => {
+          navigate('/login');
+        }).catch(() => {
+          // Fallback to window.location if navigate fails
+          window.location.href = '/login';
+        });
       }
     }
   };
@@ -170,12 +176,20 @@ function AuthGuardContent({ children, fallback }: AuthGuardProps) {
     );
   }
 
+  // Redirect to login when not authenticated and not loading
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && typeof window !== 'undefined') {
+      // Use Astro's navigate for client-side navigation
+      import('astro:transitions/client').then(({ navigate }) => {
+          navigate('/login');
+        }).catch(() => {
+          // Fallback to window.location if navigate fails
+          window.location.href = '/login';
+        });
+    }
+  }, [isLoading, isAuthenticated]);
+
   if (!isAuthenticated) {
-    // Use useEffect to handle redirect to avoid issues during render
-    React.useEffect(() => {
-      window.location.href = '/login';
-    }, []);
-    
     return (
       fallback || (
         <div className="flex items-center justify-center min-h-screen">

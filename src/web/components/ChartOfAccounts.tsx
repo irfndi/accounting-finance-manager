@@ -88,7 +88,7 @@ const ACCOUNT_TYPES = [
 
 const API_BASE_URL = typeof window !== 'undefined' 
   ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
-  : 'http://localhost:3001';
+  : 'http://localhost:3000';
 
 export default function ChartOfAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -517,6 +517,7 @@ export default function ChartOfAccounts() {
           <div className="flex gap-4 mb-6">
             <div className="flex-1">
               <Input
+                data-testid="search-input"
                 placeholder="Search accounts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -568,7 +569,7 @@ export default function ChartOfAccounts() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent data-testid="add-account-modal" className="max-w-md">
           <DialogHeader>
             <DialogTitle>
               {editingAccount ? `Edit Account: ${editingAccount.name}` : 'Create New Account'}
@@ -590,6 +591,7 @@ export default function ChartOfAccounts() {
                 <Label htmlFor="code">Account Code</Label>
                 <Input
                   id="code"
+                  data-testid="account-code-input"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   placeholder="Account code (e.g., 1000)"
@@ -606,7 +608,7 @@ export default function ChartOfAccounts() {
                   </SelectTrigger>
                   <SelectContent>
                     {ACCOUNT_TYPES.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
+                      <SelectItem key={type.value} value={type.value} data-testid={`account-type-option-${type.value}`}>
                         {type.label}
                       </SelectItem>
                     ))}
@@ -622,6 +624,7 @@ export default function ChartOfAccounts() {
               <Label htmlFor="name">Account Name</Label>
               <Input
                 id="name"
+                data-testid="account-name-input"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Account name (e.g., Cash and Cash Equivalents)"
@@ -715,7 +718,7 @@ export default function ChartOfAccounts() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={saveAccount}>
+            <Button data-testid="create-account-button" onClick={saveAccount}>
               {editingAccount ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>

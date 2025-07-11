@@ -30,9 +30,10 @@ export default defineConfig({
         ...(process.env.NODE_ENV === 'production' && {
           "react-dom/server": "react-dom/server.edge",
         }),
-        '@finance-manager/types': fileURLToPath(new URL('../../packages/types/src', import.meta.url)),
-        '@finance-manager/db': fileURLToPath(new URL('../../packages/db/src', import.meta.url)),
-        '@finance-manager/core': fileURLToPath(new URL('../../packages/core/src', import.meta.url)),
+        // Use local src paths instead of non-existent packages
+        '@/types': fileURLToPath(new URL('./src/types', import.meta.url)),
+        '@/db': fileURLToPath(new URL('./src/db', import.meta.url)),
+        '@/lib': fileURLToPath(new URL('./src/lib', import.meta.url)),
       }
     }
   },

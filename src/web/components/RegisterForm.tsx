@@ -99,8 +99,17 @@ export default function RegisterForm() {
       // Store authentication data
       auth.login(token, user);
       
-      // Redirect to dashboard
-      window.location.href = '/';
+      // Navigate to dashboard using Astro's client-side navigation
+      if (typeof window !== 'undefined') {
+        try {
+          const { navigate } = await import('astro:transitions/client');
+          navigate('/');
+        } catch (navError) {
+          console.warn('Astro navigation failed, falling back to window.location:', navError);
+          // Fallback to window.location for compatibility
+          window.location.href = '/';
+        }
+      }
     } catch (error) {
       setErrors({ 
         general: error instanceof Error ? error.message : 'Registration failed. Please try again.' 
@@ -219,11 +228,10 @@ export default function RegisterForm() {
           </div>
           
           <Button 
-            type="button" 
+            type="submit" 
             className="w-full" 
             disabled={isLoading}
             data-testid="register-button"
-            onClick={handleSubmit}
           >
             {isLoading ? (
               <>

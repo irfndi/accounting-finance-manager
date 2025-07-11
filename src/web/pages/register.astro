@@ -21,17 +21,7 @@ import RegisterForm from "../components/RegisterForm.tsx";
         <RegisterForm client:load />
       </div>
 
-      <!-- Inline fallback to redirect on register for non-hydrated button clicks -->
-      <script>
-        window.addEventListener("DOMContentLoaded", () => {
-          const btn = document.querySelector('[data-testid="register-button"]');
-          if (btn) {
-            btn.addEventListener("click", () => {
-              window.location.href = "/";
-            });
-          }
-        });
-      </script>
+
 
       <div class="text-center mt-8">
         <p class="text-sm text-slate-600">

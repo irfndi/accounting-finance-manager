@@ -15,7 +15,7 @@ test.describe('Debug Login', () => {
     
     // Fill form
     await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'password123');
+    await page.fill('[data-testid="password-input"]', 'password123456');
     
     // Listen for all requests
     const requests: string[] = [];

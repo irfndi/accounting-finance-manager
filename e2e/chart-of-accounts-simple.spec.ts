@@ -47,7 +47,6 @@ test.describe('Chart of Accounts - Simple', () => {
     await page.screenshot({ path: 'test-results/chart-of-accounts-simple.png', fullPage: true });
     
     // Log the page content for debugging
-    const content = await page.content();
     console.log('Page title:', await page.title());
     console.log('Page URL:', page.url());
     console.log('Has chart-title element:', await page.locator('[data-testid="chart-title"]').count());

@@ -47,6 +47,11 @@ interface AIInsight {
 }
 
 export default function TransactionManager() {
+  // API Base URL configuration
+  const API_BASE_URL = typeof window === 'undefined' 
+    ? 'http://localhost:3000' 
+    : (import.meta.env.PUBLIC_API_BASE_URL || window.location.origin);
+
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'accounts'>('list');
   const [transactions, setTransactions] = useState<MockTransaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<MockTransaction[]>([]);
@@ -85,7 +90,7 @@ export default function TransactionManager() {
       
       try {
         // Load transactions
-        const transactionsResponse = await fetch('http://localhost:3000/api/transactions');
+        const transactionsResponse = await fetch(`${API_BASE_URL}/api/transactions`);
         if (!transactionsResponse.ok) {
           throw new Error('Failed to load transactions');
         }
@@ -95,7 +100,7 @@ export default function TransactionManager() {
          setFilteredTransactions(loadedTransactions);
          
          // Load accounts
-         const accountsResponse = await fetch('http://localhost:3000/api/accounts');
+         const accountsResponse = await fetch(`${API_BASE_URL}/api/accounts`);
          if (!accountsResponse.ok) {
            throw new Error('Failed to load accounts');
          }
@@ -391,7 +396,7 @@ export default function TransactionManager() {
     if (!transactionToDelete) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/api/transactions/${transactionToDelete.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/transactions/${transactionToDelete.id}`, {
         method: 'DELETE',
       });
       
@@ -420,8 +425,8 @@ export default function TransactionManager() {
       );
 
       const url = editingTransactionId 
-        ? `http://localhost:3000/api/transactions/${editingTransactionId}`
-        : 'http://localhost:3000/api/transactions';
+        ? `${API_BASE_URL}/api/transactions/${editingTransactionId}`
+        : `${API_BASE_URL}/api/transactions`;
       const method = editingTransactionId ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
