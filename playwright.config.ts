@@ -65,36 +65,7 @@ export default defineConfig({
   },
 
   // Optimized projects - focus on Chromium for CI speed
-  projects: process.env.CI ? [
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'auth-tests',
-      testMatch: '**/auth.spec.ts',
-      use: { 
-        ...devices['Desktop Chrome'],
-        // Auth tests need clean state - no storageState
-      },
-      dependencies: ['setup'],
-    },
-    {
-      name: 'chromium',
-      testIgnore: ['**/auth.spec.ts', '**/*.setup.ts'],
-      use: { 
-        ...devices['Desktop Chrome'],
-        // Use saved authentication state
-        storageState: 'playwright/.auth/user.json',
-        // Disable images and CSS for faster loading in CI
-        launchOptions: {
-          args: ['--disable-images', '--disable-css'],
-        },
-      },
-      dependencies: ['setup'],
-    },
-  ] : [
+  projects: [
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
@@ -115,6 +86,7 @@ export default defineConfig({
       use: { 
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/user.json',
+        launchOptions: process.env.CI ? { args: ['--disable-images', '--disable-css'] } : undefined,
       },
       dependencies: ['setup'],
     },
@@ -127,16 +99,15 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
-    // WebKit disabled due to connection issues on some systems
-    // {
-    //   name: 'webkit',
-    //   testIgnore: ['**/auth.spec.ts', '**/*.setup.ts'],
-    //   use: { 
-    //     ...devices['Desktop Safari'],
-    //     storageState: 'playwright/.auth/user.json',
-    //   },
-    //   dependencies: ['setup'],
-    // },
+    {
+      name: 'webkit',
+      testIgnore: ['**/auth.spec.ts', '**/*.setup.ts'],
+      use: { 
+        ...devices['Desktop Safari'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
   ],
 
   // Optimized web server configuration
