@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     container:
-      image: mcr.microsoft.com/playwright:v1.53.1-jammy
+      image: mcr.microsoft.com/playwright:v1.54.1-jammy
     strategy:
       fail-fast: false
       matrix:
@@ -151,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: mcr.microsoft.com/playwright:v1.53.1-jammy
+      image: mcr.microsoft.com/playwright:v1.54.1-jammy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: mcr.microsoft.com/playwright:v1.53.1-jammy
+      image: mcr.microsoft.com/playwright:v1.54.1-jammy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -299,7 +299,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: mcr.microsoft.com/playwright:v1.53.1-jammy
+      image: mcr.microsoft.com/playwright:v1.54.1-jammy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

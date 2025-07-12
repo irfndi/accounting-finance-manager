@@ -134,7 +134,7 @@ importers:
         specifier: ^4.20250702.0
         version: 4.20250712.0
       '@playwright/test':
-        specifier: ^1.53.2
+        specifier: 1.54.1
         version: 1.54.1
       '@tailwindcss/vite':
         specifier: ^4.1.11
@@ -194,7 +194,7 @@ importers:
         specifier: ^1.5.0
         version: 1.6.0
       playwright:
-        specifier: ^1.54.1
+        specifier: 1.54.1
         version: 1.54.1
       sql.js:
         specifier: ^1.13.0
