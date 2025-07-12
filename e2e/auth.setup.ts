@@ -86,13 +86,13 @@ setup('authenticate', async ({ page }) => {
     // Retry filling if values are empty
     if (!emailValue) {
       await emailInput.clear();
-      await emailInput.type('test@example.com');
+      await emailInput.fill('test@example.com');
       await emailInput.dispatchEvent('input');
     }
     
     if (!passwordValue) {
       await passwordInput.clear();
-      await passwordInput.type('password123456');
+      await passwordInput.fill('password123456');
       await passwordInput.dispatchEvent('input');
     }
     

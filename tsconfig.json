@@ -1,13 +1,13 @@
 {
   "include": [
     "src/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "e2e/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "build",
-    "e2e/**/*"
+    "build"
   ],
   "compilerOptions": {
     "target": "ES2022",
@@ -22,6 +22,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "types": ["@playwright/test"]
   }
 }

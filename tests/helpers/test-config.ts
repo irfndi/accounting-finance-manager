@@ -155,7 +155,6 @@ export class DatabaseTestUtils {
    */
   static mockTransaction<T>(
     db: Database,
-    callback: (tx: any) => Promise<T>,
     result?: T
   ): MockedFunction<any> {
     const mockTx = this.getMockDatabase();

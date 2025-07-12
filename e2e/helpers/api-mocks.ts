@@ -4,7 +4,7 @@
  * Provides utilities for mocking API endpoints in Playwright tests
  */
 
-import type { Page } from '@playwright/test';
+import type { Route } from '@playwright/test';
 
 export interface MockAccount {
   id: string;
@@ -94,9 +94,9 @@ export const MOCK_ACCOUNT_STATS = {
 export class E2EApiMocker {
   private accounts: MockAccount[] = [...MOCK_ACCOUNTS];
   private nextAccountId = 7;
-  private page: Page;
+  private page: any; // Changed from Page to any to avoid circular dependency
 
-  constructor(page: Page) {
+  constructor(page: any) { // Changed from Page to any
     this.page = page;
   }
 
@@ -116,7 +116,7 @@ export class E2EApiMocker {
    */
   async setupAccountsMocks(): Promise<void> {
     // Mock GET /api/accounts
-    await this.page.route('**/api/accounts', async (route) => {
+    await this.page.route('**/api/accounts', async (route: Route) => {
       if (route.request().method() === 'GET') {
         await route.fulfill({
           status: 200,
@@ -136,7 +136,7 @@ export class E2EApiMocker {
     });
 
     // Mock POST /api/accounts
-    await this.page.route('**/api/accounts', async (route) => {
+    await this.page.route('**/api/accounts', async (route: Route) => {
       if (route.request().method() === 'POST') {
         try {
           const requestBody = route.request().postData();
@@ -169,16 +169,15 @@ export class E2EApiMocker {
             });
             return;
           }
-        } catch {
+        } catch (_e) {
+          // Log error for test diagnostics
+          // eslint-disable-next-line no-console
+          console.error(_e);
           await route.fulfill({
             status: 400,
             contentType: 'application/json',
-            body: JSON.stringify({
-              success: false,
-              error: 'Invalid request data'
-            })
+            body: JSON.stringify({ error: 'Mock error' })
           });
-          return;
         }
       }
     });
@@ -190,13 +189,12 @@ export class E2EApiMocker {
   async setupAuthMocks(): Promise<void> {
     // This method is now deprecated in favor of setupGlobalApiMocks
     // which provides a more reliable and consistent mocking approach
-    console.log('⚠️ setupAuthMocks is deprecated, use setupGlobalApiMocks instead');
   }
 
   async setupOtherMocks(): Promise<void> {
 
     // Mock AI insights endpoint
-    await this.page.route('**/api/ai-insights', async (route) => {
+    await this.page.route('**/api/ai-insights', async (route: Route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -222,7 +220,7 @@ export class E2EApiMocker {
     });
 
     // Mock transactions endpoint
-    await this.page.route('**/api/transactions', async (route) => {
+    await this.page.route('**/api/transactions', async (route: Route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -279,12 +277,12 @@ export class E2EApiMocker {
    */
   async setupErrorScenarios(): Promise<void> {
     // Network error scenario
-    await this.page.route('**/api/accounts/network-error', async (route) => {
+    await this.page.route('**/api/accounts/network-error', async (route: Route) => {
       await route.abort('failed');
     });
 
     // Server error scenario
-    await this.page.route('**/api/accounts/server-error', async (route) => {
+    await this.page.route('**/api/accounts/server-error', async (route: Route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
@@ -293,14 +291,14 @@ export class E2EApiMocker {
     });
 
     // Timeout scenario
-    await this.page.route('**/api/accounts/timeout', async (route) => {
+    await this.page.route('**/api/accounts/timeout', async (route: Route) => {
       // Delay for longer than typical timeout
       await new Promise(resolve => setTimeout(resolve, 35000));
       await route.continue();
     });
 
     // Malformed JSON scenario
-    await this.page.route('**/api/accounts/malformed', async (route) => {
+    await this.page.route('**/api/accounts/malformed', async (route: Route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -314,46 +312,48 @@ export class E2EApiMocker {
  * Simplified and reliable API mock setup for tests
  * Uses only page.route() to avoid conflicts between different mocking approaches
  */
-export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = true): Promise<E2EApiMocker> {
+export async function setupGlobalApiMocks(page: any, preserveAuth: boolean = true): Promise<E2EApiMocker> { // Changed from Page to any
   const apiMocker = new E2EApiMocker(page);
-
-  // Set up authentication tokens if preserveAuth is true
+  // For logout or direct auth tests, set auth tokens on the current page after login scripts run
   if (preserveAuth) {
-    await page.addInitScript(() => {
-      // Set up mock authentication tokens
-      localStorage.setItem('finance_manager_token', 'mock-jwt-token-' + Date.now());
-      localStorage.setItem('finance_manager_user', JSON.stringify({
-        id: 'test-user-id',
-        email: 'test@example.com',
-        firstName: 'Test',
-        lastName: 'User',
-        role: 'user',
-        createdAt: new Date().toISOString()
-      }));
-    });
-  } else {
-    // Only clear storage if we're not preserving auth (e.g., for auth tests)
-    await page.addInitScript(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    try {
+      await page.evaluate(() => {
+        try {
+          localStorage.setItem('finance_manager_token', 'mock-jwt-token-' + Date.now());
+          localStorage.setItem('finance_manager_user', JSON.stringify({
+            id: 'test-user-id',
+            email: 'test@example.com',
+            firstName: 'Test',
+            lastName: 'User',
+            role: 'user',
+            createdAt: new Date().toISOString()
+          }));
+        } catch (e) {
+          // Log error for test diagnostics
+          // eslint-disable-next-line no-console
+          console.error(e);
+          // SecurityError: localStorage is not accessible in this context
+          // Ignore in headless/CI or sandboxed environments
+        }
+      });
+    } catch (e) {
+      // Log error for test diagnostics
+      // eslint-disable-next-line no-console
+      console.error(e);
+      // SecurityError: page.evaluate itself failed, skip setting localStorage
+    }
   }
-
   // Use only page.route() for consistent mocking
-  await page.route('**/api/**', async (route) => {
+  await page.route('**/api/**', async (route: Route) => {
     const request = route.request();
     const url = request.url();
     const method = request.method();
-    
-    console.log(`[API Mock] ${method} ${url}`);
     
     // Handle authentication endpoints
     if (url.includes('/api/auth/login') && method === 'POST') {
       const postData = request.postData();
       const body = postData ? JSON.parse(postData) : {};
       const { email, password } = body;
-      
-      console.log(`[API Mock] Login attempt: ${email}`);
       
       // Valid credentials
       if ((email === 'test@example.com' && password === 'password123456') ||
@@ -371,7 +371,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
           }
         };
         
-        console.log(`[API Mock] Login success for ${email}`);
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -381,7 +380,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
       }
       
       // Invalid credentials
-      console.log(`[API Mock] Login failed for ${email}`);
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
@@ -396,7 +394,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
       
       // Accept any Bearer token that starts with 'mock-jwt-token'
       if (authHeader && authHeader.includes('Bearer') && authHeader.includes('mock-jwt-token')) {
-        console.log('[API Mock] Profile request with valid mock token');
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -412,7 +409,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
         return;
       }
       
-      console.log('[API Mock] Profile request without valid token:', authHeader);
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
@@ -426,7 +422,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
       const postData = request.postData();
       const body = postData ? JSON.parse(postData) : {};
       
-      console.log('[API Mock] Register request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -447,7 +442,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
     
     // Handle logout endpoint
     if (url.includes('/api/auth/logout') && method === 'POST') {
-      console.log('[API Mock] Logout request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -458,7 +452,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
     
     // Handle accounts endpoints
     if (url.includes('/api/accounts') && method === 'GET') {
-      console.log('[API Mock] Get accounts request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -494,8 +487,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
     if (url.includes('/api/accounts') && method === 'POST') {
       const postData = request.postData();
       const accountData = postData ? JSON.parse(postData) : {};
-      
-      console.log('[API Mock] Create account request:', accountData);
       
       // Simulate validation errors
       if (accountData.code === '1003' && accountData.name === 'Duplicate Account') {
@@ -542,7 +533,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
     
     // Handle AI insights endpoint
     if (url.includes('/api/ai-insights') && method === 'POST') {
-      console.log('[API Mock] AI insights request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -573,8 +563,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
 
     // Handle account deletion endpoint
     if (url.includes('/api/accounts/') && method === 'DELETE') {
-      const accountId = url.split('/api/accounts/')[1];
-      console.log(`[API Mock] Delete account request for ID: ${accountId}`);
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -585,7 +573,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
 
     // Handle account export endpoint
     if (url.includes('/api/accounts/export') && method === 'GET') {
-      console.log('[API Mock] Export accounts request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -607,7 +594,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
 
     // Handle financial reports endpoints
     if (url.includes('/api/reports/balance-sheet') && method === 'GET') {
-      console.log('[API Mock] Balance sheet request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -635,7 +621,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
     }
 
     if (url.includes('/api/reports/income-statement') && method === 'GET') {
-      console.log('[API Mock] Income statement request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -654,7 +639,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
     }
 
     if (url.includes('/api/reports/cash-flow') && method === 'GET') {
-      console.log('[API Mock] Cash flow request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -673,7 +657,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
 
     // Handle transactions endpoint
     if (url.includes('/api/transactions')) {
-      console.log('[API Mock] Transactions request');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -687,7 +670,6 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
 
     // Handle other API endpoints with generic success
     if (url.includes('/api/')) {
-      console.log(`[API Mock] Generic API response for ${method} ${url}`);
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -700,6 +682,5 @@ export async function setupGlobalApiMocks(page: Page, preserveAuth: boolean = tr
     await route.continue();
   });
 
-  console.log('✅ API mocks set up successfully');
   return apiMocker;
 }

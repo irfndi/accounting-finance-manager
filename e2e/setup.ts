@@ -61,7 +61,7 @@ async function seedTestData(page: any) {
     try {
       const storageState = await page.context().storageState();
       const localStorage = storageState.origins?.[0]?.localStorage;
-      authToken = localStorage?.find(item => item.name === 'finance_manager_token')?.value;
+      authToken = localStorage?.find((item: any) => item.name === 'finance_manager_token')?.value;
     } catch {
       console.log('ℹ️ Could not access storage state for auth token');
     }

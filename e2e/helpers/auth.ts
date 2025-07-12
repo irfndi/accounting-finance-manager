@@ -128,16 +128,16 @@ export class E2EAuthHelper {
     const mockToken = `mock-jwt-token-${Date.now()}`;
     
     // Set the token in localStorage
-    await this.page.addInitScript((token: string, userData: any) => {
+    await this.page.addInitScript(({ token, userData }) => {
       localStorage.setItem('finance_manager_token', token);
       localStorage.setItem('finance_manager_user', JSON.stringify(userData));
-    }, mockToken, {
+    }, { token: mockToken, userData: {
       id: user.id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-    });
+    }});
 
     return mockToken;
   }
@@ -233,16 +233,16 @@ export class E2EAuthHelper {
       const token = await authHelper.loginViaAPI(testUser);
       
       // Set auth state in context
-      await context.addInitScript((token: string, userData: any) => {
+      await context.addInitScript(({ token, userData }) => {
         localStorage.setItem('finance_manager_token', token);
         localStorage.setItem('finance_manager_user', JSON.stringify(userData));
-      }, token, {
+      }, { token, userData: {
         id: testUser.id,
         email: testUser.email,
         firstName: testUser.firstName,
         lastName: testUser.lastName,
         role: testUser.role,
-      });
+      }});
     } finally {
       await page.close();
     }
@@ -256,14 +256,6 @@ export async function setupGlobalAuth(page: Page): Promise<void> {
   const authHelper = new E2EAuthHelper(page);
   
   // Create test users
-  const _adminUser = await authHelper.createTestUser({
-    email: TEST_USERS.admin.email,
-    password: TEST_USERS.admin.password,
-    firstName: TEST_USERS.admin.firstName,
-    lastName: TEST_USERS.admin.lastName,
-    role: 'admin'
-  });
-  
   const regularUser = await authHelper.createTestUser({
     email: TEST_USERS.user.email,
     password: TEST_USERS.user.password,

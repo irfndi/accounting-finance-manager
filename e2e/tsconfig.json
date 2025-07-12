@@ -14,14 +14,14 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "baseUrl": "..",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "jsx": "preserve"
   },
   "include": [
     "./**/*.ts",

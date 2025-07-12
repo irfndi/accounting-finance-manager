@@ -1,15 +1,27 @@
 import { test, expect } from '@playwright/test';
-import { setupGlobalApiMocks, E2EApiMocker } from './helpers/api-mocks';
+import { setupGlobalApiMocks } from './helpers/api-mocks';
 
 test.describe('Account Management', () => {
-  let _apiMocker: E2EApiMocker;
-
   test.beforeEach(async ({ page }) => {
+    // Set up authentication state and E2E bypass flag in localStorage before any navigation
+    await page.addInitScript(() => {
+      // @ts-ignore
+      window.__E2E_BYPASS_AUTH__ = true;
+      localStorage.setItem('finance_manager_token', 'mock-jwt-token');
+      localStorage.setItem('finance_manager_user', JSON.stringify({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'user',
+        createdAt: new Date().toISOString()
+      }));
+    });
     // Set up API mocks first
-    _apiMocker = await setupGlobalApiMocks(page);
+    await setupGlobalApiMocks(page, false);
     
     // Wait for the page to load initially to ensure mocks are set up
-    await page.goto('/chart-of-accounts');
+    await page.goto('/chart-of-accounts?e2e=1');
     
     // Wait for page to load and check for essential elements
     await page.waitForSelector('[data-testid="chart-title"]', { timeout: 30000 });
@@ -22,14 +34,14 @@ test.describe('Account Management', () => {
   });
 
   test('should display General Ledger page', async ({ page }) => {
-    await page.goto('/general-ledger');
-    await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
-    await expect(page.locator('[data-testid="nav-title"]')).toBeVisible();
+    await page.goto('/general-ledger?e2e=1');
+    await page.waitForSelector('[data-testid="ledger-title"]', { timeout: 20000 });
+    await expect(page.locator('[data-testid="ledger-title"]')).toBeVisible();
   });
 
   test.describe('Chart of Accounts', () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto('/chart-of-accounts');
+      await page.goto('/chart-of-accounts?e2e=1');
       await page.waitForSelector('[data-testid="chart-title"]', { timeout: 20000 });
     });
 
@@ -111,8 +123,8 @@ test.describe('Account Management', () => {
 
   test.describe('General Ledger', () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto('/general-ledger');
-      await page.waitForSelector('[data-testid="nav-title"]', { timeout: 20000 });
+      await page.goto('/general-ledger?e2e=1');
+      await page.waitForSelector('[data-testid="ledger-title"]', { timeout: 20000 });
     });
 
     test('should successfully create new account', async ({ page }) => {

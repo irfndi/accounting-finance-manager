@@ -37,6 +37,7 @@ export default function FinanceDashboard() {
   const [financialAlerts, setFinancialAlerts] = useState<FinancialAlert[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(true);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const metrics: FinancialMetric[] = [
     { label: 'Total Assets', value: '$0', change: '', trend: 'neutral' },
@@ -64,6 +65,7 @@ export default function FinanceDashboard() {
 
   const loadAIInsights = async () => {
     setLoadingInsights(true);
+    setAiError(null);
     try {
       const response = await aiClient.generateInsights({
         period: selectedPeriod,
@@ -82,11 +84,19 @@ export default function FinanceDashboard() {
           priority: insight.priority,
           timestamp: new Date()
         }));
-        
         setAiInsights(insights);
+        setAiError(null);
+      } else {
+        setAiError('Failed to load AI insights. Please try again later.');
+        setAiInsights([]);
       }
-    } catch (error) {
-      console.error('Error loading AI insights:', error);
+    } catch (_error) {
+      // Production: log error to Sentry or error logger
+      if (typeof window !== 'undefined' && (window as any).Sentry) {
+        (window as any).Sentry.captureException(_error);
+      }
+      setAiError('Failed to load AI insights. Please try again later.');
+      setAiInsights([]);
     } finally {
       setLoadingInsights(false);
     }
@@ -111,8 +121,12 @@ export default function FinanceDashboard() {
       ];
       
       setFinancialAlerts(mockAlerts);
-    } catch (error) {
-      console.error('Error loading financial alerts:', error);
+    } catch (_error) {
+      // Production: log error to Sentry or error logger
+      if (typeof window !== 'undefined' && (window as any).Sentry) {
+        (window as any).Sentry.captureException(_error);
+      }
+      setAiError('An error occurred while loading financial alerts. Please try again.');
     }
   };
 
@@ -170,6 +184,11 @@ export default function FinanceDashboard() {
           <Button data-testid="export-report-button" variant="outline">Export Report</Button>
         </div>
       </div>
+      {aiError && (
+        <div className="mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2" data-testid="ai-error-message">
+          {aiError}
+        </div>
+      )}
 
       {/* Financial Alerts */}
       {financialAlerts.length > 0 && (
@@ -206,7 +225,6 @@ export default function FinanceDashboard() {
               activeModule === module.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
             }`}
             onClick={() => {
-              // For specific modules, navigate to their pages
               if (module.id === 'gl') {
                 window.location.href = '/general-ledger';
               } else if (module.id === 'reports') {
@@ -219,8 +237,17 @@ export default function FinanceDashboard() {
                 window.location.href = '/audit';
               } else if (module.id === 'entities') {
                 window.location.href = '/entities';
+              } else if (module.id === 'ai-insights') {
+                setActiveModule(prev => {
+                  if (prev !== 'ai-insights') {
+                    setTimeout(() => loadAIInsights(), 0);
+                    return 'ai-insights';
+                  } else {
+                    loadAIInsights();
+                    return 'ai-insights';
+                  }
+                });
               } else {
-                // For other modules, just set the active module
                 setActiveModule(module.id);
               }
             }}
@@ -351,7 +378,6 @@ export default function FinanceDashboard() {
               <CategorizationManager 
                 onSuggestionApproved={(_suggestion) => {
                   // Handle approved suggestion - could refresh transaction list or show notification
-                  // console.log('Suggestion approved:', suggestion);
                 }}
                 className="bg-white rounded-lg shadow-sm"
               />
@@ -372,41 +398,47 @@ export default function FinanceDashboard() {
                 </Button>
               </div>
 
+              {aiError && (
+                <div className="text-center py-4 text-red-600 bg-red-50 border border-red-200 rounded" data-testid="ai-error-message-panel">
+                  <p>{aiError}</p>
+                </div>
+              )}
+
               {loadingInsights ? (
                 <div className="flex items-center justify-center p-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                   <span className="ml-2 text-gray-600">AI is analyzing your financial data...</span>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {aiInsights.map((insight) => (
-                    <Card key={insight.id} className="border-l-4 border-purple-400">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{getTypeIcon(insight.type)}</span>
-                            <h4 className="font-semibold text-gray-900">{insight.title}</h4>
+              ) :
+                aiInsights.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {aiInsights.map((insight) => (
+                      <Card key={insight.id} className="border-l-4 border-purple-400">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{getTypeIcon(insight.type)}</span>
+                              <h4 className="font-semibold text-gray-900">{insight.title}</h4>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(insight.priority)}`}>{insight.priority}</span>
                           </div>
-                          <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(insight.priority)}`}>
-                            {insight.priority}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 mb-3">{insight.description}</p>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>Confidence: {Math.round(insight.confidence * 100)}%</span>
-                          <span>{insight.timestamp.toLocaleDateString()}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-
-              {aiInsights.length === 0 && !loadingInsights && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No AI insights available. Click "Refresh" to generate new insights.</p>
-                </div>
-              )}
+                          <p className="text-sm text-gray-700 mb-3">{insight.description}</p>
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>Confidence: {Math.round(insight.confidence * 100)}%</span>
+                            <span>{insight.timestamp.toLocaleDateString()}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  !aiError && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No AI insights available. Click "Refresh" to generate new insights.</p>
+                    </div>
+                  )
+                )
+              }
             </div>
           )}
 

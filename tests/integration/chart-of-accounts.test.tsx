@@ -414,7 +414,6 @@ describe('ChartOfAccounts Component', () => {
 
   // Skip this test for now as it's having issues with the shadcn UI Select component
   it.skip('should filter accounts by type', async () => {
-    const _user = userEvent.setup();
     render(<ChartOfAccounts />);
     
     // Wait for accounts to load

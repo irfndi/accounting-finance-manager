@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -17,6 +17,12 @@ interface FormErrors {
 }
 
 export default function LoginForm() {
+  // Clear any persisted authentication tokens when showing login form
+  useEffect(() => {
+    localStorage.removeItem('finance_manager_token');
+    localStorage.removeItem('finance_manager_user');
+  }, []);
+
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''

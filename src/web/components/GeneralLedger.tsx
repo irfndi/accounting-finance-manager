@@ -282,7 +282,7 @@ export default function GeneralLedger() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 data-testid="page-title" className="text-2xl font-bold text-slate-900">
+          <h1 data-testid="ledger-title" className="text-2xl font-bold text-slate-900">
             General Ledger
           </h1>
           <p className="text-slate-600 mt-1">

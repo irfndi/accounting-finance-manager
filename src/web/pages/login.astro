@@ -4,6 +4,11 @@ import LoginForm from "../components/LoginForm.tsx";
 ---
 
 <Layout title="Login - Finance Manager" hideNavigation={true}>
+  <!-- Clear leftover auth tokens on the client before showing the login form -->
+  <script>
+    localStorage.removeItem("finance_manager_token");
+    localStorage.removeItem("finance_manager_user");
+  </script>
   <div
     class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8"
   >

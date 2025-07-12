@@ -110,7 +110,7 @@
     "jsdom": "^26.1.0",
     "miniflare": "^4.20250617.4",
     "oxlint": "^1.5.0",
-    "playwright": "^1.53.2",
+    "playwright": "^1.54.1",
     "sql.js": "^1.13.0",
     "tailwindcss": "^4.1.11",
     "vite": "^7.0.0",

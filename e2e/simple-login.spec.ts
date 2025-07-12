@@ -79,7 +79,7 @@ test.describe('Simple Login Test', () => {
     await page.waitForTimeout(2000);
 
     // Check if React has hydrated by looking for React-specific attributes
-    const formElement = await page.locator('form').first();
+    const formElement = page.locator('form').first();
     const hasReactProps = await formElement.evaluate((el) => {
       // Check for React fiber properties
       const keys = Object.keys(el);
