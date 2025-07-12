@@ -90,6 +90,7 @@
     "@cloudflare/vite-plugin": "^1.8.0",
     "@cloudflare/vitest-pool-workers": "^0.8.49",
     "@cloudflare/workers-types": "^4.20250702.0",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "1.54.1",
     "@tailwindcss/vite": "^4.1.11",
     "@testing-library/jest-dom": "^6.6.3",

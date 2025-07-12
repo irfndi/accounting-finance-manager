@@ -1,0 +1,38 @@
+[
+  {
+    "url": "http://localhost:3000/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/Users/irfandi/Coding/2025/finance-manager/.lighthouseci/localhost--2025_07_12_03_31_25.report.html",
+    "jsonPath": "/Users/irfandi/Coding/2025/finance-manager/.lighthouseci/localhost--2025_07_12_03_31_25.report.json",
+    "summary": {
+      "performance": 0.33,
+      "accessibility": 1,
+      "best-practices": 0.82,
+      "seo": 0.5
+    }
+  },
+  {
+    "url": "http://localhost:3000/",
+    "isRepresentativeRun": false,
+    "htmlPath": "/Users/irfandi/Coding/2025/finance-manager/.lighthouseci/localhost--2025_07_12_03_31_54.report.html",
+    "jsonPath": "/Users/irfandi/Coding/2025/finance-manager/.lighthouseci/localhost--2025_07_12_03_31_54.report.json",
+    "summary": {
+      "performance": 0.37,
+      "accessibility": 1,
+      "best-practices": 0.82,
+      "seo": 0.5
+    }
+  },
+  {
+    "url": "http://localhost:3000/",
+    "isRepresentativeRun": true,
+    "htmlPath": "/Users/irfandi/Coding/2025/finance-manager/.lighthouseci/localhost--2025_07_12_03_31_38.report.html",
+    "jsonPath": "/Users/irfandi/Coding/2025/finance-manager/.lighthouseci/localhost--2025_07_12_03_31_38.report.json",
+    "summary": {
+      "performance": 0.4,
+      "accessibility": 1,
+      "best-practices": 0.82,
+      "seo": 0.5
+    }
+  }
+]
