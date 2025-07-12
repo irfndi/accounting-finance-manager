@@ -104,7 +104,11 @@ jobs:
       - name: Run Playwright tests
         run: |
           echo "Running E2E tests..."
-          pnpm exec playwright test --project=${{ matrix.browser }}
+          if [ "${{ matrix.browser }}" = "webkit" ] || [ "${{ matrix.browser }}" = "firefox" ]; then
+            pnpm exec playwright test --project=${{ matrix.browser }} --workers=1
+          else
+            pnpm exec playwright test --project=${{ matrix.browser }}
+          fi
           echo "✓ E2E tests completed"
         env:
           PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
