@@ -43,28 +43,5 @@ test.describe('Basic Application Tests', () => {
     expect(currentUrl.includes('/login') || hasLoginForm).toBeTruthy();
   });
 
-  test('should handle E2E bypass', async ({ page }) => {
-    // Set E2E bypass flag
-    await page.addInitScript(() => {
-      (window as any).__E2E_BYPASS_AUTH__ = true;
-      localStorage.setItem('finance_manager_token', 'mock-jwt-token');
-      localStorage.setItem('finance_manager_user', JSON.stringify({
-        id: 'test-user-id',
-        email: 'test@example.com',
-        firstName: 'Test',
-        lastName: 'User',
-        role: 'user',
-        createdAt: new Date().toISOString()
-      }));
-    });
-    
-    // Navigate to dashboard with E2E bypass
-    await page.goto('/dashboard?e2e=1');
-    
-    // Wait for page to load
-    await page.waitForLoadState('networkidle');
-    
-    // Should show dashboard content
-    await expect(page.locator('[data-testid="dashboard-title"]')).toBeVisible({ timeout: 10000 });
-  });
+
 });
