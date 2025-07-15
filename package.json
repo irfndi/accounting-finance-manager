@@ -24,7 +24,7 @@
     "test:ui": "vitest --ui --coverage.enabled=true",
     "test:workers": "vitest run --config=vitest.config.ts",
     "test:react": "vitest run --config=vitest.react.config.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --config=playwright.minimal.config.ts",
     "test:e2e:headless": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
