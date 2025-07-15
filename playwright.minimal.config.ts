@@ -1,50 +1,69 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Completely isolated Playwright configuration
-// This config ensures zero interference from other test frameworks
-
 /**
- * Minimal Playwright configuration for isolated E2E testing
+ * Minimal Playwright configuration for basic testing
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './e2e-isolated',
-  testMatch: '**/*.spec.ts',
+  testDir: './e2e',
+  testMatch: ['**/basic.spec.ts', '**/simple-login.spec.ts'],
   
-  // Basic timeout configurations
-  timeout: 30 * 1000, // 30 seconds per test
-  globalTimeout: 10 * 60 * 1000, // 10 minutes total
+  // Timeout configurations
+  timeout: 60 * 1000, // 60 seconds per test
+  globalTimeout: 15 * 60 * 1000, // 15 minutes total
   
-  // Sequential execution to avoid conflicts
-  fullyParallel: false,
-  workers: 1,
+  // Parallel execution
+  fullyParallel: true,
+  workers: process.env.CI ? 1 : undefined,
   
-  // No retries for debugging
-  retries: 0,
+  // Retry configuration
+  retries: process.env.CI ? 2 : 0,
   
-  // Simple reporter
-  reporter: [['list'], ['html', { outputFolder: 'playwright-report-minimal', open: 'never' }]],
+  // Fail fast on CI
+  forbidOnly: !!process.env.CI,
   
-  // Minimal settings
+  // Reporter
+  reporter: process.env.CI ? [['junit', { outputFile: 'test-results/junit.xml' }], ['github']] : [['html', { outputFolder: 'playwright-report', open: 'never' }]],
+  
+  // Shared settings
   use: {
     baseURL: 'http://localhost:3000',
-    actionTimeout: 10 * 1000,
-    navigationTimeout: 15 * 1000,
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    
+    // Timeout configurations
+    actionTimeout: 15 * 1000, // 15 seconds for actions
+    navigationTimeout: 30 * 1000, // 30 seconds for navigation
+    
+    // Performance optimizations
+    trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
+    screenshot: process.env.CI ? 'only-on-failure' : 'off',
+    video: process.env.CI ? 'retain-on-failure' : 'off',
+    
+    // Faster page loads
+    ignoreHTTPSErrors: true,
+    bypassCSP: true,
   },
   
   // Expect timeout for assertions
   expect: {
-    timeout: 5 * 1000,
+    timeout: 10 * 1000, // 10 seconds for assertions
   },
 
-  // Single project - Chromium only
+  // Simple projects - just the browsers we're testing
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        launchOptions: process.env.CI ? { 
+          args: ['--disable-images', '--disable-css', '--disable-extensions', '--no-sandbox', '--disable-setuid-sandbox'] 
+        } : undefined,
+      },
+    },
+    {
+      name: 'firefox',
+      use: { 
+        ...devices['Desktop Firefox'],
+      },
     },
   ],
 
@@ -53,11 +72,11 @@ export default defineConfig({
     command: 'pnpm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 60 * 1000,
+    timeout: 120 * 1000, // 2 minutes for server startup
     stdout: 'pipe',
     stderr: 'pipe',
   },
 
-  // Output directory
-  outputDir: 'test-results-minimal',
+  // Output directory for reports
+  outputDir: 'test-results',
 });

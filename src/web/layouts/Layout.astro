@@ -115,18 +115,19 @@ const isAuthPage = Astro.url.pathname === '/login' || Astro.url.pathname === '/r
             }
         </script>
         {isAuthPage && (
-          // Clear any leftover auth tokens before rendering auth pages
           <script>
             localStorage.removeItem('finance_manager_token');
             localStorage.removeItem('finance_manager_user');
           </script>
         )}
-        <AuthProvider>
+    </head>
+    <body>
+        <AuthProvider client:load>
             {isAuthPage ? (
                 <slot />
             ) : (
                 <div>
-                    {!hideNavigation && <Navigation currentPath={currentPath} />}
+                    {!hideNavigation && <Navigation currentPath={currentPath} client:load />}
 
                     <!-- Main Content Area -->
                     <main class={`min-h-screen transition-all duration-300 ${!hideNavigation ? 'ml-64' : ''}`}>
@@ -141,7 +142,7 @@ const isAuthPage = Astro.url.pathname === '/login' || Astro.url.pathname === '/r
                                         description && (
                                             <p class="text-sm text-slate-600 mt-1">
                                                 {description}
-                            </p>
+                                            </p>
                                         )
                                     }
                                 </div>
@@ -199,7 +200,7 @@ const isAuthPage = Astro.url.pathname === '/login' || Astro.url.pathname === '/r
                             </div>
                         </header>
 
-                        <AuthGuard>
+                        <AuthGuard client:load>
                             <!-- Page Content -->
                             <div class="p-6">
                                 <slot />
