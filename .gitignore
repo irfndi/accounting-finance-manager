@@ -26,6 +26,9 @@ node_modules/
 
 .cursor/mcp.json
 
+# Kiro MCP settings (may contain API keys)
+.kiro/settings/mcp.json
+
 coverage/
 .wrangler
 .astro

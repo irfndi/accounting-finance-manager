@@ -1,0 +1,123 @@
+{
+  "mcpServers": {
+      "brave-search": {
+          "command": "npx",
+          "args": [
+              "-y",
+              "@modelcontextprotocol/server-brave-search"
+          ],
+          "env": {
+              "BRAVE_API_KEY": "YOUR_BRAVE_API_KEY_HERE"
+          },
+          "disabled": false,
+          "autoApprove": [
+              "brave_web_search",
+              "brave_local_search"
+          ]
+      },
+      "github": {
+          "command": "npx",
+          "args": [
+              "-y",
+              "@modelcontextprotocol/server-github"
+          ],
+          "env": {
+              "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_TOKEN_HERE"
+          },
+          "disabled": false,
+          "autoApprove": [
+              "search_repositories",
+              "get_file_contents",
+              "list_commits",
+              "list_issues",
+              "search_code",
+              "search_issues",
+              "search_users"
+          ]
+      },
+      "package-version": {
+          "command": "npx",
+          "args": [
+              "-y",
+              "mcp-package-version"
+          ],
+          "disabled": false,
+          "autoApprove": [
+              "check_npm_versions",
+              "check_python_versions",
+              "check_pyproject_versions",
+              "check_maven_versions",
+              "check_gradle_versions",
+              "check_go_versions",
+              "check_docker_tags",
+              "check_swift_versions"
+          ]
+      },
+      "sequential-thinking": {
+          "command": "npx",
+          "args": [
+              "-y",
+              "@modelcontextprotocol/server-sequential-thinking"
+          ],
+          "disabled": false,
+          "autoApprove": [
+              "sequentialthinking"
+          ]
+      },
+      "Docker": {
+          "command": "uvx",
+          "args": [
+              "docker-mcp"
+          ],
+          "env": {},
+          "disabled": false,
+          "autoApprove": []
+      },
+      "Memory": {
+          "command": "npx",
+          "args": [
+              "-y",
+              "@modelcontextprotocol/server-memory"
+          ],
+          "env": {
+              "MEMORY_FILE_PATH": "memory.json"
+          },
+          "disabled": false,
+          "autoApprove": []
+      },
+      "context7": {
+          "command": "npx",
+          "args": [
+              "-y",
+              "@upstash/context7-mcp@latest"
+          ],
+          "env": {
+              "DEFAULT_MINIMUM_TOKENS": "10000"
+          },
+          "disabled": false,
+          "autoApprove": [
+              "resolve-library-id",
+              "get-library-docs"
+          ]
+      },
+      "Playwright": {
+          "command": "npx",
+          "args": [
+              "-y",
+              "@executeautomation/playwright-mcp-server"
+          ],
+          "env": {},
+          "disabled": false,
+          "autoApprove": []
+      },
+      "fetch": {
+          "command": "uvx",
+          "args": [
+              "mcp-server-fetch"
+          ],
+          "env": {},
+          "disabled": true,
+          "autoApprove": []
+      }
+  }
+}
