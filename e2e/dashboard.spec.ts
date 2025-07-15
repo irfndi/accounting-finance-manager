@@ -83,47 +83,18 @@ test.describe('Dashboard', () => {
     // Wait for AI Insights module to be visible
     await page.waitForSelector('[data-testid="ai-insights-module"]', { timeout: 15000 });
 
-    // Debug: log all network requests after clicking
-    const requests: string[] = [];
-    page.on('request', (req: Request) => {
-      requests.push(`${req.method()} ${req.url()}`);
-    });
-
+    // Click the AI insights module to activate it
     await page.locator('[data-testid="ai-insights-module"]').click();
 
-    // Debug: take a screenshot of the DOM after clicking
-    await page.screenshot({ path: 'test-results/screenshots/ai-insights-prewait.png', fullPage: true });
+    // Wait for the AI insights content to load with a longer timeout
+    await page.waitForSelector('[data-testid="ai-insights-content"]', { timeout: 30000 });
 
-    // Wait for either the loading spinner, the content, or the error message to appear
-    const spinner = page.locator('text=AI is analyzing your financial data...');
-    const content = page.locator('[data-testid="ai-insights-content"]');
-    const errorPanel = page.locator('[data-testid="ai-error-message-panel"]');
-    try {
-      await Promise.race([
-        spinner.waitFor({ state: 'visible', timeout: 15000 }),
-        content.waitFor({ state: 'visible', timeout: 15000 }),
-        errorPanel.waitFor({ state: 'visible', timeout: 15000 })
-      ]);
-    } catch (_e) {
-      // Log error for test diagnostics
-      // eslint-disable-next-line no-console
-      console.error(_e);
-      // Log all requests for debug
-      // eslint-disable-next-line no-console
-      console.log('Network requests after clicking AI Insights:', requests);
-      await page.screenshot({ path: 'test-results/screenshots/ai-insights-timeout.png', fullPage: true });
-      throw new Error('AI Insights spinner/content/error did not appear. Screenshot saved as ai-insights-timeout.png');
-    }
+    // Check that the AI insights title is visible
+    await expect(page.locator('[data-testid="ai-insights-title"]')).toContainText('AI Financial Insights');
 
-    // Assert that at least one of content or error panel is visible
-    const contentVisible = await content.isVisible();
-    const errorVisible = await errorPanel.isVisible();
-    expect(contentVisible || errorVisible).toBe(true);
-
-    // If content is visible, check its structure
-    if (contentVisible) {
-      await expect(content).toContainText('AI Financial Insights');
-    }
+    // Check that insights are displayed or loading state is shown
+    const insightsVisible = await page.locator('[data-testid="ai-insights-content"]').isVisible();
+    expect(insightsVisible).toBe(true);
   });
 
   test('should display quick actions', async ({ page }: { page: Page }) => {

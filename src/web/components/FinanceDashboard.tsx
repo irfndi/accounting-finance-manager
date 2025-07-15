@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import TransactionManager from './TransactionManager';
@@ -57,13 +57,7 @@ export default function FinanceDashboard() {
     { id: 'ai-insights', name: 'AI Insights', icon: '🤖', hasAI: true },
   ];
 
-  // Load AI insights on component mount and when period changes
-  useEffect(() => {
-    loadAIInsights();
-    loadFinancialAlerts();
-  }, [selectedPeriod]);
-
-  const loadAIInsights = async () => {
+  const loadAIInsights = useCallback(async () => {
     setLoadingInsights(true);
     setAiError(null);
     try {
@@ -75,13 +69,13 @@ export default function FinanceDashboard() {
       });
 
       if (response.success && response.result) {
-        const insights: AIInsight[] = response.result.insights.map((insight: any, index: number) => ({
+        const insights: AIInsight[] = response.result.insights.map((insight: { type: string; title: string; description: string; confidence: number; priority: string }, index: number) => ({
           id: `insight-${index}`,
-          type: insight.type,
+          type: insight.type as 'opportunity' | 'risk' | 'compliance' | 'optimization',
           title: insight.title,
           description: insight.description,
           confidence: insight.confidence,
-          priority: insight.priority,
+          priority: insight.priority as 'high' | 'medium' | 'low',
           timestamp: new Date()
         }));
         setAiInsights(insights);
@@ -92,17 +86,17 @@ export default function FinanceDashboard() {
       }
     } catch (_error) {
       // Production: log error to Sentry or error logger
-      if (typeof window !== 'undefined' && (window as any).Sentry) {
-        (window as any).Sentry.captureException(_error);
+      if (typeof window !== 'undefined' && (window as Window & { Sentry?: { captureException: (error: unknown) => void } }).Sentry) {
+        (window as Window & { Sentry?: { captureException: (error: unknown) => void } }).Sentry?.captureException?.(_error);
       }
       setAiError('Failed to load AI insights. Please try again later.');
       setAiInsights([]);
     } finally {
       setLoadingInsights(false);
     }
-  };
+  }, [selectedPeriod]);
 
-  const loadFinancialAlerts = async () => {
+  const loadFinancialAlerts = useCallback(async () => {
     try {
       // Simulate financial alerts - in real app, this would come from your backend
       const mockAlerts: FinancialAlert[] = [
@@ -123,12 +117,18 @@ export default function FinanceDashboard() {
       setFinancialAlerts(mockAlerts);
     } catch (_error) {
       // Production: log error to Sentry or error logger
-      if (typeof window !== 'undefined' && (window as any).Sentry) {
-        (window as any).Sentry.captureException(_error);
+      if (typeof window !== 'undefined' && (window as Window & { Sentry?: { captureException: (error: unknown) => void } }).Sentry) {
+        (window as Window & { Sentry?: { captureException: (error: unknown) => void } }).Sentry?.captureException?.(_error);
       }
       setAiError('An error occurred while loading financial alerts. Please try again.');
     }
-  };
+  }, []);
+
+  // Load AI insights on component mount and when period changes
+  useEffect(() => {
+    loadAIInsights();
+    loadFinancialAlerts();
+  }, [selectedPeriod, loadAIInsights, loadFinancialAlerts]);
 
   const refreshAIInsights = () => {
     loadAIInsights();
@@ -385,21 +385,21 @@ export default function FinanceDashboard() {
           )}
 
           {activeModule === 'ai-insights' && (
-            <div data-testid="ai-insights-content" className="space-y-6">
+            <div data-testid="ai-insights-content" className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 data-testid="ai-insights-title" className="text-lg font-semibold">AI Financial Insights</h3>
+                <h3 data-testid="ai-insights-title" className="text-lg font-semibold text-slate-800">AI Financial Insights</h3>
                 <Button 
                   onClick={refreshAIInsights}
                   variant="outline"
-                  size="sm"
                   disabled={loadingInsights}
+                  className="bg-purple-50 hover:bg-purple-100 text-purple-700"
                 >
                   {loadingInsights ? 'Refreshing...' : 'Refresh'}
                 </Button>
               </div>
 
               {aiError && (
-                <div className="text-center py-4 text-red-600 bg-red-50 border border-red-200 rounded" data-testid="ai-error-message-panel">
+                <div data-testid="ai-error-message-panel" className="text-center py-4 text-red-600 bg-red-50 border border-red-200 rounded">
                   <p>{aiError}</p>
                 </div>
               )}
