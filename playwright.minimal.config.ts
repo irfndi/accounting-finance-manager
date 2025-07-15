@@ -6,7 +6,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['**/basic.spec.ts', '**/simple-login.spec.ts'],
+  testMatch: ['e2e/basic.spec.ts', 'e2e/auth.spec.ts'],
+  testIgnore: ['**/accounts.spec.ts', '**/dashboard.spec.ts', '**/example.spec.ts', '**/simple-login.spec.ts', '**/setup.ts', '**/teardown.ts', '**/helpers/**'],
 
   // Timeout configurations
   timeout: 60 * 1000, // 60 seconds per test
@@ -27,7 +28,7 @@ export default defineConfig({
 
   // Shared settings
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3001',
 
     // Timeout configurations
     actionTimeout: 15 * 1000, // 15 seconds for actions
@@ -70,7 +71,7 @@ export default defineConfig({
   // Web server configuration
   webServer: {
     command: 'pnpm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // 2 minutes for server startup
     stdout: 'pipe',
