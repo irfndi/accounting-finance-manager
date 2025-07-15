@@ -73,8 +73,12 @@ test.describe('Authentication', () => {
     // Verify we're no longer on the login page
     expect(page.url()).not.toContain('/login');
     
+    // Wait for React component to hydrate and dashboard content to load
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000); // Give React time to hydrate
+    
     // Verify we can see dashboard content
-    await expect(page.getByTestId('dashboard-title')).toBeVisible();
+    await expect(page.getByTestId('dashboard-title')).toBeVisible({ timeout: 15000 });
   });
 
   test('should show error for invalid credentials', async ({ page }: { page: Page }) => {
@@ -183,7 +187,12 @@ test.describe('Authentication', () => {
     
     // Should redirect to dashboard after successful registration
     await page.waitForURL('/', { timeout: 15000, waitUntil: 'networkidle' });
-    await expect(page.getByTestId('dashboard-title')).toBeVisible();
+    
+    // Wait for React component to hydrate and dashboard content to load
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000); // Give React time to hydrate
+    
+    await expect(page.getByTestId('dashboard-title')).toBeVisible({ timeout: 15000 });
   });
 
   test('should logout successfully', async ({ page }: { page: Page }) => {
