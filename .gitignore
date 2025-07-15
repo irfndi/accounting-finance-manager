@@ -24,10 +24,12 @@ node_modules/
 # OS specific
 .DS_Store
 
+# MCP configuration files (may contain API keys)
 .cursor/mcp.json
-
-# Kiro MCP settings (may contain API keys)
 .kiro/settings/mcp.json
+.roo/mcp.json
+.windsurf/mcp.json
+**/mcp.json
 
 coverage/
 .wrangler
@@ -53,3 +55,5 @@ test-results
 
 # Playwright authentication files
 playwright/.auth
+
+mcp.json
