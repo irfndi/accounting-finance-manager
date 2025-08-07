@@ -2,7 +2,7 @@
   "models": {
     "main": {
       "provider": "openrouter",
-      "modelId": "deepseek/deepseek-chat-v3-0324",
+      "modelId": "qwen/qwen3-235b-a22b:free",
       "maxTokens": 120000,
       "temperature": 0.2
     },
@@ -14,7 +14,7 @@
     },
     "fallback": {
       "provider": "openrouter",
-      "modelId": "google/gemini-2.5-flash-lite-preview-06-17",
+      "modelId": "moonshotai/kimi-k2:free",
       "maxTokens": 120000,
       "temperature": 0.1
     }

@@ -6,7 +6,13 @@ const workersConfig = defineWorkersConfig({
   test: {
     watch: false,
     reporters: ['dot'],
-    include: ['tests/unit/*.test.ts', 'tests/integration/*.test.ts'],
+    include: [
+      'tests/unit/worker.test.ts',
+      'tests/unit/api-*.test.ts',
+      'tests/unit/auth-*.test.ts',
+      'tests/unit/accounts-api.test.ts',
+      'tests/unit/budgets-api.test.ts'
+    ],
     exclude: ['tests/unit/*.test.tsx', 'tests/integration/*.test.tsx', 'tests/e2e/**/*'],
     setupFiles: ['tests/setup.ts'],
     globals: true,

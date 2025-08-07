@@ -58,9 +58,9 @@ vi.mock('../../src/web/components/ui/select', () => ({
     </div>
   ),
   SelectContent: ({ children }: any) => <div style={{ display: 'none' }}>{children}</div>,
-  SelectItem: ({ _children, _value }: any) => null,
-  SelectTrigger: ({ _children }: any) => null,
-  SelectValue: ({ _placeholder }: any) => null,
+  SelectItem: () => null,
+  SelectTrigger: () => null,
+  SelectValue: () => null,
 }));
 
 vi.mock('../../src/web/components/ui/dialog', () => {

@@ -52,7 +52,7 @@ export default function LoginForm() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear errors when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
@@ -75,10 +75,10 @@ export default function LoginForm() {
 
     try {
       const { user, token } = await authApi.login(formData.email, formData.password);
-      
+
       // Store auth data using auth library and redirect
       auth.login(token, user);
-      
+
       // Navigate to dashboard using Astro's client-side navigation
       if (typeof window !== 'undefined') {
         try {
@@ -92,8 +92,8 @@ export default function LoginForm() {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
-      
-      setErrors({ 
+
+      setErrors({
         general: errorMessage
       });
     } finally {
@@ -113,7 +113,7 @@ export default function LoginForm() {
               {errors.general}
             </div>
           )}
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
             <Input
@@ -131,7 +131,7 @@ export default function LoginForm() {
               <p className="text-red-500 text-sm">{errors.email}</p>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -149,10 +149,10 @@ export default function LoginForm() {
               <p className="text-red-500 text-sm">{errors.password}</p>
             )}
           </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full" 
+
+          <Button
+            type="submit"
+            className="w-full"
             disabled={isLoading}
             data-testid="login-button"
           >
@@ -168,6 +168,15 @@ export default function LoginForm() {
               'Sign In'
             )}
           </Button>
+
+          <div className="text-center mt-4">
+            <a
+              href="/forgot-password"
+              className="text-sm text-blue-600 hover:text-blue-500"
+            >
+              Forgot your password?
+            </a>
+          </div>
         </form>
       </CardContent>
     </Card>

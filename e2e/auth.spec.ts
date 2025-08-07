@@ -67,8 +67,8 @@ test.describe('Authentication', () => {
     // Submit the form and wait for navigation
     await loginButton.click();
     
-    // Wait for navigation to complete - use waitForURL with load state
-    await page.waitForURL('/', { timeout: 15000, waitUntil: 'networkidle' });
+    // Wait for navigation to complete - use domcontentloaded instead of networkidle
+    await page.waitForURL('/', { timeout: 15000, waitUntil: 'domcontentloaded' });
     
     // Verify we're no longer on the login page
     expect(page.url()).not.toContain('/login');
@@ -108,13 +108,13 @@ test.describe('Authentication', () => {
     await page.goto('/login');
     
     // Wait for the page to be fully loaded
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     
     // Click the register link
     await page.getByText('Sign up here').click();
     
     // Wait for navigation to complete
-    await page.waitForURL('/register', { waitUntil: 'networkidle' });
+    await page.waitForURL('/register', { timeout: 15000, waitUntil: 'domcontentloaded' });
     
     // Wait for register page content to be visible
     await expect(page.getByText('Create your account')).toBeVisible({ timeout: 15000 });
@@ -131,7 +131,7 @@ test.describe('Authentication', () => {
     });
     
     // Navigate directly to register page
-    await page.goto('/register', { waitUntil: 'networkidle' });
+    await page.goto('/register', { waitUntil: 'domcontentloaded' });
     
     // Wait for register form to be visible
     await expect(page.getByTestId('register-form')).toBeVisible({ timeout: 15000 });
@@ -186,7 +186,7 @@ test.describe('Authentication', () => {
     await page.getByTestId('register-button').click();
     
     // Should redirect to dashboard after successful registration
-    await page.waitForURL('/', { timeout: 15000, waitUntil: 'networkidle' });
+    await page.waitForURL('/', { timeout: 15000, waitUntil: 'domcontentloaded' });
     
     // Verify we're no longer on the register page
     expect(page.url()).not.toContain('/register');
@@ -204,7 +204,7 @@ test.describe('Authentication', () => {
     await setupGlobalApiMocks(page, true);
     
     // Navigate directly to dashboard since we're setting up auth state
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     
     // Wait for dashboard to load and user menu to be visible
     // await expect(page.getByTestId('dashboard-title')).toBeVisible({ timeout: 15000 });

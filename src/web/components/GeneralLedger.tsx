@@ -63,6 +63,9 @@ interface GeneralLedgerStats {
   activeAccounts: number;
   monthlyTransactions: number;
   unbalancedEntries: number;
+  inactiveAccounts: number;
+  totalJournalEntries: number;
+  balanceIntegrity: boolean;
 }
 
 const ACCOUNT_TYPES = [
@@ -73,9 +76,9 @@ const ACCOUNT_TYPES = [
   { value: 'EXPENSE', label: 'Expense' },
 ];
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
-  : 'http://localhost:3000';
+const API_BASE_URL = typeof window !== 'undefined'
+  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || 'https://finance-manager.irfandimarsya.workers.dev')
+  : 'https://finance-manager.irfandimarsya.workers.dev';
 
 export default function GeneralLedger() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -83,7 +86,10 @@ export default function GeneralLedger() {
     totalAccounts: 0,
     activeAccounts: 0,
     monthlyTransactions: 0,
-    unbalancedEntries: 0
+    unbalancedEntries: 0,
+    inactiveAccounts: 0,
+    totalJournalEntries: 0,
+    balanceIntegrity: true
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +98,7 @@ export default function GeneralLedger() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  
+
   // Form state for adding new account
   const [formData, setFormData] = useState<CreateAccountData>({
     code: '',
@@ -112,12 +118,12 @@ export default function GeneralLedger() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const params = new URLSearchParams();
       if (typeFilter !== 'all') {
         params.append('type', typeFilter);
       }
-      
+
       const url = `${API_BASE_URL}/api/accounts?${params}`;
       const response = await fetch(url, {
         headers: {
@@ -127,20 +133,12 @@ export default function GeneralLedger() {
       if (!response.ok) {
         throw new Error(`Failed to fetch accounts: ${response.statusText}`);
       }
-      
+
       const data = await response.json() as { accounts: Account[] };
       setAccounts(data.accounts || []);
-      
-      // Calculate stats
-      const totalAccounts = data.accounts?.length || 0;
-      const activeAccounts = data.accounts?.filter((acc: Account) => acc.isActive).length || 0;
-      
-      setStats({
-        totalAccounts,
-        activeAccounts,
-        monthlyTransactions: 0, // TODO: Implement transaction counting
-        unbalancedEntries: 0    // TODO: Implement unbalanced entry detection
-      });
+
+      // Fetch real statistics
+      await fetchStats();
     } catch (err) {
       console.error('Error fetching accounts:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch accounts');
@@ -149,15 +147,56 @@ export default function GeneralLedger() {
     }
   };
 
+  // Fetch real statistics from API
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/stats`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('finance_manager_token') || ''}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch statistics: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { success: boolean; stats: any };
+
+      if (data.success && data.stats) {
+        setStats({
+          totalAccounts: data.stats.accounts.total,
+          activeAccounts: data.stats.accounts.active,
+          monthlyTransactions: data.stats.transactions.monthlyCount,
+          unbalancedEntries: data.stats.compliance.unbalancedEntries,
+          inactiveAccounts: data.stats.accounts.inactive,
+          totalJournalEntries: data.stats.journalEntries.total,
+          balanceIntegrity: data.stats.compliance.balanceIntegrity
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching statistics:', err);
+      // Fall back to basic account stats if stats API fails
+      const totalAccounts = accounts.length;
+      const activeAccounts = accounts.filter(acc => acc.isActive).length;
+
+      setStats(prev => ({
+        ...prev,
+        totalAccounts,
+        activeAccounts,
+        inactiveAccounts: totalAccounts - activeAccounts
+      }));
+    }
+  };
+
   // Save account (create or update)
   const saveAccount = async () => {
     try {
       setIsSubmitting(true);
       setFormErrors({});
-      
+
       // Frontend validation - collect all errors
       const errors: Record<string, string> = {};
-      
+
       if (!formData.code.trim()) {
         errors.code = 'Account code is required';
       }
@@ -167,17 +206,17 @@ export default function GeneralLedger() {
       if (!formData.type.trim()) {
         errors.type = 'Account type is required';
       }
-      
+
       // If there are validation errors, set them and return
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         setIsSubmitting(false);
         return;
       }
-      
+
       // Debug: Log the data being sent
       console.log('Sending account data:', formData);
-      
+
       const response = await fetch(`${API_BASE_URL}/api/accounts`, {
         method: 'POST',
         headers: {
@@ -186,7 +225,7 @@ export default function GeneralLedger() {
         },
         body: JSON.stringify(formData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json() as { errors?: any; error?: string };
         if (errorData.errors) {
@@ -196,12 +235,12 @@ export default function GeneralLedger() {
         }
         throw new Error(errorData.error || 'Failed to save account');
       }
-      
+
       // Reset form and close dialog
       setFormData({
-      code: '',
-      name: '',
-      type: 'ASSET',
+        code: '',
+        name: '',
+        type: 'ASSET',
         subtype: '',
         category: '',
         description: '',
@@ -209,7 +248,7 @@ export default function GeneralLedger() {
         normalBalance: 'debit'
       });
       setIsAddDialogOpen(false);
-      
+
       // Refresh accounts list
       await fetchAccounts();
     } catch (err) {
@@ -222,7 +261,7 @@ export default function GeneralLedger() {
   // Filter accounts based on search and type
   const filteredAccounts = accounts.filter(account => {
     const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.code.toLowerCase().includes(searchTerm.toLowerCase());
+      account.code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || account.type === typeFilter;
     return matchesSearch && matchesType;
   });
@@ -514,9 +553,9 @@ export default function GeneralLedger() {
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-600">{error}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={fetchAccounts}
               className="mt-2"
             >
@@ -560,9 +599,8 @@ export default function GeneralLedger() {
                       {formatCurrency(account.balance)}
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        account.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${account.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {account.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </TableCell>

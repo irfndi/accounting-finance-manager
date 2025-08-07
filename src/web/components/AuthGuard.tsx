@@ -149,11 +149,10 @@ function AuthGuardContent({ children, fallback }: AuthGuardProps) {
     setIsClient(true);
   }, []);
   
-  // Check for E2E bypass flag
+  // Check for E2E bypass flag (only in test environment)
   const isE2EBypass = typeof window !== 'undefined' && (
     (window as any).__E2E_BYPASS_AUTH__ === true ||
-    window.location.search.includes('e2e=1') ||
-    localStorage.getItem('finance_manager_token')?.includes('mock-jwt-token')
+    (window.location.search.includes('e2e=1') && process.env.NODE_ENV === 'test')
   );
   
   // During SSR or before hydration, show loading state

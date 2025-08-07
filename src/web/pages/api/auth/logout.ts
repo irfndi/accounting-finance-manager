@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request: _request }) => {
   try {
     // In a real implementation, you might want to:
     // 1. Invalidate the JWT token on the server side (add to blacklist)

@@ -12,7 +12,7 @@ export function createFinancialAIService(env: Env): FinancialAIService | null {
       provider: 'openrouter',
       apiKey: env.OPENROUTER_API_KEY,
       baseUrl: 'https://openrouter.ai/api/v1',
-      modelId: 'google/gemini-2.5-flash-lite-preview-06-17'
+      modelId: 'moonshotai/kimi-k2:free'
     });
 
     const aiService = new AIService({

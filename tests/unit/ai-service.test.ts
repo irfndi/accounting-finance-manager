@@ -217,7 +217,7 @@ describe('AIService', () => {
 
       async function consumeGenerator() {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        for await (const chunk of aiService.generateStream(mockMessages)) {
+        for await (const _chunk of aiService.generateStream(mockMessages)) {
           // Consume the stream to trigger the error
         }
       }

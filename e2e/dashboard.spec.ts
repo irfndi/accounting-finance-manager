@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import type { Page, Request, Route } from '@playwright/test';
+import type { Page, Route } from '@playwright/test';
 import { setupGlobalApiMocks } from './helpers/api-mocks';
 
 test.describe('Dashboard', () => {

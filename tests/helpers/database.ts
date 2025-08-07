@@ -416,7 +416,7 @@ export async function createTestDatabase() {
  * @param table - The table name to mock
  * @param data - The data to return from queries
  */
-export function setupDatabaseMock(mockDb: any, table: string, data: any[]) {
+export function setupDatabaseMock(mockDb: any, _table: string, data: any[]) {
   // Reset all mocks
   vi.clearAllMocks();
   

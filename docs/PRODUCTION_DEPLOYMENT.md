@@ -20,8 +20,8 @@ This guide covers the complete deployment process for the Corporate Finance Mana
 # Create production database
 wrangler d1 create finance-manager-db-prod
 
-# Update wrangler.toml with the returned database ID
-# Replace the TODO comment with actual production database ID
+# Update alchemy.prod.ts or wrangler.jsonc with the returned database ID
+# The database ID will be automatically configured in Alchemy
 ```
 
 #### 2. Create Production KV Namespace
@@ -29,7 +29,8 @@ wrangler d1 create finance-manager-db-prod
 # Create production KV namespace for caching
 wrangler kv:namespace create "FINANCE_MANAGER_CACHE" --env production
 
-# Update wrangler.toml with the returned namespace ID
+# Update alchemy.prod.ts with the returned namespace ID
+# Alchemy will manage the KV namespace configuration
 ```
 
 #### 3. Create Production R2 Bucket
@@ -40,10 +41,11 @@ wrangler r2 bucket create finance-manager-documents-prod
 
 ### 🔧 Configuration Updates Needed
 
-1. **Update `worker/wrangler.toml`**:
+1. **Update `alchemy.prod.ts`**:
    - Replace production database ID (currently using dev ID)
    - Replace production KV namespace ID
    - Verify R2 bucket names
+   - Update Cloudflare AI binding configuration
 
 2. **Environment Variables** (if needed):
    - No secrets currently required
@@ -53,11 +55,8 @@ wrangler r2 bucket create finance-manager-documents-prod
 
 #### Run Production Migrations
 ```bash
-# Navigate to worker directory
-cd worker
-
 # Apply database migrations to production
-pnpm migrate:prod
+pnpm db:migrate:prod
 ```
 
 #### Verify Database Schema
@@ -71,17 +70,22 @@ wrangler d1 execute finance-manager-db-prod --command "SELECT name FROM sqlite_m
 ### 1. Pre-Deployment Testing
 ```bash
 # Ensure all tests pass
-pnpm test
+pnpm test:all
+
+# Run Workers-specific tests
+pnpm test:workers
 
 # Test build process for production
-cd worker
-pnpm build:prod
+pnpm build
 ```
 
 ### 2. Deploy to Production
 ```bash
-# Deploy to production environment
+# Deploy to production environment using Alchemy
 pnpm deploy:prod
+
+# Alternative: Deploy using Wrangler CLI
+pnpm deploy:prod:wrangler
 ```
 
 ### 3. Post-Deployment Verification
@@ -117,11 +121,13 @@ curl https://finance-manager.irfandimarsya.workers.dev/api/accounts
 - **Cloudflare Analytics**: Built-in request/response monitoring
 - **Worker Logs**: Real-time log streaming via `pnpm tail:prod`
 - **Health Endpoint**: `/health` for uptime monitoring
+- **Alchemy Monitoring**: Infrastructure monitoring and alerting
+- **Database Metrics**: D1 query performance and usage
+- **AI Usage Tracking**: OpenRouter and Cloudflare AI usage metrics
 
 ### Log Monitoring
 ```bash
 # Monitor production logs in real-time
-cd worker
 pnpm tail:prod
 ```
 
@@ -134,6 +140,9 @@ pnpm tail:prod
 - ✅ Snyk security monitoring enabled
 - ✅ Double-entry accounting validation
 - ✅ Input validation on all endpoints
+- ✅ JWT-based authentication with Supabase
+- ✅ Magic link authentication
+- ✅ Rate limiting and security headers
 
 ### Production Security Checklist
 - [ ] Verify domain SSL certificate
@@ -150,7 +159,6 @@ wrangler rollback --env production
 
 # Or deploy a specific version
 git checkout <previous-working-commit>
-cd worker
 pnpm deploy:prod
 ```
 
@@ -182,11 +190,12 @@ Consider setting up automated deployment with:
 - Rollback automation on failure
 
 ### Manual Deployment Workflow
-1. Test changes locally with `pnpm dev`
-2. Run full test suite with `pnpm test`
-3. Test production build with `pnpm build:prod`
-4. Deploy with `pnpm deploy:prod`
-5. Verify deployment with health checks
+1. Test changes locally with `pnpm dev` and `pnpm dev:worker`
+2. Run full test suite with `pnpm test:all`
+3. Run Workers tests with `pnpm test:workers`
+4. Test production build with `pnpm build`
+5. Deploy with `pnpm deploy:prod`
+6. Verify deployment with health checks
 
 ## 📞 Support & Troubleshooting
 
@@ -224,17 +233,16 @@ wrangler tail --env production
 
 ```bash
 # Complete production deployment process
-cd worker
 
 # 1. Create production resources (one-time setup)
 wrangler d1 create finance-manager-db-prod
 wrangler kv:namespace create "FINANCE_MANAGER_CACHE" --env production
 wrangler r2 bucket create finance-manager-documents-prod
 
-# 2. Update wrangler.toml with returned IDs
+# 2. Update alchemy.prod.ts with returned IDs
 
 # 3. Run migrations
-pnpm migrate:prod
+pnpm db:migrate:prod
 
 # 4. Deploy
 pnpm deploy:prod
@@ -246,4 +254,4 @@ curl https://finance-manager.irfandimarsya.workers.dev/health
 ---
 
 **Last Updated**: 2024-01-XX  
-**System Status**: ✅ Ready for Production Deployment 
+**System Status**: ✅ Ready for Production Deployment

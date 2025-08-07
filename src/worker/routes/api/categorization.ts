@@ -79,7 +79,7 @@ categorization.post('/suggest', async (c) => {
     // Initialize AI service
     const primaryProvider = createProvider({
         provider: 'openrouter',
-        modelId: 'google/gemini-flash-1.5',
+        modelId: 'moonshotai/kimi-k2:free',
         apiKey: c.env.OPENROUTER_API_KEY || '',
         baseUrl: 'https://openrouter.ai/api/v1'
       })

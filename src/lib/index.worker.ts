@@ -53,10 +53,8 @@ export type {
 
 // Worker-compatible FinancialReportsEngine - simplified implementation
 export class FinancialReportsEngine {
-  private dbAdapter: any;
-
-  constructor(dbAdapter: any) {
-    this.dbAdapter = dbAdapter;
+  constructor(_dbAdapter: any) {
+    // dbAdapter parameter accepted for compatibility but not used in simplified implementation
   }
 
   async generateTrialBalance(asOfDate: Date, entityId?: string): Promise<any> {

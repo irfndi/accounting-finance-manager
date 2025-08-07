@@ -12,6 +12,8 @@ import { createProvider } from '../../src/ai/providers/factory.js';
 import type { AIMessage } from '../../src/ai/types.js';
 import { AIProviderError, AIRateLimitError } from '../../src/ai/types.js';
 
+// Note: We don't mock the factory here as we want to test the actual implementation
+
 // Mock fetch globally
 global.fetch = vi.fn();
 
@@ -456,7 +458,7 @@ describe('AI Service Tests', () => {
     });
 
     it('should create AI service with default configuration', () => {
-      // Mock environment variables
+      // Mock environment variables for both primary and fallback
       process.env.OPENROUTER_API_KEY = 'test-key';
       
       const service = createAIService();
@@ -481,6 +483,9 @@ describe('AI Service Tests', () => {
     });
 
     it('should create AI service with OpenRouter and API key', () => {
+      // Mock console.warn to suppress expected fallback provider warning
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      
       const customConfig = {
         primary: {
           provider: 'openrouter' as const,
@@ -492,6 +497,9 @@ describe('AI Service Tests', () => {
       const service = createAIService(customConfig);
       
       expect(service).toBeInstanceOf(AIService);
+      
+      // Cleanup
+      consoleWarnSpy.mockRestore();
     });
   });
 });

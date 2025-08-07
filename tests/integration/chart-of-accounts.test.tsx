@@ -83,7 +83,7 @@ vi.mock('../../src/web/components/ui/alert-dialog', () => ({
 }));
 
 vi.mock('../../src/web/components/ui/dialog', () => ({
-  Dialog: ({ children, open, _onOpenChange }: any) => (
+  Dialog: ({ children, open }: any) => (
     open ? <div role="dialog" data-testid="dialog" data-open={open}>{children}</div> : null
   ),
   DialogContent: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
@@ -115,10 +115,10 @@ vi.mock('../../src/web/components/ui/select', () => ({
       </div>
     );
   },
-  SelectContent: ({ children: _children }: any) => null,
-  SelectItem: ({ children: _children, value: _value }: any) => null,
-  SelectTrigger: ({ children: _children, ..._props }: any) => null,
-  SelectValue: ({ placeholder: _placeholder }: any) => null,
+  SelectContent: ({ children }: any) => <div>{children}</div>,
+  SelectItem: ({ children, value, ...props }: any) => <div data-value={value} {...props}>{children}</div>,
+  SelectTrigger: ({ children }: any) => <div>{children}</div>,
+  SelectValue: ({ placeholder }: any) => <div>{placeholder}</div>,
 }));
 
 vi.mock('../../src/web/components/ui/button', () => ({
@@ -365,7 +365,7 @@ describe('ChartOfAccounts Component', () => {
     const user = userEvent.setup();
     
     // Setup mock with error response
-    mockFetch = vi.fn().mockImplementation((url: string, options?: RequestInit) => {
+    mockFetch = vi.fn().mockImplementation((_url: string, options?: RequestInit) => {
       if (options?.method === 'POST') {
         return Promise.resolve({
           ok: false,

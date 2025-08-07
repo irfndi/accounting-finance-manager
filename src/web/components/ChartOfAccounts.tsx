@@ -87,8 +87,8 @@ const ACCOUNT_TYPES = [
 ];
 
 const API_BASE_URL = typeof window !== 'undefined' 
-  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
-  : 'http://localhost:3000';
+  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || 'https://finance-manager.irfandimarsya.workers.dev')
+  : 'https://finance-manager.irfandimarsya.workers.dev';
 
 export default function ChartOfAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -657,7 +657,7 @@ export default function ChartOfAccounts() {
                   <SelectItem value="none">No Parent</SelectItem>
                   {accounts
                     .filter(acc => acc.accountingInfo?.canHaveChildren && acc.id !== editingAccount?.id)
-                    .filter(account => account.id && account.code && account.name) // Ensure valid data
+                    .filter(account => account.id && account.id > 0 && account.code && account.name) // Ensure valid data with positive ID
                     .map(account => (
                       <SelectItem key={account.id} value={account.id.toString()}>
                         {account.code} - {account.name}

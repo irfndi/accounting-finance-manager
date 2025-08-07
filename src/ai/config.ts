@@ -18,31 +18,31 @@ export interface AIProviderConfig {
   research?: AIModelConfig;
 }
 
-// Default AI model configuration matching user preferences
+// Default AI model configuration using free models
 export const DEFAULT_AI_CONFIG: AIProviderConfig = {
-  // Primary: Flash 2.5 (Gemini Flash 2.0-exp)
+  // Primary: Moonshot AI Kimi K2 (free tier)
   primary: {
     provider: 'openrouter',
-    modelId: 'google/gemini-flash-1.5',
+    modelId: 'moonshotai/kimi-k2:free',
     baseUrl: 'https://openrouter.ai/api/v1',
     maxTokens: 4096,
     temperature: 0.1, // Low temperature for financial accuracy
   },
 
-  // Fallback: GPT-4o-mini (cheap & fast)
+  // Fallback: DeepSeek Chat V3 (free tier)
   fallback: {
-    provider: 'openrouter', 
-    modelId: 'openai/gpt-4o-mini',
+    provider: 'openrouter',
+    modelId: 'deepseek/deepseek-chat-v3-0324:free',
     baseUrl: 'https://openrouter.ai/api/v1',
     maxTokens: 4096,
     temperature: 0.1,
   },
 
-  // Research: Claude 3.5 Haiku (for complex analysis)
+  // Research: DeepSeek Chat V3 (for complex analysis)
   research: {
     provider: 'openrouter',
-    modelId: 'anthropic/claude-3.5-haiku',
-    baseUrl: 'https://openrouter.ai/api/v1', 
+    modelId: 'deepseek/deepseek-chat-v3-0324:free',
+    baseUrl: 'https://openrouter.ai/api/v1',
     maxTokens: 4096,
     temperature: 0.2,
   }
