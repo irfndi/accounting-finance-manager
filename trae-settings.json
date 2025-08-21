@@ -1,0 +1,24 @@
+{
+    "AI.toolcall.confirmMode": "autoRun",
+    "terminal.integrated.automationProfile.windows": {
+
+    },
+    "AI.toolcall.autoRun.command.denyList": "[\"rm\"]",
+    "terminal.integrated.defaultProfile.windows": "Ubuntu WSL Ghostty",
+    "terminal.integrated.profiles.windows": {
+        "Ubuntu (WSL)": {
+            "path": "wsl",
+            "args": [
+                "-d", "Ubuntu"
+            ]
+        },
+        "Ubuntu WSL Ghostty": {
+            "path": "wsl",
+            "args": [
+                "-d", "Ubuntu",
+                "--", "bash", "-c",
+                "cd /home/irfndi && /home/irfndi/.local/bin/ghostty"
+            ]
+        }
+    }
+}

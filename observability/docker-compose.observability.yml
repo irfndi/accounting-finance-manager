@@ -1,0 +1,213 @@
+version: '3.8'
+
+services:
+  # ClickHouse Database
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8-alpine
+    container_name: signoz-clickhouse
+    hostname: clickhouse
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+      - "9009:9009"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse/
+      - ./clickhouse/clickhouse-config.xml:/etc/clickhouse-server/config.xml:ro
+      - ./clickhouse/users.xml:/etc/clickhouse-server/users.xml:ro
+      - ./clickhouse/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    environment:
+      - CLICKHOUSE_DB=signoz_traces
+      - CLICKHOUSE_USER=signoz
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-signoz}
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - signoz-network
+
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.88.0
+    container_name: otel-collector
+    hostname: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Prometheus exporter
+      - "13133:13133" # Health check
+      - "1777:1777"   # pprof extension
+      - "55679:55679" # zpages extension
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - CLICKHOUSE_ENDPOINT=clickhouse:9000
+      - CLICKHOUSE_USERNAME=signoz
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-signoz}
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13133"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - signoz-network
+
+  # SigNoz Query Service
+  query-service:
+    image: signoz/query-service:0.34.0
+    container_name: signoz-query-service
+    hostname: query-service
+    ports:
+      - "8080:8080"
+    environment:
+      - ClickHouseUrl=tcp://clickhouse:9000
+      - STORAGE=clickhouse
+      - GODEBUG=netdns=go
+      - TELEMETRY_ENABLED=true
+      - DEPLOYMENT_TYPE=docker-standalone-amd
+      - SIGNOZ_LOCAL_DB_PATH=/var/lib/signoz/signoz.db
+    volumes:
+      - signoz_data:/var/lib/signoz/
+      - ./signoz/prometheus.yml:/root/config/prometheus.yml:ro
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - signoz-network
+
+  # SigNoz Frontend
+  signoz-frontend:
+    image: signoz/frontend:0.34.0
+    container_name: signoz-frontend
+    hostname: signoz-frontend
+    ports:
+      - "3301:3301"
+    environment:
+      - FRONTEND_API_ENDPOINT=http://query-service:8080
+    depends_on:
+      query-service:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3301"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - signoz-network
+
+  # AlertManager
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: signoz-alertmanager
+    hostname: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml:ro
+      - ./alertmanager/templates:/etc/alertmanager/templates:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--web.route-prefix=/'
+      - '--cluster.listen-address='
+      - '--log.level=info'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - signoz-network
+
+  # Redis Exporter (for monitoring Redis)
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: redis-exporter
+    hostname: redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    command:
+      - '--redis.addr=redis://redis:6379'
+      - '--web.listen-address=0.0.0.0:9121'
+      - '--web.telemetry-path=/metrics'
+    restart: unless-stopped
+    networks:
+      - signoz-network
+      - finance-manager-network
+
+  # Postgres Exporter (for monitoring PostgreSQL)
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: postgres-exporter
+    hostname: postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-finance_manager}?sslmode=disable
+    restart: unless-stopped
+    networks:
+      - signoz-network
+      - finance-manager-network
+
+  # Nginx Exporter (for monitoring Nginx)
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.11.0
+    container_name: nginx-exporter
+    hostname: nginx-exporter
+    ports:
+      - "9113:9113"
+    command:
+      - '-nginx.scrape-uri=http://nginx:8080/nginx_status'
+    restart: unless-stopped
+    networks:
+      - signoz-network
+      - finance-manager-network
+
+volumes:
+  clickhouse_data:
+    driver: local
+  signoz_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+
+networks:
+  signoz-network:
+    driver: bridge
+  finance-manager-network:
+    external: true
+    name: finance-manager_default

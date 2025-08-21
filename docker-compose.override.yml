@@ -1,0 +1,38 @@
+# docker-compose.override.yml (for development)
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      target: development
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8080
+    ports:
+      - "3000:3000"
+    command: bun run dev --host 0.0.0.0
+
+  backend:
+    build:
+      target: development
+    volumes:
+      - ./backend:/app:ro
+    environment:
+      - APP_ENV=development
+      - APP_DEBUG=true
+    ports:
+      - "8080:8080"
+    command: go run cmd/server/main.go
+
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=finance_manager_dev
+
+  redis:
+    ports:
+      - "6379:6379"

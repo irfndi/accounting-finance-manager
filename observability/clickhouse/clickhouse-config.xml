@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- Logging configuration -->
+    <logger>
+        <level>information</level>
+        <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+        <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+        <size>1000M</size>
+        <count>10</count>
+    </logger>
+
+    <!-- Network configuration -->
+    <listen_host>0.0.0.0</listen_host>
+    <http_port>8123</http_port>
+    <tcp_port>9000</tcp_port>
+    <mysql_port>9004</mysql_port>
+    <postgresql_port>9005</postgresql_port>
+    <interserver_http_port>9009</interserver_http_port>
+
+    <!-- Maximum number of concurrent queries -->
+    <max_concurrent_queries>100</max_concurrent_queries>
+
+    <!-- Maximum memory usage -->
+    <max_server_memory_usage>0</max_server_memory_usage>
+    <max_server_memory_usage_to_ram_ratio>0.9</max_server_memory_usage_to_ram_ratio>
+
+    <!-- Maximum thread pool size -->
+    <max_thread_pool_size>10000</max_thread_pool_size>
+
+    <!-- Uncompressed cache size -->
+    <uncompressed_cache_size>8589934592</uncompressed_cache_size>
+
+    <!-- Mark cache size -->
+    <mark_cache_size>5368709120</mark_cache_size>
+
+    <!-- Path configuration -->
+    <path>/var/lib/clickhouse/</path>
+    <tmp_path>/var/lib/clickhouse/tmp/</tmp_path>
+    <user_files_path>/var/lib/clickhouse/user_files/</user_files_path>
+    <format_schema_path>/var/lib/clickhouse/format_schemas/</format_schema_path>
+
+    <!-- Users configuration -->
+    <users_config>users.xml</users_config>
+
+    <!-- Default profile settings -->
+    <default_profile>default</default_profile>
+    <default_database>default</default_database>
+
+    <!-- Timezone -->
+    <timezone>UTC</timezone>
+
+    <!-- Compression settings -->
+    <compression>
+        <case>
+            <method>lz4</method>
+        </case>
+    </compression>
+
+    <!-- Distributed DDL -->
+    <distributed_ddl>
+        <path>/clickhouse/task_queue/ddl</path>
+    </distributed_ddl>
+
+    <!-- Query log -->
+    <query_log>
+        <database>system</database>
+        <table>query_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </query_log>
+
+    <!-- Query thread log -->
+    <query_thread_log>
+        <database>system</database>
+        <table>query_thread_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </query_thread_log>
+
+    <!-- Part log -->
+    <part_log>
+        <database>system</database>
+        <table>part_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </part_log>
+
+    <!-- Trace log -->
+    <trace_log>
+        <database>system</database>
+        <table>trace_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </trace_log>
+
+    <!-- Metric log -->
+    <metric_log>
+        <database>system</database>
+        <table>metric_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <collect_interval_milliseconds>1000</collect_interval_milliseconds>
+    </metric_log>
+
+    <!-- Asynchronous metric log -->
+    <asynchronous_metric_log>
+        <database>system</database>
+        <table>asynchronous_metric_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </asynchronous_metric_log>
+
+    <!-- Session log -->
+    <session_log>
+        <database>system</database>
+        <table>session_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </session_log>
+
+    <!-- OpenTelemetry span log -->
+    <opentelemetry_span_log>
+        <engine>
+            <database>system</database>
+            <table>opentelemetry_span_log</table>
+            <partition_by>toYYYYMM(finish_date)</partition_by>
+            <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        </engine>
+    </opentelemetry_span_log>
+
+    <!-- Crash log -->
+    <crash_log>
+        <database>system</database>
+        <table>crash_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>1000</flush_interval_milliseconds>
+    </crash_log>
+
+    <!-- Dictionaries config -->
+    <dictionaries_config>*_dictionary.xml</dictionaries_config>
+
+    <!-- Access control -->
+    <access_control_path>/var/lib/clickhouse/access/</access_control_path>
+
+    <!-- User directories -->
+    <user_directories>
+        <users_xml>
+            <path>users.xml</path>
+        </users_xml>
+        <local_directory>
+            <path>/var/lib/clickhouse/access/</path>
+        </local_directory>
+    </user_directories>
+
+    <!-- Prometheus metrics -->
+    <prometheus>
+        <endpoint>/metrics</endpoint>
+        <port>9363</port>
+        <metrics>true</metrics>
+        <events>true</events>
+        <asynchronous_metrics>true</asynchronous_metrics>
+    </prometheus>
+
+</clickhouse>

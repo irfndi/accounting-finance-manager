@@ -23,6 +23,9 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "jsx": "preserve",
-    "types": ["@playwright/test"]
+    "types": [
+      "node",
+      "express"
+    ]
   }
 }

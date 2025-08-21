@@ -1,0 +1,244 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@finance-manager.com'
+  smtp_auth_username: ''
+  smtp_auth_password: ''
+  smtp_require_tls: false
+
+# The directory from which notification templates are read.
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# The root route on which each incoming alert enters.
+route:
+  # The labels by which incoming alerts are grouped together.
+  group_by: ['alertname', 'cluster', 'service']
+  
+  # When a new group of alerts is created by an incoming alert, wait at
+  # least 'group_wait' to send the initial notification.
+  group_wait: 10s
+  
+  # When the first notification was sent, wait 'group_interval' to send a batch
+  # of new alerts that started firing for that group.
+  group_interval: 10s
+  
+  # If an alert has successfully been sent, wait 'repeat_interval' to
+  # resend them.
+  repeat_interval: 1h
+  
+  # A default receiver
+  receiver: 'web.hook'
+  
+  # All the above attributes are inherited by all child routes and can
+  # overwritten on each.
+  routes:
+    # Critical alerts
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      group_interval: 5s
+      repeat_interval: 30m
+    
+    # Warning alerts
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      group_interval: 30s
+      repeat_interval: 2h
+    
+    # Database alerts
+    - match:
+        service: postgres
+      receiver: 'database-alerts'
+      group_wait: 15s
+      group_interval: 15s
+      repeat_interval: 1h
+    
+    # Redis alerts
+    - match:
+        service: redis
+      receiver: 'cache-alerts'
+      group_wait: 15s
+      group_interval: 15s
+      repeat_interval: 1h
+    
+    # Backend service alerts
+    - match:
+        service: finance-manager-backend
+      receiver: 'backend-alerts'
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 45m
+    
+    # Frontend service alerts
+    - match:
+        service: finance-manager-frontend
+      receiver: 'frontend-alerts'
+      group_wait: 20s
+      group_interval: 20s
+      repeat_interval: 1h
+    
+    # Infrastructure alerts
+    - match:
+        service: nginx
+      receiver: 'infrastructure-alerts'
+      group_wait: 15s
+      group_interval: 15s
+      repeat_interval: 1h
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+inhibit_rules:
+  # Mute any warning-level notifications if the same alert is already critical.
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    # Apply inhibition if the alertname is the same.
+    equal: ['alertname', 'cluster', 'service']
+  
+  # Mute database connection warnings if database is down
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match:
+      alertname: 'DatabaseConnectionHigh'
+    equal: ['instance']
+  
+  # Mute high response time alerts if service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      alertname: 'HighResponseTime'
+    equal: ['service', 'instance']
+
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+        http_config:
+          basic_auth:
+            username: 'admin'
+            password: 'webhook_password'
+        title: 'Finance Manager Alert'
+        text: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Labels: {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+          {{ end }}
+  
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@finance-manager.com'
+        subject: '[CRITICAL] Finance Manager Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ if .EndsAt }}Ended: {{ .EndsAt }}{{ end }}
+          
+          Labels:
+          {{ range .Labels.SortedPairs }}- {{ .Name }}: {{ .Value }}
+          {{ end }}
+          
+          Annotations:
+          {{ range .Annotations.SortedPairs }}- {{ .Name }}: {{ .Value }}
+          {{ end }}
+          {{ end }}
+    
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook/critical'
+        send_resolved: true
+        title: '[CRITICAL] Finance Manager Alert'
+  
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'alerts@finance-manager.com'
+        subject: '[WARNING] Finance Manager Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ if .EndsAt }}Ended: {{ .EndsAt }}{{ end }}
+          {{ end }}
+  
+  - name: 'database-alerts'
+    email_configs:
+      - to: 'dba@finance-manager.com'
+        subject: '[DATABASE] Finance Manager Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Database Alert Details:
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Database: {{ .Labels.database }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+  
+  - name: 'cache-alerts'
+    email_configs:
+      - to: 'devops@finance-manager.com'
+        subject: '[CACHE] Finance Manager Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Cache Alert Details:
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+  
+  - name: 'backend-alerts'
+    email_configs:
+      - to: 'backend-team@finance-manager.com'
+        subject: '[BACKEND] Finance Manager Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Backend Service Alert:
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Instance: {{ .Labels.instance }}
+          Endpoint: {{ .Labels.endpoint }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+  
+  - name: 'frontend-alerts'
+    email_configs:
+      - to: 'frontend-team@finance-manager.com'
+        subject: '[FRONTEND] Finance Manager Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Frontend Service Alert:
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+  
+  - name: 'infrastructure-alerts'
+    email_configs:
+      - to: 'infrastructure@finance-manager.com'
+        subject: '[INFRASTRUCTURE] Finance Manager Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Infrastructure Alert:
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ end }}

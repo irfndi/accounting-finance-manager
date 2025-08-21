@@ -6,7 +6,7 @@
   "description": "Corporate Finance Manager - A comprehensive financial management application",
   "main": "./alchemy.run.ts",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "concurrently \"npm run client:dev\" \"npm run server:dev\"",
     "dev:worker": "alchemy run --env development",
     "dev:all": "pnpm dev",
     "build": "pnpm install --no-frozen-lockfile && astro check && astro build && echo '_worker.js' > dist/.assetsignore",
@@ -45,7 +45,9 @@
     "clean": "rm -rf dist .astro node_modules/.cache",
     "tail": "alchemy run --env development -- wrangler tail",
     "tail:prod": "alchemy run --env production -- wrangler tail",
-    "types": "alchemy run -- wrangler types"
+    "types": "alchemy run -- wrangler types",
+    "client:dev": "vite",
+    "server:dev": "nodemon"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.55.1",
@@ -83,7 +85,10 @@
     "react-dom": "^19.1.1",
     "tailwind-merge": "^3.3.1",
     "typescript": "^5.9.2",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
@@ -98,7 +103,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^24.2.0",
+    "@types/node": "^22.15.30",
     "@types/sql.js": "^1.4.9",
     "@vitest/coverage-istanbul": "^3.2.4",
     "@vitest/coverage-v8": "^3.2.4",
@@ -116,7 +121,12 @@
     "tailwindcss": "^4.1.11",
     "vite": "^7.0.6",
     "vitest": "^3.2.4",
-    "wrangler": "^4.28.0"
+    "wrangler": "^4.28.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@vercel/node": "^5.3.6",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.20.3"
   },
   "pnpm": {
     "overrides": {

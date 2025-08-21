@@ -1,0 +1,237 @@
+{
+  "title": "Finance Manager - Application Overview",
+  "description": "High-level overview of Finance Manager application performance and health",
+  "tags": ["finance-manager", "overview", "application"],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Rate",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{service_name=\"finance-manager-backend\"}[5m])) by (method, route)",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ],
+      "yAxes": {
+        "left": {
+          "unit": "reqps",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 2,
+      "title": "Response Time (P95)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service_name=\"finance-manager-backend\"}[5m])) by (le, route))",
+          "legendFormat": "P95 {{route}}"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{service_name=\"finance-manager-backend\"}[5m])) by (le, route))",
+          "legendFormat": "P50 {{route}}"
+        }
+      ],
+      "yAxes": {
+        "left": {
+          "unit": "s",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 3,
+      "title": "Error Rate",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{service_name=\"finance-manager-backend\", status_code=~\"4..|5..\"}[5m])) by (status_code) / sum(rate(http_requests_total{service_name=\"finance-manager-backend\"}[5m]))",
+          "legendFormat": "Error Rate {{status_code}}"
+        }
+      ],
+      "yAxes": {
+        "left": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "Active Database Connections",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "db_connections_active{service_name=\"finance-manager-backend\"}",
+          "legendFormat": "Active Connections"
+        },
+        {
+          "expr": "db_connections_idle{service_name=\"finance-manager-backend\"}",
+          "legendFormat": "Idle Connections"
+        }
+      ],
+      "yAxes": {
+        "left": {
+          "unit": "short",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "Memory Usage",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{service_name=\"finance-manager-backend\"}",
+          "legendFormat": "Resident Memory"
+        },
+        {
+          "expr": "go_memstats_heap_inuse_bytes{service_name=\"finance-manager-backend\"}",
+          "legendFormat": "Heap In Use"
+        }
+      ],
+      "yAxes": {
+        "left": {
+          "unit": "bytes",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 6,
+      "title": "Goroutines",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "go_goroutines{service_name=\"finance-manager-backend\"}",
+          "legendFormat": "Goroutines"
+        }
+      ],
+      "yAxes": {
+        "left": {
+          "unit": "short",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 7,
+      "title": "Redis Operations",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "sum(rate(redis_commands_total{service_name=\"finance-manager-backend\"}[5m])) by (command)",
+          "legendFormat": "{{command}}"
+        }
+      ],
+      "yAxes": {
+        "left": {
+          "unit": "ops",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 8,
+      "title": "Top Slow Queries",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(10, avg_over_time(db_query_duration_seconds{service_name=\"finance-manager-backend\"}[5m]))",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "query": "label_values(service_name)",
+        "current": {
+          "value": "finance-manager-backend",
+          "text": "finance-manager-backend"
+        }
+      },
+      {
+        "name": "instance",
+        "type": "query",
+        "query": "label_values(instance)",
+        "current": {
+          "value": "All",
+          "text": "All"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "datasource": "SigNoz",
+        "enable": true,
+        "iconColor": "green",
+        "query": "deployment_event{service_name=\"finance-manager-backend\"}"
+      }
+    ]
+  }
+}
