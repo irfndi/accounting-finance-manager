@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Financial Statements - Finance Manager">
+  <main class="container mx-auto px-4 py-8">
+    <div id="financial-statements-root"></div>
+  </main>
+</Layout>
+
+<script>
+  import FinancialStatements from '../components/FinancialStatements.tsx';
+  import { createRoot } from 'react-dom/client';
+  import React from 'react';
+
+  const container = document.getElementById('financial-statements-root');
+  if (container) {
+    const root = createRoot(container);
+    root.render(React.createElement(FinancialStatements));
+  }
+</script>

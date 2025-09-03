@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ChartOfAccountsComponent from "../components/ChartOfAccounts";
+---
+
+<Layout
+    title="Chart of Accounts - Finance Manager"
+    description="Manage your chart of accounts and account hierarchy"
+    currentPath="/chart-of-accounts"
+>
+    <ChartOfAccountsComponent client:load />
+</Layout>

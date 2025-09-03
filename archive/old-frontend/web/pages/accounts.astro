@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ChartOfAccountsComponent from "../components/ChartOfAccounts";
+---
+
+<Layout title="Accounts - Finance Manager" currentPath="/accounts">
+    <div class="p-6">
+        <ChartOfAccountsComponent client:load />
+    </div>
+</Layout>
+

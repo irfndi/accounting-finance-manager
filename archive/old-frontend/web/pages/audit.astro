@@ -1,0 +1,45 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Audit Trail - Finance Manager" description="Audit trail and compliance monitoring">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+      <div class="mb-6">
+        <div class="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Audit Trail</h1>
+        <p class="text-gray-600">This feature is currently under development</p>
+      </div>
+      
+      <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <h3 class="font-semibold text-purple-900 mb-2">Coming Soon</h3>
+        <ul class="text-sm text-purple-800 text-left space-y-1">
+          <li>• Complete audit trail tracking</li>
+          <li>• User activity monitoring</li>
+          <li>• Change history logs</li>
+          <li>• Compliance reporting</li>
+          <li>• AI-powered anomaly detection</li>
+        </ul>
+      </div>
+      
+      <div class="space-y-3">
+        <a 
+          href="/dashboard" 
+          class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors inline-block"
+        >
+          ← Back to Dashboard
+        </a>
+        <a 
+          href="/general-ledger" 
+          class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors inline-block"
+        >
+          Go to General Ledger
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>

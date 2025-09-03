@@ -56,4 +56,5 @@ test-results
 # Playwright authentication files
 playwright/.auth
 
+.mcp.json
 mcp.json

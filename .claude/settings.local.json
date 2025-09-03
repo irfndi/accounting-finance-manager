@@ -20,7 +20,14 @@
       "Bash(node:*)",
       "Bash(npx:*)",
       "Bash(echo:*)",
-      "Bash(pnpm run lint)"
+      "Bash(pnpm run lint)",
+      "Bash(set ANTHROPIC_AUTH_TOKEN=)",
+      "Bash(setx:*)",
+      "Bash(npm:*)",
+      "Bash(where:*)",
+      "Bash(claude:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []

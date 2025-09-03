@@ -1,0 +1,13 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ReportsManager from "../components/ReportsManager.tsx";
+---
+
+<Layout
+    title="Financial Reports - Corporate Finance Manager"
+    description="Comprehensive financial reporting and analysis"
+    currentPath="/reports"
+>
+    <ReportsManager client:load />
+</Layout>
+

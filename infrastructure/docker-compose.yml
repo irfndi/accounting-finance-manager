@@ -24,10 +24,10 @@ services:
       timeout: 10s
       retries: 3
 
-  # React Frontend
+  # Astro Frontend
   frontend:
     build:
-      context: ./frontend
+      context: ./apps/web
       dockerfile: Dockerfile
       target: production
     container_name: finance-frontend
