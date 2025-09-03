@@ -20,10 +20,17 @@ import type {
   TrialBalance,
   BalanceSheet,
   IncomeStatement,
-} from '../types/index.ts';
+} from "../types/index.ts";
 
 // Core financial constants
-const SUPPORTED_CURRENCIES = ['IDR', 'USD', 'EUR', 'GBP', 'SGD', 'MYR'] as const;
+const SUPPORTED_CURRENCIES = [
+  "IDR",
+  "USD",
+  "EUR",
+  "GBP",
+  "SGD",
+  "MYR",
+] as const;
 
 export const FINANCIAL_CONSTANTS: {
   DECIMAL_PLACES: number;
@@ -35,48 +42,51 @@ export const FINANCIAL_CONSTANTS: {
   NORMAL_BALANCES: { [key in AccountType]: NormalBalance };
 } = {
   DECIMAL_PLACES: 2,
-  DEFAULT_CURRENCY: 'IDR' as const,
+  DEFAULT_CURRENCY: "IDR" as const,
   SUPPORTED_CURRENCIES,
   CURRENCY_SYMBOLS: {
-    IDR: 'Rp',
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    SGD: 'S$',
-    MYR: 'RM'
+    IDR: "Rp",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    SGD: "S$",
+    MYR: "RM",
   },
   CURRENCY_LOCALES: {
-    IDR: 'id-ID',
-    USD: 'en-US',
-    EUR: 'de-DE',
-    GBP: 'en-GB',
-    SGD: 'en-SG',
-    MYR: 'ms-MY'
+    IDR: "id-ID",
+    USD: "en-US",
+    EUR: "de-DE",
+    GBP: "en-GB",
+    SGD: "en-SG",
+    MYR: "ms-MY",
   },
   ACCOUNT_TYPES: {
-    ASSET: 'ASSET',
-    LIABILITY: 'LIABILITY',
-    EQUITY: 'EQUITY',
-    REVENUE: 'REVENUE',
-    EXPENSE: 'EXPENSE'
+    ASSET: "ASSET",
+    LIABILITY: "LIABILITY",
+    EQUITY: "EQUITY",
+    REVENUE: "REVENUE",
+    EXPENSE: "EXPENSE",
   } as const,
   NORMAL_BALANCES: {
-    ASSET: 'DEBIT',
-    EXPENSE: 'DEBIT',
-    LIABILITY: 'CREDIT',
-    EQUITY: 'CREDIT',
-    REVENUE: 'CREDIT'
-  } as const
+    ASSET: "DEBIT",
+    EXPENSE: "DEBIT",
+    LIABILITY: "CREDIT",
+    EQUITY: "CREDIT",
+    REVENUE: "CREDIT",
+  } as const,
 };
 
 // Custom Error Classes
-export class AccountingValidationError extends Error implements AccountingError {
+export class AccountingValidationError
+  extends Error
+  implements AccountingError
+{
   public readonly code: string;
   public readonly details?: BaseValidationError[];
 
   constructor(message: string, code: string, details?: BaseValidationError[]) {
     super(message);
-    this.name = 'AccountingValidationError';
+    this.name = "AccountingValidationError";
     this.code = code;
     this.details = details;
   }
@@ -84,73 +94,73 @@ export class AccountingValidationError extends Error implements AccountingError 
 
 export class DoubleEntryError extends AccountingValidationError {
   constructor(message: string, details?: BaseValidationError[]) {
-    super(message, 'DOUBLE_ENTRY_VIOLATION', details);
-    this.name = 'DoubleEntryError';
+    super(message, "DOUBLE_ENTRY_VIOLATION", details);
+    this.name = "DoubleEntryError";
   }
 }
 
 // Enhanced Error System - Severity and Categories
 export enum ErrorSeverity {
-  WARNING = 'WARNING',
-  ERROR = 'ERROR',
-  CRITICAL = 'CRITICAL'
+  WARNING = "WARNING",
+  ERROR = "ERROR",
+  CRITICAL = "CRITICAL",
 }
 
 export enum ErrorCategory {
-  VALIDATION = 'VALIDATION',
-  BUSINESS_RULE = 'BUSINESS_RULE',
-  SYSTEM = 'SYSTEM',
-  COMPLIANCE = 'COMPLIANCE'
+  VALIDATION = "VALIDATION",
+  BUSINESS_RULE = "BUSINESS_RULE",
+  SYSTEM = "SYSTEM",
+  COMPLIANCE = "COMPLIANCE",
 }
 
 export interface EnhancedValidationError extends BaseValidationError {
-    severity: ErrorSeverity;
-    category: ErrorCategory;
-    suggestions?: string[];
-    context?: Record<string, unknown>;
-    timestamp?: Date;
-  }
+  severity: ErrorSeverity;
+  category: ErrorCategory;
+  suggestions?: string[];
+  context?: Record<string, unknown>;
+  timestamp?: Date;
+}
 
 // Specialized Error Classes
 export class BalanceSheetError extends AccountingValidationError {
   constructor(message: string, details?: BaseValidationError[]) {
-    super(message, 'BALANCE_SHEET_VIOLATION', details);
-    this.name = 'BalanceSheetError';
+    super(message, "BALANCE_SHEET_VIOLATION", details);
+    this.name = "BalanceSheetError";
   }
 }
 
 export class AccountRegistryError extends AccountingValidationError {
   constructor(message: string, details?: BaseValidationError[]) {
-    super(message, 'ACCOUNT_REGISTRY_ERROR', details);
-    this.name = 'AccountRegistryError';
+    super(message, "ACCOUNT_REGISTRY_ERROR", details);
+    this.name = "AccountRegistryError";
   }
 }
 
 export class CurrencyConversionError extends AccountingValidationError {
   constructor(message: string, details?: BaseValidationError[]) {
-    super(message, 'CURRENCY_CONVERSION_ERROR', details);
-    this.name = 'CurrencyConversionError';
+    super(message, "CURRENCY_CONVERSION_ERROR", details);
+    this.name = "CurrencyConversionError";
   }
 }
 
 export class PeriodClosureError extends AccountingValidationError {
   constructor(message: string, details?: BaseValidationError[]) {
-    super(message, 'PERIOD_CLOSURE_VIOLATION', details);
-    this.name = 'PeriodClosureError';
+    super(message, "PERIOD_CLOSURE_VIOLATION", details);
+    this.name = "PeriodClosureError";
   }
 }
 
 export class FiscalYearError extends AccountingValidationError {
   constructor(message: string, details?: BaseValidationError[]) {
-    super(message, 'FISCAL_YEAR_VIOLATION', details);
-    this.name = 'FiscalYearError';
+    super(message, "FISCAL_YEAR_VIOLATION", details);
+    this.name = "FiscalYearError";
   }
 }
 
 export class ComplianceError extends AccountingValidationError {
   constructor(message: string, details?: BaseValidationError[]) {
-    super(message, 'COMPLIANCE_VIOLATION', details);
-    this.name = 'ComplianceError';
+    super(message, "COMPLIANCE_VIOLATION", details);
+    this.name = "ComplianceError";
   }
 }
 
@@ -194,11 +204,13 @@ export class ErrorAggregator {
   }
 
   getCriticalErrors(): EnhancedValidationError[] {
-    return this.errors.filter(error => error.severity === ErrorSeverity.CRITICAL);
+    return this.errors.filter(
+      (error) => error.severity === ErrorSeverity.CRITICAL
+    );
   }
 
   getErrorsByCategory(category: ErrorCategory): EnhancedValidationError[] {
-    return this.getAllIssues().filter(error => error.category === category);
+    return this.getAllIssues().filter((error) => error.category === category);
   }
 
   clear(): void {
@@ -219,11 +231,11 @@ export class ErrorAggregator {
     const allIssues = this.getAllIssues();
 
     const byCategory = Object.fromEntries(
-      Object.values(ErrorCategory).map(cat => [cat, 0])
+      Object.values(ErrorCategory).map((cat) => [cat, 0])
     ) as Record<ErrorCategory, number>;
 
     const bySeverity = Object.fromEntries(
-      Object.values(ErrorSeverity).map(sev => [sev, 0])
+      Object.values(ErrorSeverity).map((sev) => [sev, 0])
     ) as Record<ErrorSeverity, number>;
 
     for (const issue of allIssues) {
@@ -237,9 +249,9 @@ export class ErrorAggregator {
         totalWarnings: this.warnings.length,
         criticalErrors: this.getCriticalErrors().length,
         byCategory,
-        bySeverity
+        bySeverity,
       },
-      issues: allIssues
+      issues: allIssues,
     };
   }
 }
@@ -258,7 +270,7 @@ export namespace AccountingErrorFactory {
       severity,
       category,
       suggestions,
-      context
+      context,
     };
   }
 
@@ -278,11 +290,7 @@ export namespace AccountingErrorFactory {
     baseError: BaseValidationError,
     severity: ErrorSeverity = ErrorSeverity.CRITICAL
   ): EnhancedValidationError {
-    return createValidationError(
-      baseError,
-      severity,
-      ErrorCategory.COMPLIANCE
-    );
+    return createValidationError(baseError, severity, ErrorCategory.COMPLIANCE);
   }
 
   export function createSystemError(
@@ -303,70 +311,71 @@ export namespace AccountingErrorFactory {
 export namespace ErrorRecoveryManager {
   const RECOVERY_STRATEGIES: Record<string, string[]> = {
     UNBALANCED_TRANSACTION: [
-      'Check if all journal entries have been recorded',
-      'Verify debit and credit amounts are correct',
-      'Ensure rounding differences are accounted for'
+      "Check if all journal entries have been recorded",
+      "Verify debit and credit amounts are correct",
+      "Ensure rounding differences are accounted for",
     ],
     MISSING_ACCOUNT_ID: [
-      'Verify the account exists in the chart of accounts',
-      'Check if the account ID is correctly formatted',
-      'Ensure the account is active and allows transactions'
+      "Verify the account exists in the chart of accounts",
+      "Check if the account ID is correctly formatted",
+      "Ensure the account is active and allows transactions",
     ],
     CURRENCY_CONVERSION_ERROR: [
-      'Check if exchange rates are available for the transaction date',
-      'Verify the currencies are supported',
-      'Update exchange rate data if necessary'
+      "Check if exchange rates are available for the transaction date",
+      "Verify the currencies are supported",
+      "Update exchange rate data if necessary",
     ],
     PERIOD_CLOSURE_VIOLATION: [
-      'Check if the accounting period is still open',
-      'Verify transaction date is within allowed period',
-      'Contact system administrator to reopen period if necessary'
+      "Check if the accounting period is still open",
+      "Verify transaction date is within allowed period",
+      "Contact system administrator to reopen period if necessary",
     ],
     BALANCE_SHEET_VIOLATION: [
-      'Verify asset accounts have debit balances',
-      'Check liability accounts have credit balances',
-      'Ensure equity accounts maintain proper balance types'
-    ]
+      "Verify asset accounts have debit balances",
+      "Check liability accounts have credit balances",
+      "Ensure equity accounts maintain proper balance types",
+    ],
   };
 
   export function getSuggestions(errorCode: string): string[] {
-    return RECOVERY_STRATEGIES[errorCode] || [
-      'Review the transaction details',
-      'Check accounting policies and procedures',
-      'Contact system administrator if issue persists'
-    ];
+    return (
+      RECOVERY_STRATEGIES[errorCode] || [
+        "Review the transaction details",
+        "Check accounting policies and procedures",
+        "Contact system administrator if issue persists",
+      ]
+    );
   }
 
-  export function enhanceError(error: BaseValidationError): EnhancedValidationError {
+  export function enhanceError(
+    error: BaseValidationError
+  ): EnhancedValidationError {
     const suggestions = getSuggestions(error.code);
-    
+
     return {
       ...error,
       severity: determineSeverity(error.code),
       category: determineCategory(error.code),
       suggestions,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
   function determineSeverity(errorCode: string): ErrorSeverity {
     const criticalCodes = [
-      'BALANCE_SHEET_VIOLATION',
-      'COMPLIANCE_VIOLATION',
-      'SYSTEM_ERROR',
-      'FISCAL_YEAR_VIOLATION'
-    ];
-    
-    const warningCodes = [
-      'ROUNDING_DIFFERENCE',
-      'EXCHANGE_RATE_OUTDATED'
+      "BALANCE_SHEET_VIOLATION",
+      "COMPLIANCE_VIOLATION",
+      "SYSTEM_ERROR",
+      "FISCAL_YEAR_VIOLATION",
     ];
 
-    if (criticalCodes.some(code => errorCode.includes(code))) {
+    const warningCodes = ["ROUNDING_DIFFERENCE", "EXCHANGE_RATE_OUTDATED"];
+
+    if (criticalCodes.some((code) => errorCode.includes(code))) {
       return ErrorSeverity.CRITICAL;
     }
-    
-    if (warningCodes.some(code => errorCode.includes(code))) {
+
+    if (warningCodes.some((code) => errorCode.includes(code))) {
       return ErrorSeverity.WARNING;
     }
 
@@ -374,33 +383,38 @@ export namespace ErrorRecoveryManager {
   }
 
   function determineCategory(errorCode: string): ErrorCategory {
-    if (errorCode.includes('COMPLIANCE')) return ErrorCategory.COMPLIANCE;
-    if (errorCode.includes('SYSTEM')) return ErrorCategory.SYSTEM;
-    if (errorCode.includes('BUSINESS_RULE')) return ErrorCategory.BUSINESS_RULE;
+    if (errorCode.includes("COMPLIANCE")) return ErrorCategory.COMPLIANCE;
+    if (errorCode.includes("SYSTEM")) return ErrorCategory.SYSTEM;
+    if (errorCode.includes("BUSINESS_RULE")) return ErrorCategory.BUSINESS_RULE;
     return ErrorCategory.VALIDATION;
   }
 }
 
 // Utility functions
 export function formatCurrency(
-  amount: number, 
+  amount: number,
   currency: Currency = FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
 ): string {
   const locale = FINANCIAL_CONSTANTS.CURRENCY_LOCALES[currency];
   const symbol = FINANCIAL_CONSTANTS.CURRENCY_SYMBOLS[currency];
-  
+
   // For IDR, we don't typically use decimal places in everyday formatting
   const options: Intl.NumberFormatOptions = {
-    style: 'decimal',
-    minimumFractionDigits: currency === 'IDR' ? 0 : FINANCIAL_CONSTANTS.DECIMAL_PLACES,
-    maximumFractionDigits: currency === 'IDR' ? 0 : FINANCIAL_CONSTANTS.DECIMAL_PLACES,
+    style: "decimal",
+    minimumFractionDigits:
+      currency === "IDR" ? 0 : FINANCIAL_CONSTANTS.DECIMAL_PLACES,
+    maximumFractionDigits:
+      currency === "IDR" ? 0 : FINANCIAL_CONSTANTS.DECIMAL_PLACES,
   };
-  
+
   const formattedAmount = new Intl.NumberFormat(locale, options).format(amount);
   return `${symbol} ${formattedAmount}`;
 }
 
-export function roundToDecimalPlaces(amount: number, places: number = FINANCIAL_CONSTANTS.DECIMAL_PLACES): number {
+export function roundToDecimalPlaces(
+  amount: number,
+  places: number = FINANCIAL_CONSTANTS.DECIMAL_PLACES
+): number {
   const factor = 10 ** places;
   return Math.round(amount * factor) / factor;
 }
@@ -414,23 +428,26 @@ export class TransactionValidator {
   /**
    * Validates that the sum of debits equals the sum of credits
    */
-  static validateDoubleEntry(entries: TransactionEntry[]): BaseValidationError[] {
+  static validateDoubleEntry(
+    entries: TransactionEntry[]
+  ): BaseValidationError[] {
     const errors: BaseValidationError[] = [];
-    
+
     if (!entries || entries.length === 0) {
       errors.push({
-        field: 'entries',
-        message: 'Transaction must have at least one journal entry',
-        code: 'NO_ENTRIES'
+        field: "entries",
+        message: "Transaction must have at least one journal entry",
+        code: "NO_ENTRIES",
       });
       return errors;
     }
 
     if (entries.length < 2) {
       errors.push({
-        field: 'entries',
-        message: 'Transaction must have at least two journal entries for double-entry bookkeeping',
-        code: 'INSUFFICIENT_ENTRIES'
+        field: "entries",
+        message:
+          "Transaction must have at least two journal entries for double-entry bookkeeping",
+        code: "INSUFFICIENT_ENTRIES",
       });
     }
 
@@ -442,8 +459,8 @@ export class TransactionValidator {
       if (!entry.accountId) {
         errors.push({
           field: `entries[${index}].accountId`,
-          message: 'Account ID is required for each entry',
-          code: 'MISSING_ACCOUNT_ID'
+          message: "Account ID is required for each entry",
+          code: "MISSING_ACCOUNT_ID",
         });
       }
 
@@ -454,32 +471,32 @@ export class TransactionValidator {
       if (debitAmount < 0) {
         errors.push({
           field: `entries[${index}].debitAmount`,
-          message: 'Debit amount cannot be negative',
-          code: 'NEGATIVE_DEBIT'
+          message: "Debit amount cannot be negative",
+          code: "NEGATIVE_DEBIT",
         });
       }
 
       if (creditAmount < 0) {
         errors.push({
           field: `entries[${index}].creditAmount`,
-          message: 'Credit amount cannot be negative',
-          code: 'NEGATIVE_CREDIT'
+          message: "Credit amount cannot be negative",
+          code: "NEGATIVE_CREDIT",
         });
       }
 
       if (debitAmount > 0 && creditAmount > 0) {
         errors.push({
           field: `entries[${index}]`,
-          message: 'Entry cannot have both debit and credit amounts',
-          code: 'BOTH_DEBIT_AND_CREDIT'
+          message: "Entry cannot have both debit and credit amounts",
+          code: "BOTH_DEBIT_AND_CREDIT",
         });
       }
 
       if (debitAmount === 0 && creditAmount === 0) {
         errors.push({
           field: `entries[${index}]`,
-          message: 'Entry must have either a debit or credit amount',
-          code: 'NO_AMOUNT'
+          message: "Entry must have either a debit or credit amount",
+          code: "NO_AMOUNT",
         });
       }
 
@@ -493,9 +510,9 @@ export class TransactionValidator {
 
     if (debitTotal !== creditTotal) {
       errors.push({
-        field: 'entries',
+        field: "entries",
         message: `Total debits (${debitTotal}) must equal total credits (${creditTotal})`,
-        code: 'UNBALANCED_TRANSACTION'
+        code: "UNBALANCED_TRANSACTION",
       });
     }
 
@@ -505,30 +522,32 @@ export class TransactionValidator {
   /**
    * Validates transaction data structure
    */
-  static validateTransactionData(transactionData: TransactionData): BaseValidationError[] {
+  static validateTransactionData(
+    transactionData: TransactionData
+  ): BaseValidationError[] {
     const errors: BaseValidationError[] = [];
 
     if (!transactionData.description?.trim()) {
       errors.push({
-        field: 'description',
-        message: 'Transaction description is required',
-        code: 'MISSING_DESCRIPTION'
+        field: "description",
+        message: "Transaction description is required",
+        code: "MISSING_DESCRIPTION",
       });
     }
 
     if (!transactionData.transactionDate) {
       errors.push({
-        field: 'transactionDate',
-        message: 'Transaction date is required',
-        code: 'MISSING_TRANSACTION_DATE'
+        field: "transactionDate",
+        message: "Transaction date is required",
+        code: "MISSING_TRANSACTION_DATE",
       });
     }
 
     if (!transactionData.currency) {
       errors.push({
-        field: 'currency',
-        message: 'Transaction currency is required',
-        code: 'MISSING_CURRENCY'
+        field: "currency",
+        message: "Transaction currency is required",
+        code: "MISSING_CURRENCY",
       });
     }
 
@@ -581,7 +600,11 @@ export class TransactionBuilder {
     return this;
   }
 
-  debit(accountId: number, amount: number, description?: string): TransactionBuilder {
+  debit(
+    accountId: number,
+    amount: number,
+    description?: string
+  ): TransactionBuilder {
     if (!this.transactionData.entries) {
       this.transactionData.entries = [];
     }
@@ -595,7 +618,11 @@ export class TransactionBuilder {
     return this;
   }
 
-  credit(accountId: number, amount: number, description?: string): TransactionBuilder {
+  credit(
+    accountId: number,
+    amount: number,
+    description?: string
+  ): TransactionBuilder {
     if (!this.transactionData.entries) {
       this.transactionData.entries = [];
     }
@@ -610,13 +637,15 @@ export class TransactionBuilder {
   }
 
   validate(): BaseValidationError[] {
-    return TransactionValidator.validateTransactionData(this.transactionData as TransactionData);
+    return TransactionValidator.validateTransactionData(
+      this.transactionData as TransactionData
+    );
   }
 
   build(): TransactionData {
     const errors = this.validate();
     if (errors.length > 0) {
-      throw new DoubleEntryError('Invalid transaction data', errors);
+      throw new DoubleEntryError("Invalid transaction data", errors);
     }
     return { ...this.transactionData } as TransactionData;
   }
@@ -636,7 +665,7 @@ export class BalanceCalculator {
     const debits = roundToDecimalPlaces(debitTotal);
     const credits = roundToDecimalPlaces(creditTotal);
 
-    if (normalBalance === 'DEBIT') {
+    if (normalBalance === "DEBIT") {
       return debits - credits;
     } else {
       return credits - debits;
@@ -650,9 +679,10 @@ export class AccountingEngine {
    * Creates a new transaction with validation
    */
   static createTransaction(transactionData: TransactionData): TransactionData {
-    const errors = TransactionValidator.validateTransactionData(transactionData);
+    const errors =
+      TransactionValidator.validateTransactionData(transactionData);
     if (errors.length > 0) {
-      throw new DoubleEntryError('Transaction validation failed', errors);
+      throw new DoubleEntryError("Transaction validation failed", errors);
     }
     return transactionData;
   }
@@ -660,22 +690,27 @@ export class AccountingEngine {
   /**
    * Validates an existing transaction
    */
-  static validateTransaction(transaction: Transaction, journalEntries: JournalEntry[]): BaseValidationError[] {
+  static validateTransaction(
+    transaction: Transaction,
+    journalEntries: JournalEntry[]
+  ): BaseValidationError[] {
     const errors: BaseValidationError[] = [];
 
-    const transactionEntries = journalEntries.filter(entry => entry.transactionId.toString() === transaction.id);
-    
+    const transactionEntries = journalEntries.filter(
+      (entry) => entry.transactionId.toString() === transaction.id
+    );
+
     if (transactionEntries.length === 0) {
       errors.push({
-        field: 'journalEntries',
-        message: 'Transaction has no journal entries',
-        code: 'NO_JOURNAL_ENTRIES'
+        field: "journalEntries",
+        message: "Transaction has no journal entries",
+        code: "NO_JOURNAL_ENTRIES",
       });
       return errors;
     }
 
     // Convert journal entries to transaction entries for validation
-    const entries: TransactionEntry[] = transactionEntries.map(entry => ({
+    const entries: TransactionEntry[] = transactionEntries.map((entry) => ({
       accountId: entry.accountId,
       debitAmount: entry.debitAmount,
       creditAmount: entry.creditAmount,
@@ -716,9 +751,9 @@ export class AccountBalanceManager {
       const currentBalance = this.accountBalances.get(accountId) || {
         accountId,
         balance: 0,
-        currency: 'IDR' as Currency,
+        currency: "IDR" as Currency,
         lastUpdated: new Date(),
-        normalBalance: this.getNormalBalanceForAccount(accountId)
+        normalBalance: this.getNormalBalanceForAccount(accountId),
       };
 
       // Update balance based on debit/credit and normal balance
@@ -729,8 +764,11 @@ export class AccountBalanceManager {
 
       this.accountBalances.set(accountId, {
         ...currentBalance,
-        balance: roundToDecimalPlaces(newBalance, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-        lastUpdated: new Date()
+        balance: roundToDecimalPlaces(
+          newBalance,
+          FINANCIAL_CONSTANTS.DECIMAL_PLACES
+        ),
+        lastUpdated: new Date(),
       });
     }
   }
@@ -753,28 +791,28 @@ export class AccountBalanceManager {
    * Calculate account balance for a specific date
    */
   calculateAccountBalance(
-    accountId: string, 
+    accountId: string,
     accountType: AccountType,
     asOfDate?: Date
   ): number {
-    const relevantTransactions = asOfDate 
-      ? this.transactions.filter(t => new Date(t.date) <= asOfDate)
+    const relevantTransactions = asOfDate
+      ? this.transactions.filter((t) => new Date(t.date) <= asOfDate)
       : this.transactions;
 
     let balance = 0;
-    
+
     for (const transaction of relevantTransactions) {
       for (const entry of transaction.entries) {
         if (entry.accountId.toString() === accountId) {
           // Use debitAmount and creditAmount directly from TransactionEntry
           const debitAmount = entry.debitAmount || 0;
           const creditAmount = entry.creditAmount || 0;
-          
+
           // Calculate net effect based on normal balance
-          if (accountType === 'ASSET' || accountType === 'EXPENSE') {
-            balance += (debitAmount - creditAmount);
+          if (accountType === "ASSET" || accountType === "EXPENSE") {
+            balance += debitAmount - creditAmount;
           } else {
-            balance += (creditAmount - debitAmount);
+            balance += creditAmount - debitAmount;
           }
         }
       }
@@ -797,7 +835,7 @@ export class AccountBalanceManager {
       if (!accountBalance) continue;
 
       const balance = this.calculateAccountBalance(
-        accountId, 
+        accountId,
         this.getAccountTypeForAccount(accountId),
         asOfDate
       );
@@ -808,9 +846,9 @@ export class AccountBalanceManager {
         balance,
         currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
         lastUpdated: new Date(),
-        normalBalance
+        normalBalance,
       };
-      
+
       accountBalances.push(accountBalanceEntry);
 
       if (balance > 0) {
@@ -823,10 +861,16 @@ export class AccountBalanceManager {
     return {
       asOfDate: asOfDate || new Date(),
       accounts: accountBalances,
-      totalDebits: roundToDecimalPlaces(totalDebits, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-      totalCredits: roundToDecimalPlaces(totalCredits, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
+      totalDebits: roundToDecimalPlaces(
+        totalDebits,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
+      totalCredits: roundToDecimalPlaces(
+        totalCredits,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
       isBalanced: Math.abs(totalDebits - totalCredits) < 0.01,
-      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
     };
   }
 
@@ -840,52 +884,70 @@ export class AccountBalanceManager {
     const equity: AccountBalance[] = [];
 
     for (const accountBalance of trialBalance.accounts) {
-      const accountType = this.getAccountTypeForAccount(accountBalance.accountId);
-      
+      const accountType = this.getAccountTypeForAccount(
+        accountBalance.accountId
+      );
+
       switch (accountType) {
-        case 'ASSET':
+        case "ASSET":
           assets.push(accountBalance);
           break;
-        case 'LIABILITY':
+        case "LIABILITY":
           liabilities.push({
             ...accountBalance,
-            balance: Math.abs(accountBalance.balance)
+            balance: Math.abs(accountBalance.balance),
           });
           break;
-        case 'EQUITY':
+        case "EQUITY":
           equity.push({
             ...accountBalance,
-            balance: Math.abs(accountBalance.balance)
+            balance: Math.abs(accountBalance.balance),
           });
           break;
       }
     }
 
-    const totalAssets = assets.reduce((sum, account) => sum + account.balance, 0);
-    const totalLiabilities = liabilities.reduce((sum, account) => sum + account.balance, 0);
-    const totalEquity = equity.reduce((sum, account) => sum + account.balance, 0);
+    const totalAssets = assets.reduce(
+      (sum, account) => sum + account.balance,
+      0
+    );
+    const totalLiabilities = liabilities.reduce(
+      (sum, account) => sum + account.balance,
+      0
+    );
+    const totalEquity = equity.reduce(
+      (sum, account) => sum + account.balance,
+      0
+    );
 
     return {
       asOfDate: asOfDate || new Date(),
       assets,
       liabilities,
       equity,
-      totalAssets: roundToDecimalPlaces(totalAssets, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-      totalLiabilities: roundToDecimalPlaces(totalLiabilities, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-      totalEquity: roundToDecimalPlaces(totalEquity, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-      isBalanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01,
-      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+      totalAssets: roundToDecimalPlaces(
+        totalAssets,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
+      totalLiabilities: roundToDecimalPlaces(
+        totalLiabilities,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
+      totalEquity: roundToDecimalPlaces(
+        totalEquity,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
+      isBalanced:
+        Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01,
+      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
     };
   }
 
   /**
    * Generate income statement
    */
-  generateIncomeStatement(
-    startDate: Date, 
-    endDate: Date
-  ): IncomeStatement {
-    const relevantTransactions = this.transactions.filter(t => {
+  generateIncomeStatement(startDate: Date, endDate: Date): IncomeStatement {
+    const relevantTransactions = this.transactions.filter((t) => {
       const transactionDate = new Date(t.date);
       return transactionDate >= startDate && transactionDate <= endDate;
     });
@@ -897,18 +959,26 @@ export class AccountBalanceManager {
 
     for (const transaction of relevantTransactions) {
       for (const entry of transaction.entries) {
-        const accountType = this.getAccountTypeForAccount(entry.accountId.toString());
+        const accountType = this.getAccountTypeForAccount(
+          entry.accountId.toString()
+        );
         const debitAmount = entry.debitAmount || 0;
         const creditAmount = entry.creditAmount || 0;
 
-        if (accountType === 'REVENUE') {
+        if (accountType === "REVENUE") {
           const accountId = entry.accountId.toString();
           const currentRevenue = revenueMap.get(accountId) || 0;
-          revenueMap.set(accountId, currentRevenue + (creditAmount - debitAmount));
-        } else if (accountType === 'EXPENSE') {
+          revenueMap.set(
+            accountId,
+            currentRevenue + (creditAmount - debitAmount)
+          );
+        } else if (accountType === "EXPENSE") {
           const accountId = entry.accountId.toString();
           const currentExpense = expenseMap.get(accountId) || 0;
-          expenseMap.set(accountId, currentExpense + (debitAmount - creditAmount));
+          expenseMap.set(
+            accountId,
+            currentExpense + (debitAmount - creditAmount)
+          );
         }
       }
     }
@@ -920,7 +990,7 @@ export class AccountBalanceManager {
         balance,
         currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
         lastUpdated: new Date(),
-        normalBalance: 'CREDIT'
+        normalBalance: "CREDIT",
       });
     });
 
@@ -930,12 +1000,18 @@ export class AccountBalanceManager {
         balance,
         currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
         lastUpdated: new Date(),
-        normalBalance: 'DEBIT'
+        normalBalance: "DEBIT",
       });
     });
 
-    const totalRevenues = revenues.reduce((sum, account) => sum + account.balance, 0);
-    const totalExpenses = expenses.reduce((sum, account) => sum + account.balance, 0);
+    const totalRevenues = revenues.reduce(
+      (sum, account) => sum + account.balance,
+      0
+    );
+    const totalExpenses = expenses.reduce(
+      (sum, account) => sum + account.balance,
+      0
+    );
     const netIncome = totalRevenues - totalExpenses;
 
     return {
@@ -943,10 +1019,19 @@ export class AccountBalanceManager {
       toDate: endDate,
       revenues,
       expenses,
-      totalRevenues: roundToDecimalPlaces(totalRevenues, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-      totalExpenses: roundToDecimalPlaces(totalExpenses, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-      netIncome: roundToDecimalPlaces(netIncome, FINANCIAL_CONSTANTS.DECIMAL_PLACES),
-      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
+      totalRevenues: roundToDecimalPlaces(
+        totalRevenues,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
+      totalExpenses: roundToDecimalPlaces(
+        totalExpenses,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
+      netIncome: roundToDecimalPlaces(
+        netIncome,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      ),
+      currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
     };
   }
 
@@ -974,14 +1059,14 @@ export class AccountBalanceManager {
   private getAccountTypeForAccount(accountId: string): AccountType {
     // This would typically come from a database or account registry
     // For now, we'll use a simple mapping based on account ID patterns
-    if (accountId.startsWith('1')) return 'ASSET';
-    if (accountId.startsWith('2')) return 'LIABILITY';
-    if (accountId.startsWith('3')) return 'EQUITY';
-    if (accountId.startsWith('4')) return 'REVENUE';
-    if (accountId.startsWith('5')) return 'EXPENSE';
-    
+    if (accountId.startsWith("1")) return "ASSET";
+    if (accountId.startsWith("2")) return "LIABILITY";
+    if (accountId.startsWith("3")) return "EQUITY";
+    if (accountId.startsWith("4")) return "REVENUE";
+    if (accountId.startsWith("5")) return "EXPENSE";
+
     // Default fallback
-    return 'ASSET';
+    return "ASSET";
   }
 }
 
@@ -1010,7 +1095,7 @@ export class AccountRegistry {
    */
   getAccountsByType(accountType: AccountType): Account[] {
     return Array.from(this.accounts.values()).filter(
-      account => account.type === accountType
+      (account) => account.type === accountType
     );
   }
 
@@ -1070,9 +1155,13 @@ export class JournalEntryManager {
     for (const entry of transactionData.entries) {
       // Validate account exists if registry is populated
       if (this.accountRegistry.hasAccount(entry.accountId.toString())) {
-        const account = this.accountRegistry.getAccount(entry.accountId.toString());
+        const account = this.accountRegistry.getAccount(
+          entry.accountId.toString()
+        );
         if (account && !account.allowTransactions) {
-          throw new DoubleEntryError(`Account ${entry.accountId} does not allow transactions`);
+          throw new DoubleEntryError(
+            `Account ${entry.accountId} does not allow transactions`
+          );
         }
       }
 
@@ -1098,7 +1187,7 @@ export class JournalEntryManager {
         createdAt: now,
         updatedAt: now,
         createdBy,
-        updatedBy: createdBy
+        updatedBy: createdBy,
       };
 
       // Handle currency conversion if needed
@@ -1106,11 +1195,13 @@ export class JournalEntryManager {
         // In a real system, you'd fetch exchange rates from an external service
         // For now, we'll use a placeholder rate
         journalEntry.exchangeRate = this.getExchangeRate(
-          journalEntry.currency, 
+          journalEntry.currency,
           FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
         );
-        journalEntry.baseDebitAmount = (entry.debitAmount || 0) * journalEntry.exchangeRate;
-        journalEntry.baseCreditAmount = (entry.creditAmount || 0) * journalEntry.exchangeRate;
+        journalEntry.baseDebitAmount =
+          (entry.debitAmount || 0) * journalEntry.exchangeRate;
+        journalEntry.baseCreditAmount =
+          (entry.creditAmount || 0) * journalEntry.exchangeRate;
       }
 
       entries.push(journalEntry);
@@ -1128,18 +1219,19 @@ export class JournalEntryManager {
 
     if (entries.length === 0) {
       errors.push({
-        field: 'entries',
-        message: 'At least one journal entry is required',
-        code: 'NO_ENTRIES'
+        field: "entries",
+        message: "At least one journal entry is required",
+        code: "NO_ENTRIES",
       });
       return errors;
     }
 
     if (entries.length === 1) {
       errors.push({
-        field: 'entries',
-        message: 'At least two journal entries are required for double-entry bookkeeping',
-        code: 'SINGLE_ENTRY'
+        field: "entries",
+        message:
+          "At least two journal entries are required for double-entry bookkeeping",
+        code: "SINGLE_ENTRY",
       });
       // Continue validation to catch other errors
     }
@@ -1165,7 +1257,10 @@ export class JournalEntryManager {
   /**
    * Validate a single journal entry
    */
-  private validateSingleJournalEntry(entry: JournalEntry, index: number): BaseValidationError[] {
+  private validateSingleJournalEntry(
+    entry: JournalEntry,
+    index: number
+  ): BaseValidationError[] {
     const errors: BaseValidationError[] = [];
     const fieldPrefix = `entries[${index}]`;
 
@@ -1173,8 +1268,8 @@ export class JournalEntryManager {
     if (!entry.accountId || entry.accountId <= 0) {
       errors.push({
         field: `${fieldPrefix}.accountId`,
-        message: 'Valid account ID is required',
-        code: 'INVALID_ACCOUNT_ID'
+        message: "Valid account ID is required",
+        code: "INVALID_ACCOUNT_ID",
       });
     }
 
@@ -1182,33 +1277,38 @@ export class JournalEntryManager {
     if (entry.debitAmount < 0 || entry.creditAmount < 0) {
       errors.push({
         field: `${fieldPrefix}.amount`,
-        message: 'Amounts cannot be negative',
-        code: 'NEGATIVE_AMOUNT'
+        message: "Amounts cannot be negative",
+        code: "NEGATIVE_AMOUNT",
       });
     }
 
     if (entry.debitAmount === 0 && entry.creditAmount === 0) {
       errors.push({
         field: `${fieldPrefix}.amount`,
-        message: 'Either debit or credit amount must be greater than zero',
-        code: 'ZERO_AMOUNT'
+        message: "Either debit or credit amount must be greater than zero",
+        code: "ZERO_AMOUNT",
       });
     }
 
     if (entry.debitAmount > 0 && entry.creditAmount > 0) {
       errors.push({
         field: `${fieldPrefix}.amount`,
-        message: 'Entry cannot have both debit and credit amounts',
-        code: 'BOTH_DEBIT_CREDIT'
+        message: "Entry cannot have both debit and credit amounts",
+        code: "BOTH_DEBIT_CREDIT",
       });
     }
 
     // Validate currency
-    if (!entry.currency || !FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.includes(entry.currency)) {
+    if (
+      !entry.currency ||
+      !FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.includes(entry.currency)
+    ) {
       errors.push({
         field: `${fieldPrefix}.currency`,
-        message: `Currency must be one of: ${FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.join(', ')}`,
-        code: 'INVALID_CURRENCY'
+        message: `Currency must be one of: ${FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.join(
+          ", "
+        )}`,
+        code: "INVALID_CURRENCY",
       });
     }
 
@@ -1216,8 +1316,8 @@ export class JournalEntryManager {
     if (entry.exchangeRate && entry.exchangeRate <= 0) {
       errors.push({
         field: `${fieldPrefix}.exchangeRate`,
-        message: 'Exchange rate must be positive',
-        code: 'INVALID_EXCHANGE_RATE'
+        message: "Exchange rate must be positive",
+        code: "INVALID_EXCHANGE_RATE",
       });
     }
 
@@ -1225,8 +1325,8 @@ export class JournalEntryManager {
     if (!entry.description || entry.description.trim().length === 0) {
       errors.push({
         field: `${fieldPrefix}.description`,
-        message: 'Description is required',
-        code: 'MISSING_DESCRIPTION'
+        message: "Description is required",
+        code: "MISSING_DESCRIPTION",
       });
     }
 
@@ -1236,31 +1336,44 @@ export class JournalEntryManager {
   /**
    * Validate double-entry balance
    */
-  private validateDoubleEntryBalance(entries: JournalEntry[]): BaseValidationError[] {
+  private validateDoubleEntryBalance(
+    entries: JournalEntry[]
+  ): BaseValidationError[] {
     const errors: BaseValidationError[] = [];
-    
+
     // Group by currency for balance validation
-    const currencyBalances: { [currency: string]: { debits: number; credits: number } } = {};
-    
+    const currencyBalances: {
+      [currency: string]: { debits: number; credits: number };
+    } = {};
+
     for (const entry of entries) {
       if (!currencyBalances[entry.currency]) {
         currencyBalances[entry.currency] = { debits: 0, credits: 0 };
       }
-      
+
       currencyBalances[entry.currency].debits += entry.debitAmount;
       currencyBalances[entry.currency].credits += entry.creditAmount;
     }
 
     // Validate balance for each currency
     for (const [currency, balance] of Object.entries(currencyBalances)) {
-      const roundedDebits = roundToDecimalPlaces(balance.debits, FINANCIAL_CONSTANTS.DECIMAL_PLACES);
-      const roundedCredits = roundToDecimalPlaces(balance.credits, FINANCIAL_CONSTANTS.DECIMAL_PLACES);
-      
+      const roundedDebits = roundToDecimalPlaces(
+        balance.debits,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      );
+      const roundedCredits = roundToDecimalPlaces(
+        balance.credits,
+        FINANCIAL_CONSTANTS.DECIMAL_PLACES
+      );
+
       if (Math.abs(roundedDebits - roundedCredits) > 0.01) {
         errors.push({
-          field: 'entries',
-          message: `Transaction is not balanced for currency ${currency}. Debits: ${formatCurrency(roundedDebits, currency as Currency)}, Credits: ${formatCurrency(roundedCredits, currency as Currency)}`,
-          code: 'UNBALANCED_TRANSACTION'
+          field: "entries",
+          message: `Transaction is not balanced for currency ${currency}. Debits: ${formatCurrency(
+            roundedDebits,
+            currency as Currency
+          )}, Credits: ${formatCurrency(roundedCredits, currency as Currency)}`,
+          code: "UNBALANCED_TRANSACTION",
         });
       }
     }
@@ -1271,20 +1384,24 @@ export class JournalEntryManager {
   /**
    * Validate account compatibility with registry
    */
-  private validateAccountCompatibility(entries: JournalEntry[]): BaseValidationError[] {
+  private validateAccountCompatibility(
+    entries: JournalEntry[]
+  ): BaseValidationError[] {
     const errors: BaseValidationError[] = [];
 
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
-      const account = this.accountRegistry.getAccount(entry.accountId.toString());
-      
+      const account = this.accountRegistry.getAccount(
+        entry.accountId.toString()
+      );
+
       if (account) {
         // Check if account allows transactions
         if (!account.allowTransactions) {
           errors.push({
             field: `entries[${i}].accountId`,
             message: `Account ${account.code} (${account.name}) does not allow transactions`,
-            code: 'ACCOUNT_NO_TRANSACTIONS'
+            code: "ACCOUNT_NO_TRANSACTIONS",
           });
         }
 
@@ -1293,7 +1410,7 @@ export class JournalEntryManager {
           errors.push({
             field: `entries[${i}].accountId`,
             message: `Account ${account.code} (${account.name}) is inactive`,
-            code: 'ACCOUNT_INACTIVE'
+            code: "ACCOUNT_INACTIVE",
           });
         }
       } else {
@@ -1319,9 +1436,9 @@ export class JournalEntryManager {
         const updatedEntry: JournalEntry = {
           ...entry,
           updatedAt: now,
-          updatedBy: postedBy
+          updatedBy: postedBy,
         };
-        
+
         this.journalEntries.set(id, updatedEntry);
         postedEntries.push(updatedEntry);
       }
@@ -1334,16 +1451,18 @@ export class JournalEntryManager {
    * Get journal entries by transaction ID
    */
   getJournalEntriesByTransaction(transactionId: number): JournalEntry[] {
-    return Array.from(this.journalEntries.values())
-      .filter(entry => entry.transactionId === transactionId);
+    return Array.from(this.journalEntries.values()).filter(
+      (entry) => entry.transactionId === transactionId
+    );
   }
 
   /**
    * Get journal entries by account ID
    */
   getJournalEntriesByAccount(accountId: number): JournalEntry[] {
-    return Array.from(this.journalEntries.values())
-      .filter(entry => entry.accountId === accountId);
+    return Array.from(this.journalEntries.values()).filter(
+      (entry) => entry.accountId === accountId
+    );
   }
 
   /**
@@ -1364,8 +1483,8 @@ export class JournalEntryManager {
    * Reconcile journal entry
    */
   reconcileJournalEntry(
-    entryId: number, 
-    reconciliationId: string, 
+    entryId: number,
+    reconciliationId: string,
     reconciledBy?: string
   ): JournalEntry | null {
     const entry = this.journalEntries.get(entryId);
@@ -1378,7 +1497,7 @@ export class JournalEntryManager {
       reconciledAt: new Date(),
       reconciledBy,
       updatedAt: new Date(),
-      updatedBy: reconciledBy
+      updatedBy: reconciledBy,
     };
 
     this.journalEntries.set(entryId, reconciledEntry);
@@ -1388,7 +1507,10 @@ export class JournalEntryManager {
   /**
    * Unreoncile journal entry
    */
-  unreconcileJournalEntry(entryId: number, unreconciledBy?: string): JournalEntry | null {
+  unreconcileJournalEntry(
+    entryId: number,
+    unreconciledBy?: string
+  ): JournalEntry | null {
     const entry = this.journalEntries.get(entryId);
     if (!entry) return null;
 
@@ -1399,7 +1521,7 @@ export class JournalEntryManager {
       reconciledAt: undefined,
       reconciledBy: undefined,
       updatedAt: new Date(),
-      updatedBy: unreconciledBy
+      updatedBy: unreconciledBy,
     };
 
     this.journalEntries.set(entryId, unreconciledEntry);
@@ -1425,23 +1547,26 @@ export class JournalEntryManager {
   /**
    * Get exchange rate (placeholder implementation)
    */
-  private getExchangeRate(fromCurrency: Currency, toCurrency: Currency): number {
+  private getExchangeRate(
+    fromCurrency: Currency,
+    toCurrency: Currency
+  ): number {
     // In a real system, this would fetch from an external service
     // For now, return placeholder rates
     if (fromCurrency === toCurrency) return 1.0;
-    
+
     // Placeholder exchange rates (as of a hypothetical date)
     const rates: { [key: string]: number } = {
-      'USD_IDR': 15750,
-      'EUR_IDR': 17200,
-      'GBP_IDR': 19800,
-      'SGD_IDR': 11650,
-      'MYR_IDR': 3520,
-      'IDR_USD': 1 / 15750,
-      'IDR_EUR': 1 / 17200,
-      'IDR_GBP': 1 / 19800,
-      'IDR_SGD': 1 / 11650,
-      'IDR_MYR': 1 / 3520
+      USD_IDR: 15750,
+      EUR_IDR: 17200,
+      GBP_IDR: 19800,
+      SGD_IDR: 11650,
+      MYR_IDR: 3520,
+      IDR_USD: 1 / 15750,
+      IDR_EUR: 1 / 17200,
+      IDR_GBP: 1 / 19800,
+      IDR_SGD: 1 / 11650,
+      IDR_MYR: 1 / 3520,
     };
 
     const rateKey = `${fromCurrency}_${toCurrency}`;
@@ -1467,15 +1592,19 @@ export class JournalEntryManager {
     entriesByCurrency: { [currency: string]: number };
   } {
     const allEntries = this.getAllJournalEntries();
-    const reconciledEntries = allEntries.filter(entry => entry.isReconciled);
-    const unreconciledEntries = allEntries.filter(entry => !entry.isReconciled);
+    const reconciledEntries = allEntries.filter((entry) => entry.isReconciled);
+    const unreconciledEntries = allEntries.filter(
+      (entry) => !entry.isReconciled
+    );
 
     const entriesByAccount: { [accountId: number]: number } = {};
     const entriesByCurrency: { [currency: string]: number } = {};
 
     for (const entry of allEntries) {
-      entriesByAccount[entry.accountId] = (entriesByAccount[entry.accountId] || 0) + 1;
-      entriesByCurrency[entry.currency] = (entriesByCurrency[entry.currency] || 0) + 1;
+      entriesByAccount[entry.accountId] =
+        (entriesByAccount[entry.accountId] || 0) + 1;
+      entriesByCurrency[entry.currency] =
+        (entriesByCurrency[entry.currency] || 0) + 1;
     }
 
     return {
@@ -1495,7 +1624,10 @@ export interface D1Database {
     bind(...values: unknown[]): {
       all(): Promise<{ results: unknown[] }>;
       first(): Promise<unknown>;
-      run(): Promise<{ success: boolean; meta: { changes: number; last_row_id: number } }>;
+      run(): Promise<{
+        success: boolean;
+        meta: { changes: number; last_row_id: number };
+      }>;
     };
   };
 }
@@ -1513,11 +1645,13 @@ export class DatabaseAdapter {
 
   constructor(config: DatabaseConfig) {
     this.db = config.database;
-    this.entityId = config.entityId || 'default';
+    this.entityId = config.entityId || "default";
   }
 
   // Account Operations
-  async createAccount(account: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>): Promise<Account> {
+  async createAccount(
+    account: Omit<Account, "id" | "createdAt" | "updatedAt">
+  ): Promise<Account> {
     const now = new Date();
     const query = `
       INSERT INTO accounts (
@@ -1529,64 +1663,89 @@ export class DatabaseAdapter {
       RETURNING *
     `;
 
-    const result = await this.db.prepare(query).bind(
-      account.code,
-      account.name,
-      account.description || null,
-      account.type,
-      account.subtype || null,
-      account.category || null,
-      account.parentId || null,
-      account.level || 0,
-      account.path || account.code,
-      account.isActive ? 1 : 0,
-      account.isSystem ? 1 : 0,
-      account.allowTransactions ? 1 : 0,
-      account.normalBalance,
-      account.reportCategory || null,
-      account.reportOrder || 0,
-      account.currentBalance || 0,
-      this.entityId,
-      now.getTime(),
-      now.getTime(),
-      account.createdBy || null,
-      account.updatedBy || null
-    ).first() as Record<string, unknown>;
+    const result = (await this.db
+      .prepare(query)
+      .bind(
+        account.code,
+        account.name,
+        account.description || null,
+        account.type,
+        account.subtype || null,
+        account.category || null,
+        account.parentId || null,
+        account.level || 0,
+        account.path || account.code,
+        account.isActive ? 1 : 0,
+        account.isSystem ? 1 : 0,
+        account.allowTransactions ? 1 : 0,
+        account.normalBalance,
+        account.reportCategory || null,
+        account.reportOrder || 0,
+        account.currentBalance || 0,
+        this.entityId,
+        now.getTime(),
+        now.getTime(),
+        account.createdBy || null,
+        account.updatedBy || null
+      )
+      .first()) as Record<string, unknown>;
 
     return this.mapDbAccountToAccount(result);
   }
 
   async getAccount(accountId: number): Promise<Account | null> {
-    const query = 'SELECT * FROM accounts WHERE id = ? AND entity_id = ?';
-    const result = await this.db.prepare(query).bind(accountId, this.entityId).first() as Record<string, unknown> | null;
-    
+    const query = "SELECT * FROM accounts WHERE id = ? AND entity_id = ?";
+    const result = (await this.db
+      .prepare(query)
+      .bind(accountId, this.entityId)
+      .first()) as Record<string, unknown> | null;
+
     return result ? this.mapDbAccountToAccount(result) : null;
   }
 
   async getAllAccounts(): Promise<Account[]> {
-    const query = 'SELECT * FROM accounts WHERE entity_id = ? ORDER BY code';
+    const query = "SELECT * FROM accounts WHERE entity_id = ? ORDER BY code";
     const result = await this.db.prepare(query).bind(this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbAccountToAccount(row));
+
+    return (result.results as Record<string, unknown>[]).map((row) =>
+      this.mapDbAccountToAccount(row)
+    );
   }
 
   async getAccountsByType(accountType: AccountType): Promise<Account[]> {
-    const query = 'SELECT * FROM accounts WHERE type = ? AND entity_id = ? ORDER BY code';
-    const result = await this.db.prepare(query).bind(accountType, this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbAccountToAccount(row));
+    const query =
+      "SELECT * FROM accounts WHERE type = ? AND entity_id = ? ORDER BY code";
+    const result = await this.db
+      .prepare(query)
+      .bind(accountType, this.entityId)
+      .all();
+
+    return (result.results as Record<string, unknown>[]).map((row) =>
+      this.mapDbAccountToAccount(row)
+    );
   }
 
-  async updateAccount(accountId: number, updates: Partial<Omit<Account, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Account | null> {
-    const fields = Object.keys(updates).filter(key => key !== 'id' && key !== 'createdAt' && key !== 'updatedAt' && (updates as any)[key] !== undefined);
+  async updateAccount(
+    accountId: number,
+    updates: Partial<Omit<Account, "id" | "createdAt" | "updatedAt">>
+  ): Promise<Account | null> {
+    const fields = Object.keys(updates).filter(
+      (key) =>
+        key !== "id" &&
+        key !== "createdAt" &&
+        key !== "updatedAt" &&
+        (updates as any)[key] !== undefined
+    );
 
     if (fields.length === 0) {
       return this.getAccount(accountId);
     }
 
     const now = new Date();
-    const setClause = fields.map(key => `${this.toSnakeCase(key)} = ?`).join(', ');
-    const values = fields.map(key => (updates as any)[key]);
+    const setClause = fields
+      .map((key) => `${this.toSnakeCase(key)} = ?`)
+      .join(", ");
+    const values = fields.map((key) => (updates as any)[key]);
 
     const query = `
       UPDATE accounts
@@ -1595,26 +1754,26 @@ export class DatabaseAdapter {
       RETURNING *
     `;
 
-    const result = await this.db.prepare(query).bind(
-      ...values,
-      now.getTime(),
-      accountId,
-      this.entityId
-    ).first() as Record<string, unknown> | null;
+    const result = (await this.db
+      .prepare(query)
+      .bind(...values, now.getTime(), accountId, this.entityId)
+      .first()) as Record<string, unknown> | null;
 
     return result ? this.mapDbAccountToAccount(result) : null;
   }
 
   async deleteAccount(accountId: number): Promise<void> {
-    const query = 'DELETE FROM accounts WHERE id = ? AND entity_id = ?';
+    const query = "DELETE FROM accounts WHERE id = ? AND entity_id = ?";
     await this.db.prepare(query).bind(accountId, this.entityId).run();
   }
 
   // Transaction Operations
-  async createTransaction(transactionData: TransactionData): Promise<Transaction> {
+  async createTransaction(
+    transactionData: TransactionData
+  ): Promise<Transaction> {
     const now = new Date();
     const transactionNumber = await this.generateTransactionNumber();
-    
+
     const query = `
       INSERT INTO transactions (
         transaction_number, reference, description, transaction_date, posting_date,
@@ -1624,56 +1783,72 @@ export class DatabaseAdapter {
       RETURNING *
     `;
 
-    const totalAmount = transactionData.entries.reduce((sum: number, entry: TransactionEntry) => 
-      sum + (entry.debitAmount || 0) + (entry.creditAmount || 0), 0
-    ) / 2; // Divide by 2 since each amount is counted twice (debit and credit)
+    const totalAmount =
+      transactionData.entries.reduce(
+        (sum: number, entry: TransactionEntry) =>
+          sum + (entry.debitAmount || 0) + (entry.creditAmount || 0),
+        0
+      ) / 2; // Divide by 2 since each amount is counted twice (debit and credit)
 
-    const result = await this.db.prepare(query).bind(
-      transactionNumber,
-      transactionData.reference || null,
-      transactionData.description,
-      transactionData.transactionDate.getTime(),
-      transactionData.transactionDate.getTime(),
-      'JOURNAL',
-      'MANUAL',
-      null,
-      totalAmount,
-      'DRAFT',
-      this.entityId,
-      now.getTime(),
-      now.getTime(),
-'system' // TransactionData doesn't have createdBy property
-    ).first() as Record<string, unknown>;
+    const result = (await this.db
+      .prepare(query)
+      .bind(
+        transactionNumber,
+        transactionData.reference || null,
+        transactionData.description,
+        transactionData.transactionDate.getTime(),
+        transactionData.transactionDate.getTime(),
+        "JOURNAL",
+        "MANUAL",
+        null,
+        totalAmount,
+        "DRAFT",
+        this.entityId,
+        now.getTime(),
+        now.getTime(),
+        "system" // TransactionData doesn't have createdBy property
+      )
+      .first()) as Record<string, unknown>;
 
     return this.mapDbTransactionToTransaction(result);
   }
 
   async getTransaction(transactionId: number): Promise<Transaction | null> {
-    const query = 'SELECT * FROM transactions WHERE id = ? AND entity_id = ?';
-    const result = await this.db.prepare(query).bind(transactionId, this.entityId).first() as Record<string, unknown> | null;
-    
+    const query = "SELECT * FROM transactions WHERE id = ? AND entity_id = ?";
+    const result = (await this.db
+      .prepare(query)
+      .bind(transactionId, this.entityId)
+      .first()) as Record<string, unknown> | null;
+
     return result ? this.mapDbTransactionToTransaction(result) : null;
   }
 
-  async updateTransactionStatus(transactionId: number, status: TransactionStatus, updatedBy?: string): Promise<void> {
+  async updateTransactionStatus(
+    transactionId: number,
+    status: TransactionStatus,
+    updatedBy?: string
+  ): Promise<void> {
     const query = `
       UPDATE transactions 
       SET status = ?, updated_at = ?, updated_by = ?
       WHERE id = ? AND entity_id = ?
     `;
-    await this.db.prepare(query).bind(
-      status,
-      new Date().getTime(),
-      updatedBy || null,
-      transactionId,
-      this.entityId
-    ).run();
+    await this.db
+      .prepare(query)
+      .bind(
+        status,
+        new Date().getTime(),
+        updatedBy || null,
+        transactionId,
+        this.entityId
+      )
+      .run();
   }
 
   // Journal Entry Operations
   async createJournalEntries(entries: JournalEntry[]): Promise<JournalEntry[]> {
     const createdEntries: JournalEntry[] = [];
-    
+
     for (const entry of entries) {
       const query = `
         INSERT INTO journal_entries (
@@ -1684,21 +1859,24 @@ export class DatabaseAdapter {
         RETURNING *
       `;
 
-      const result = await this.db.prepare(query).bind(
-        entry.transactionId,
-        0, // line_number - not in JournalEntry interface
-        entry.accountId,
-        entry.description || null,
-        null, // memo - not in JournalEntry interface
-        entry.debitAmount || 0,
-        entry.creditAmount || 0,
-        entry.currency,
-        entry.exchangeRate || 1.0,
-        entry.isReconciled ? 1 : 0,
-        this.entityId,
-        entry.createdAt.getTime(),
-        entry.updatedAt.getTime()
-      ).first() as Record<string, unknown>;
+      const result = (await this.db
+        .prepare(query)
+        .bind(
+          entry.transactionId,
+          0, // line_number - not in JournalEntry interface
+          entry.accountId,
+          entry.description || null,
+          null, // memo - not in JournalEntry interface
+          entry.debitAmount || 0,
+          entry.creditAmount || 0,
+          entry.currency,
+          entry.exchangeRate || 1.0,
+          entry.isReconciled ? 1 : 0,
+          this.entityId,
+          entry.createdAt.getTime(),
+          entry.updatedAt.getTime()
+        )
+        .first()) as Record<string, unknown>;
 
       createdEntries.push(this.mapDbJournalEntryToJournalEntry(result));
     }
@@ -1706,15 +1884,22 @@ export class DatabaseAdapter {
     return createdEntries;
   }
 
-  async getJournalEntriesByTransaction(transactionId: number): Promise<JournalEntry[]> {
+  async getJournalEntriesByTransaction(
+    transactionId: number
+  ): Promise<JournalEntry[]> {
     const query = `
       SELECT * FROM journal_entries 
       WHERE transaction_id = ? AND entity_id = ?
       ORDER BY line_number
     `;
-    const result = await this.db.prepare(query).bind(transactionId, this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbJournalEntryToJournalEntry(row));
+    const result = await this.db
+      .prepare(query)
+      .bind(transactionId, this.entityId)
+      .all();
+
+    return (result.results as Record<string, unknown>[]).map((row) =>
+      this.mapDbJournalEntryToJournalEntry(row)
+    );
   }
 
   async getJournalEntriesByAccount(accountId: number): Promise<JournalEntry[]> {
@@ -1723,23 +1908,29 @@ export class DatabaseAdapter {
       WHERE account_id = ? AND entity_id = ?
       ORDER BY created_at DESC
     `;
-    const result = await this.db.prepare(query).bind(accountId, this.entityId).all();
-    
-    return (result.results as Record<string, unknown>[]).map(row => this.mapDbJournalEntryToJournalEntry(row));
+    const result = await this.db
+      .prepare(query)
+      .bind(accountId, this.entityId)
+      .all();
+
+    return (result.results as Record<string, unknown>[]).map((row) =>
+      this.mapDbJournalEntryToJournalEntry(row)
+    );
   }
 
-  async updateAccountBalance(accountId: number, newBalance: number): Promise<void> {
+  async updateAccountBalance(
+    accountId: number,
+    newBalance: number
+  ): Promise<void> {
     const query = `
       UPDATE accounts 
       SET current_balance = ?, updated_at = ?
       WHERE id = ? AND entity_id = ?
     `;
-    await this.db.prepare(query).bind(
-      newBalance,
-      new Date().getTime(),
-      accountId,
-      this.entityId
-    ).run();
+    await this.db
+      .prepare(query)
+      .bind(newBalance, new Date().getTime(), accountId, this.entityId)
+      .run();
   }
 
   // Helper Methods
@@ -1750,9 +1941,12 @@ export class DatabaseAdapter {
       FROM transactions 
       WHERE entity_id = ? AND transaction_number LIKE ?
     `;
-    const result = await this.db.prepare(query).bind(this.entityId, `${year}-%`).first() as Record<string, unknown> | null;
-    const nextNumber = (result?.count as number || 0) + 1;
-    return `${year}-${nextNumber.toString().padStart(6, '0')}`;
+    const result = (await this.db
+      .prepare(query)
+      .bind(this.entityId, `${year}-%`)
+      .first()) as Record<string, unknown> | null;
+    const nextNumber = ((result?.count as number) || 0) + 1;
+    return `${year}-${nextNumber.toString().padStart(6, "0")}`;
   }
 
   private mapDbAccountToAccount(row: Record<string, unknown>): Account {
@@ -1778,11 +1972,13 @@ export class DatabaseAdapter {
       createdAt: new Date(row.created_at as number),
       updatedAt: new Date(row.updated_at as number),
       createdBy: row.created_by as string | undefined,
-      updatedBy: row.updated_by as string | undefined
+      updatedBy: row.updated_by as string | undefined,
     };
   }
 
-  private mapDbTransactionToTransaction(row: Record<string, unknown>): Transaction {
+  private mapDbTransactionToTransaction(
+    row: Record<string, unknown>
+  ): Transaction {
     return {
       id: (row.id as number).toString(), // Convert number to string to match Transaction interface
       date: new Date(row.transaction_date as number).toISOString(), // Convert to ISO string
@@ -1791,15 +1987,17 @@ export class DatabaseAdapter {
       status: row.status as TransactionStatus,
       entries: [], // Entries will be loaded separately
       createdAt: new Date(row.created_at as number).toISOString(), // Convert to ISO string
-      updatedAt: new Date(row.updated_at as number).toISOString() // Convert to ISO string
+      updatedAt: new Date(row.updated_at as number).toISOString(), // Convert to ISO string
     };
   }
 
   private toSnakeCase(str: string): string {
-    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
   }
 
-  private mapDbJournalEntryToJournalEntry(row: Record<string, unknown>): JournalEntry {
+  private mapDbJournalEntryToJournalEntry(
+    row: Record<string, unknown>
+  ): JournalEntry {
     return {
       id: row.id as number,
       transactionId: row.transaction_id as number,
@@ -1817,12 +2015,14 @@ export class DatabaseAdapter {
       projectId: row.project_id as string | undefined,
       reconciliationId: row.reconciliation_id as string | undefined,
       isReconciled: Boolean(row.is_reconciled),
-      reconciledAt: row.reconciled_at ? new Date(row.reconciled_at as number) : undefined,
+      reconciledAt: row.reconciled_at
+        ? new Date(row.reconciled_at as number)
+        : undefined,
       reconciledBy: row.reconciled_by as string | undefined,
       createdAt: new Date(row.created_at as number),
       updatedAt: new Date(row.updated_at as number),
       createdBy: row.created_by as string | undefined,
-      updatedBy: row.updated_by as string | undefined
+      updatedBy: row.updated_by as string | undefined,
     };
   }
 }
@@ -1843,7 +2043,9 @@ export class DatabaseAccountRegistry extends AccountRegistry {
     }
   }
 
-  async registerAccount(account: Omit<Account, 'id' | 'createdAt' | 'updatedAt'>): Promise<Account> {
+  async registerAccount(
+    account: Omit<Account, "id" | "createdAt" | "updatedAt">
+  ): Promise<Account> {
     const createdAccount = await this.dbAdapter.createAccount(account);
     super.registerAccount(createdAccount);
     return createdAccount;
@@ -1853,7 +2055,9 @@ export class DatabaseAccountRegistry extends AccountRegistry {
     return await this.dbAdapter.getAccount(Number.parseInt(accountId));
   }
 
-  async getAccountsByTypeFromDatabase(accountType: AccountType): Promise<Account[]> {
+  async getAccountsByTypeFromDatabase(
+    accountType: AccountType
+  ): Promise<Account[]> {
     return await this.dbAdapter.getAccountsByType(accountType);
   }
 
@@ -1865,8 +2069,14 @@ export class DatabaseAccountRegistry extends AccountRegistry {
     return await this.dbAdapter.getAccount(accountId);
   }
 
-  async updateAccount(accountId: number, updateData: Partial<Account>): Promise<Account> {
-    const updatedAccount = await this.dbAdapter.updateAccount(accountId, updateData);
+  async updateAccount(
+    accountId: number,
+    updateData: Partial<Account>
+  ): Promise<Account> {
+    const updatedAccount = await this.dbAdapter.updateAccount(
+      accountId,
+      updateData
+    );
     if (!updatedAccount) {
       throw new Error(`Account with ID ${accountId} not found`);
     }
@@ -1883,7 +2093,7 @@ export class DatabaseAccountRegistry extends AccountRegistry {
 
   getAccountByCode(code: string): Account | null {
     const accounts = super.getAllAccounts();
-    return accounts.find(account => account.code === code) || null;
+    return accounts.find((account) => account.code === code) || null;
   }
 }
 
@@ -1901,11 +2111,12 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
     journalEntries: JournalEntry[];
   }> {
     // Validate transaction data
-    const validationErrors = TransactionValidator.validateTransactionData(transactionData);
+    const validationErrors =
+      TransactionValidator.validateTransactionData(transactionData);
     if (validationErrors.length > 0) {
       throw new AccountingValidationError(
-        'Transaction validation failed',
-        'INVALID_TRANSACTION_DATA',
+        "Transaction validation failed",
+        "INVALID_TRANSACTION_DATA",
         validationErrors
       );
     }
@@ -1917,40 +2128,53 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
     const journalEntries = this.createJournalEntriesFromTransaction(
       parseInt(transaction.id),
       transactionData,
-'system'
+      "system"
     );
 
     // Validate journal entries
     const entryValidationErrors = this.validateJournalEntries(journalEntries);
     if (entryValidationErrors.length > 0) {
       throw new AccountingValidationError(
-        'Journal entry validation failed',
-        'INVALID_JOURNAL_ENTRIES',
+        "Journal entry validation failed",
+        "INVALID_JOURNAL_ENTRIES",
         entryValidationErrors
       );
     }
 
     // Persist journal entries
-    const persistedEntries = await this.dbAdapter.createJournalEntries(journalEntries);
+    const persistedEntries = await this.dbAdapter.createJournalEntries(
+      journalEntries
+    );
 
     return {
       transaction,
-      journalEntries: persistedEntries
+      journalEntries: persistedEntries,
     };
   }
 
-  async postTransaction(transactionId: number, postedBy?: string): Promise<void> {
+  async postTransaction(
+    transactionId: number,
+    postedBy?: string
+  ): Promise<void> {
     // Update transaction status to POSTED
-    await this.dbAdapter.updateTransactionStatus(transactionId, 'POSTED', postedBy);
+    await this.dbAdapter.updateTransactionStatus(
+      transactionId,
+      "POSTED",
+      postedBy
+    );
 
     // Update account balances
-    const journalEntries = await this.dbAdapter.getJournalEntriesByTransaction(transactionId);
+    const journalEntries = await this.dbAdapter.getJournalEntriesByTransaction(
+      transactionId
+    );
     for (const entry of journalEntries) {
       await this.updateAccountBalanceFromEntry(entry.accountId, entry);
     }
   }
 
-  async getTransactionJournalEntries(transactionId: number): Promise<JournalEntry[]> {
+  async getTransactionJournalEntries(
+    transactionId: number
+  ): Promise<JournalEntry[]> {
     return await this.dbAdapter.getJournalEntriesByTransaction(transactionId);
   }
 
@@ -1958,15 +2182,19 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
     return await this.dbAdapter.getJournalEntriesByAccount(accountId);
   }
 
-  private async updateAccountBalanceFromEntry(accountId: number, entry: JournalEntry): Promise<void> {
+  private async updateAccountBalanceFromEntry(
+    accountId: number,
+    entry: JournalEntry
+  ): Promise<void> {
     const account = await this.dbAdapter.getAccount(accountId);
     if (!account) return;
 
     const currentBalance = account.currentBalance || 0;
     const balanceChange = entry.debitAmount - entry.creditAmount;
-    
+
     // Adjust for normal balance
-    const adjustedChange = account.normalBalance === 'DEBIT' ? balanceChange : -balanceChange;
+    const adjustedChange =
+      account.normalBalance === "DEBIT" ? balanceChange : -balanceChange;
     const newBalance = currentBalance + adjustedChange;
 
     await this.dbAdapter.updateAccountBalance(accountId, newBalance);
@@ -1974,8 +2202,7 @@ export class DatabaseJournalEntryManager extends JournalEntryManager {
 }
 
 // Re-export auth functionality
-export * from './auth/index'
-
+export * from "./auth/index";
 
 // Re-export financial reports functionality
-export * from './financial-reports';
+export * from "./financial-reports";

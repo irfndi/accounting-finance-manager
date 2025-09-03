@@ -1,7 +1,7 @@
-import { eq, sql } from 'drizzle-orm';
-import type { Database } from './index';
-import { rawDocs } from './schema/documents';
-import type { NewRawDoc, UpdateRawDoc } from './schema/documents';
+import { eq, sql } from "drizzle-orm";
+import type { Database } from "./index";
+import { rawDocs } from "./schema/documents";
+import type { NewRawDoc, UpdateRawDoc } from "./schema/documents";
 
 export async function getRawDocByFileId(db: Database, fileId: string) {
   return db.query.rawDocs.findFirst({
@@ -13,16 +13,32 @@ export async function createRawDoc(db: Database, data: NewRawDoc) {
   return db.insert(rawDocs).values(data).returning();
 }
 
-export async function updateRawDocOCR(db: Database, fileId: string, data: Partial<UpdateRawDoc>) {
-  return db.update(rawDocs).set(data).where(eq(rawDocs.fileId, fileId)).returning();
+export async function updateRawDocOCR(
+  db: Database,
+  fileId: string,
+  data: Partial<UpdateRawDoc>
+) {
+  return db
+    .update(rawDocs)
+    .set(data)
+    .where(eq(rawDocs.fileId, fileId))
+    .returning();
 }
 
-export async function updateRawDoc(db: Database, fileId: string, data: Partial<UpdateRawDoc>) {
-  return db.update(rawDocs).set(data).where(eq(rawDocs.fileId, fileId)).returning();
+export async function updateRawDoc(
+  db: Database,
+  fileId: string,
+  data: Partial<UpdateRawDoc>
+) {
+  return db
+    .update(rawDocs)
+    .set(data)
+    .where(eq(rawDocs.fileId, fileId))
+    .returning();
 }
 
 export function generateSearchableText(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, "");
 }
 
 export function parseTags(tags: string): string[] {

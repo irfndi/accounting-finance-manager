@@ -9,8 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: 'latest'
+  NODE_VERSION: "22"
+  PNPM_VERSION: "latest"
 
 jobs:
   # ============================================================================
@@ -412,7 +412,7 @@ jobs:
           echo "Unit Tests: ${{ needs.test-unit.result }}"
           echo "Integration Tests: ${{ needs.test-integration.result }}"
           echo "Build: ${{ needs.build.result }}"
-          
+
           if [[ "${{ needs.setup.result }}" == "failure" || 
                 "${{ needs.lint.result }}" == "failure" || 
                 "${{ needs.typecheck.result }}" == "failure" || 

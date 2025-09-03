@@ -7,6 +7,7 @@ This guide covers the complete deployment process for the Corporate Finance Mana
 ## 📋 Pre-Deployment Checklist
 
 ### ✅ Infrastructure Setup (Completed)
+
 - [x] GitHub repository configured
 - [x] Cloudflare account and domain setup
 - [x] GitHub & Cloudflare integration
@@ -16,6 +17,7 @@ This guide covers the complete deployment process for the Corporate Finance Mana
 ### 🛠️ Production Resources to Create
 
 #### 1. Create Production D1 Database
+
 ```bash
 # Create production database
 wrangler d1 create finance-manager-db-prod
@@ -25,6 +27,7 @@ wrangler d1 create finance-manager-db-prod
 ```
 
 #### 2. Create Production KV Namespace
+
 ```bash
 # Create production KV namespace for caching
 wrangler kv:namespace create "FINANCE_MANAGER_CACHE" --env production
@@ -34,6 +37,7 @@ wrangler kv:namespace create "FINANCE_MANAGER_CACHE" --env production
 ```
 
 #### 3. Create Production R2 Bucket
+
 ```bash
 # Create production R2 bucket for document storage
 wrangler r2 bucket create finance-manager-documents-prod
@@ -42,6 +46,7 @@ wrangler r2 bucket create finance-manager-documents-prod
 ### 🔧 Configuration Updates Needed
 
 1. **Update `alchemy.prod.ts`**:
+
    - Replace production database ID (currently using dev ID)
    - Replace production KV namespace ID
    - Verify R2 bucket names
@@ -54,12 +59,14 @@ wrangler r2 bucket create finance-manager-documents-prod
 ### 🗄️ Database Setup
 
 #### Run Production Migrations
+
 ```bash
 # Apply database migrations to production
 pnpm db:migrate:prod
 ```
 
 #### Verify Database Schema
+
 ```bash
 # Check production database structure
 wrangler d1 execute finance-manager-db-prod --command "SELECT name FROM sqlite_master WHERE type='table';" --env production
@@ -68,6 +75,7 @@ wrangler d1 execute finance-manager-db-prod --command "SELECT name FROM sqlite_m
 ## 🚀 Deployment Process
 
 ### 1. Pre-Deployment Testing
+
 ```bash
 # Ensure all tests pass
 pnpm test:all
@@ -80,6 +88,7 @@ pnpm build
 ```
 
 ### 2. Deploy to Production
+
 ```bash
 # Deploy to production environment using Alchemy
 pnpm deploy:prod
@@ -91,12 +100,14 @@ pnpm deploy:prod:wrangler
 ### 3. Post-Deployment Verification
 
 #### Health Check
+
 ```bash
 # Test the health endpoint
 curl https://finance-manager.irfandimarsya.workers.dev/health
 ```
 
 Expected response:
+
 ```json
 {
   "status": "healthy",
@@ -107,6 +118,7 @@ Expected response:
 ```
 
 #### API Endpoints Test
+
 ```bash
 # Test main API endpoint
 curl https://finance-manager.irfandimarsya.workers.dev/api/
@@ -118,6 +130,7 @@ curl https://finance-manager.irfandimarsya.workers.dev/api/accounts
 ## 🔍 Monitoring & Observability
 
 ### Available Monitoring
+
 - **Cloudflare Analytics**: Built-in request/response monitoring
 - **Worker Logs**: Real-time log streaming via `pnpm tail:prod`
 - **Health Endpoint**: `/health` for uptime monitoring
@@ -126,6 +139,7 @@ curl https://finance-manager.irfandimarsya.workers.dev/api/accounts
 - **AI Usage Tracking**: OpenRouter and Cloudflare AI usage metrics
 
 ### Log Monitoring
+
 ```bash
 # Monitor production logs in real-time
 pnpm tail:prod
@@ -134,6 +148,7 @@ pnpm tail:prod
 ## 🔐 Security Considerations
 
 ### Current Security Features
+
 - ✅ CORS properly configured
 - ✅ Environment isolation (dev/prod)
 - ✅ No sensitive data in configuration
@@ -145,6 +160,7 @@ pnpm tail:prod
 - ✅ Rate limiting and security headers
 
 ### Production Security Checklist
+
 - [ ] Verify domain SSL certificate
 - [ ] Monitor Snyk security alerts
 - [ ] Review Cloudflare security settings
@@ -153,6 +169,7 @@ pnpm tail:prod
 ## 🚨 Rollback Plan
 
 ### Quick Rollback Process
+
 ```bash
 # If issues arise, quickly rollback to previous version
 wrangler rollback --env production
@@ -163,6 +180,7 @@ pnpm deploy:prod
 ```
 
 ### Database Rollback (if needed)
+
 - Database migrations are forward-only
 - Consider creating a backup before major changes
 - Use `wrangler d1 backup` for critical operations
@@ -170,12 +188,14 @@ pnpm deploy:prod
 ## 📊 Performance Expectations
 
 ### Expected Performance
+
 - **Cold Start**: < 100ms
 - **API Response Time**: < 50ms average
 - **Database Query**: < 10ms average
 - **Concurrent Users**: 1000+ supported
 
 ### Monitoring Metrics
+
 - Request rate and success rate
 - Error rate and types
 - Database query performance
@@ -184,12 +204,15 @@ pnpm deploy:prod
 ## 🔄 Continuous Deployment
 
 ### GitHub Actions (Future Enhancement)
+
 Consider setting up automated deployment with:
+
 - Automated testing on pull requests
 - Automatic deployment to production on main branch
 - Rollback automation on failure
 
 ### Manual Deployment Workflow
+
 1. Test changes locally with `pnpm dev` and `pnpm dev:worker`
 2. Run full test suite with `pnpm test:all`
 3. Run Workers tests with `pnpm test:workers`
@@ -200,11 +223,13 @@ Consider setting up automated deployment with:
 ## 📞 Support & Troubleshooting
 
 ### Common Issues
+
 1. **Database Connection**: Verify D1 binding and migrations
 2. **CORS Issues**: Check CORS configuration in worker
 3. **Route Not Found**: Verify Hono routing configuration
 
 ### Debug Commands
+
 ```bash
 # Check worker status
 wrangler whoami

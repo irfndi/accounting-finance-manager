@@ -2,7 +2,7 @@
 // This file provides the implementation for the declarations in index.worker.d.ts
 
 // Re-export from auth/index
-export * from './auth/index';
+export * from "./auth/index";
 
 // Re-export core classes and utilities from index.ts
 export {
@@ -28,8 +28,8 @@ export {
   AccountBalanceManager,
   AccountRegistry,
   JournalEntryManager,
-  roundToDecimalPlaces
-} from './index.js';
+  roundToDecimalPlaces,
+} from "./index.js";
 
 // Re-export types
 export type {
@@ -48,8 +48,8 @@ export type {
   TransactionStatus,
   TransactionEntry,
   TransactionData,
-  ValidationError
-} from '../types/index.js';
+  ValidationError,
+} from "../types/index.js";
 
 // Worker-compatible FinancialReportsEngine - simplified implementation
 export class FinancialReportsEngine {
@@ -61,44 +61,52 @@ export class FinancialReportsEngine {
     // Simplified implementation for worker environment
     return {
       asOfDate,
-      entityId: entityId || 'default',
+      entityId: entityId || "default",
       accounts: [],
       totalDebits: 0,
       totalCredits: 0,
-      isBalanced: true
+      isBalanced: true,
     };
   }
 
   async generateBalanceSheet(asOfDate: Date, entityId?: string): Promise<any> {
     return {
       asOfDate,
-      entityId: entityId || 'default',
+      entityId: entityId || "default",
       assets: { total: 0, accounts: [] },
       liabilities: { total: 0, accounts: [] },
-      equity: { total: 0, accounts: [] }
+      equity: { total: 0, accounts: [] },
     };
   }
 
-  async generateIncomeStatement(startDate: Date, endDate: Date, entityId?: string): Promise<any> {
+  async generateIncomeStatement(
+    startDate: Date,
+    endDate: Date,
+    entityId?: string
+  ): Promise<any> {
     return {
       startDate,
       endDate,
-      entityId: entityId || 'default',
+      entityId: entityId || "default",
       revenue: { total: 0, accounts: [] },
       expenses: { total: 0, accounts: [] },
-      netIncome: 0
+      netIncome: 0,
     };
   }
 
-  async generateCashFlowStatement(startDate: Date, endDate: Date, entityId?: string): Promise<any> {
+  async generateCashFlowStatement(
+    startDate: Date,
+    endDate: Date,
+    entityId?: string
+  ): Promise<any> {
     return {
       startDate,
       endDate,
-      entityId: entityId || 'default',
+      entityId: entityId || "default",
       operatingActivities: { total: 0, items: [] },
       investingActivities: { total: 0, items: [] },
       financingActivities: { total: 0, items: [] },
-      netCashFlow: 0
+      netCashFlow: 0,
     };
   }
 
@@ -109,16 +117,16 @@ export class FinancialReportsEngine {
       quickRatio: 0,
       debtToEquityRatio: 0,
       returnOnAssets: 0,
-      returnOnEquity: 0
+      returnOnEquity: 0,
     };
   }
 }
 
 // PDF generation functions (not available in worker environment)
 export function generateIncomeStatementPDF(_data: any, _options: any): never {
-  throw new Error('PDF generation is not available in worker environment');
+  throw new Error("PDF generation is not available in worker environment");
 }
 
 export function generateTrialBalancePDF(_data: any, _options: any): never {
-  throw new Error('PDF generation is not available in worker environment');
-} 
+  throw new Error("PDF generation is not available in worker environment");
+}

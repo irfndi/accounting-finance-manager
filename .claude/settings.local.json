@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(pnpm test:coverage:*)",
+      "Bash(pnpm test:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm add:*)",
+      "Bash(go build:*)",
+      "Bash(task-master:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm run typecheck)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm exec astro:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(echo:*)",
+      "Bash(pnpm run lint)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -42,12 +42,12 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	// Check if user already exists
 	var existingUser models.User
-	err := h.db.Where("email = ?", req.Email).First(&existingUser).Error
-	if err == nil {
+	checkErr := h.db.Where("email = ?", req.Email).First(&existingUser).Error
+	if checkErr == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "User with this email already exists"})
 		return
 	}
-	if err != gorm.ErrRecordNotFound {
+	if checkErr != gorm.ErrRecordNotFound {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
@@ -69,7 +69,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		UpdatedAt:    time.Now(),
 	}
 
-	if err := h.db.Create(&user).Error; err != nil {
+	if createErr := h.db.Create(&user).Error; createErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
@@ -115,7 +115,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Verify password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+	if compareErr := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); compareErr != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}

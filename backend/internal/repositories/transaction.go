@@ -20,6 +20,7 @@ type TransactionRepository interface {
 	Update(transaction *models.Transaction) error
 	Delete(id uuid.UUID) error
 	GetSummaryByDateRange(startDate, endDate time.Time) (*models.TransactionSummary, error)
+	CreateJournalEntry(entry *models.JournalEntry) error
 }
 
 // transactionRepository implements TransactionRepository interface
@@ -182,4 +183,12 @@ func (r *transactionRepository) applyFilters(query *gorm.DB, filter *models.Tran
 	}
 
 	return query
+}
+
+// CreateJournalEntry creates a new journal entry in the database
+func (r *transactionRepository) CreateJournalEntry(entry *models.JournalEntry) error {
+	if err := r.db.Create(entry).Error; err != nil {
+		return err
+	}
+	return nil
 }

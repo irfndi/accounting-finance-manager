@@ -32,10 +32,5 @@
     "../worker-configuration.d.ts", // output of `wrangler types`
     "../src/global.d.ts"
   ],
-  "exclude": [
-    "../node_modules",
-    "../dist",
-    "../.astro",
-    "./e2e/**/*"
-  ]
+  "exclude": ["../node_modules", "../dist", "../.astro", "./e2e/**/*"]
 }

@@ -5,6 +5,7 @@
 This document outlines the comprehensive refactoring plan for migrating the Finance Manager project from its current Node.js/Astro/Cloudflare Workers architecture to a containerized Go backend with Digital Ocean deployment.
 
 **Current Architecture:**
+
 - Frontend: Astro with React islands
 - Backend: Cloudflare Workers with Hono framework
 - Database: Cloudflare D1 (SQLite)
@@ -13,6 +14,7 @@ This document outlines the comprehensive refactoring plan for migrating the Fina
 - Deployment: Cloudflare Workers
 
 **Target Architecture:**
+
 - Frontend: React SPA
 - Backend: Go with Gin/Echo framework
 - Database: PostgreSQL in Docker
@@ -25,6 +27,7 @@ This document outlines the comprehensive refactoring plan for migrating the Fina
 ## 2. Core Features
 
 ### 2.1 Feature Module
+
 The refactored application will maintain all existing functionality:
 
 1. **Authentication System**: JWT-based authentication with magic link support
@@ -36,25 +39,27 @@ The refactored application will maintain all existing functionality:
 
 ### 2.2 Page Details
 
-| Page Name | Module Name | Feature Description |
-|-----------|-------------|--------------------|
-| Login | Authentication | JWT login, magic link authentication, password reset |
-| Dashboard | Financial Overview | Real-time balance display, recent transactions, AI insights |
-| Accounts | Chart of Accounts | Hierarchical account management, account creation/editing |
+| Page Name    | Module Name            | Feature Description                                             |
+| ------------ | ---------------------- | --------------------------------------------------------------- |
+| Login        | Authentication         | JWT login, magic link authentication, password reset            |
+| Dashboard    | Financial Overview     | Real-time balance display, recent transactions, AI insights     |
+| Accounts     | Chart of Accounts      | Hierarchical account management, account creation/editing       |
 | Transactions | Transaction Management | Double-entry transaction recording, journal entries, validation |
-| Reports | Financial Reporting | Balance sheet, P&L, cash flow statements with export options |
-| Documents | Document Processing | OCR processing, AI categorization, document search |
-| Budget | Budget Management | Budget creation, tracking, variance analysis |
+| Reports      | Financial Reporting    | Balance sheet, P&L, cash flow statements with export options    |
+| Documents    | Document Processing    | OCR processing, AI categorization, document search              |
+| Budget       | Budget Management      | Budget creation, tracking, variance analysis                    |
 
 ## 3. Core Process
 
 **User Authentication Flow:**
+
 1. User accesses login page
 2. Enters email for magic link or credentials
 3. System validates and creates JWT session
 4. User redirected to dashboard
 
 **Transaction Processing Flow:**
+
 1. User navigates to transaction page
 2. Creates new transaction with debit/credit entries
 3. System validates double-entry rules
@@ -62,6 +67,7 @@ The refactored application will maintain all existing functionality:
 5. Real-time dashboard updates
 
 **Document Processing Flow:**
+
 1. User uploads receipt/invoice
 2. Go backend processes with OCR service
 3. AI categorizes and extracts data
@@ -85,6 +91,7 @@ graph TD
 ## 4. User Interface Design
 
 ### 4.1 Design Style
+
 - **Primary Colors**: Blue (#3B82F6), Green (#10B981) for positive values
 - **Secondary Colors**: Gray (#6B7280), Red (#EF4444) for negative values
 - **Button Style**: Rounded corners with subtle shadows
@@ -94,20 +101,23 @@ graph TD
 
 ### 4.2 Page Design Overview
 
-| Page Name | Module Name | UI Elements |
-|-----------|-------------|-------------|
-| Dashboard | Main Layout | Sidebar navigation, metric cards, chart widgets, recent activity list |
-| Transactions | Data Table | Sortable table, filter controls, modal forms, pagination |
-| Reports | Report Viewer | Date pickers, export buttons, chart visualizations, print layouts |
-| Documents | File Manager | Drag-drop upload, thumbnail grid, search bar, processing status |
+| Page Name    | Module Name   | UI Elements                                                           |
+| ------------ | ------------- | --------------------------------------------------------------------- |
+| Dashboard    | Main Layout   | Sidebar navigation, metric cards, chart widgets, recent activity list |
+| Transactions | Data Table    | Sortable table, filter controls, modal forms, pagination              |
+| Reports      | Report Viewer | Date pickers, export buttons, chart visualizations, print layouts     |
+| Documents    | File Manager  | Drag-drop upload, thumbnail grid, search bar, processing status       |
 
 ### 4.3 Responsiveness
+
 The application will be desktop-first with mobile-responsive design, optimized for touch interactions on tablets and phones.
 
 ## 5. Migration Strategy
 
 ### 5.1 Phase 1: Infrastructure Setup
+
 1. **Docker Environment Setup**
+
    - Create Docker Compose configuration
    - Set up PostgreSQL container with persistent volumes
    - Configure Redis container for caching
@@ -120,7 +130,9 @@ The application will be desktop-first with mobile-responsive design, optimized f
    - Create middleware for CORS, logging, authentication
 
 ### 5.2 Phase 2: Database Migration
+
 1. **Schema Translation**
+
    - Convert Drizzle schema to PostgreSQL DDL
    - Migrate existing D1 data to PostgreSQL
    - Set up database migrations system
@@ -133,7 +145,9 @@ The application will be desktop-first with mobile-responsive design, optimized f
    - Set up Redis caching layer
 
 ### 5.3 Phase 3: API Migration
+
 1. **Core API Endpoints**
+
    - Authentication endpoints (login, register, magic link)
    - Account management APIs
    - Transaction CRUD operations
@@ -146,7 +160,9 @@ The application will be desktop-first with mobile-responsive design, optimized f
    - Vector search implementation
 
 ### 5.4 Phase 4: Frontend Refactoring
+
 1. **React SPA Setup**
+
    - Convert Astro pages to React components
    - Set up React Router for navigation
    - Implement state management (Zustand/Redux)
@@ -159,7 +175,9 @@ The application will be desktop-first with mobile-responsive design, optimized f
    - Update CI/CD pipelines
 
 ### 5.5 Phase 5: Deployment & DevOps
+
 1. **Digital Ocean Setup**
+
    - Provision droplet with Docker support
    - Configure domain and SSL certificates
    - Set up monitoring and logging
@@ -174,19 +192,22 @@ The application will be desktop-first with mobile-responsive design, optimized f
 ## 6. File Consolidation Strategy
 
 ### 6.1 Files to Remove
-- All Cloudflare-specific configurations (wrangler.jsonc, alchemy.*.ts)
+
+- All Cloudflare-specific configurations (wrangler.jsonc, alchemy.\*.ts)
 - Astro configuration and build files
 - pnpm-specific files (pnpm-lock.yaml, pnpm-workspace.yaml)
 - Cloudflare Workers test configurations
 - Legacy agent configuration directories (.clinerules, .cursor, .roo, etc.)
 
 ### 6.2 Files to Consolidate
+
 - Merge multiple test configurations into unified Docker-based testing
 - Consolidate documentation from various agent folders into single docs directory
 - Combine environment configurations into Docker Compose files
 - Merge linting configurations into single oxlint setup
 
 ### 6.3 New File Structure
+
 ```
 .
 ├── backend/                 # Go backend application
@@ -210,18 +231,22 @@ The application will be desktop-first with mobile-responsive design, optimized f
 ## 7. Risk Mitigation
 
 ### 7.1 Data Migration Risks
+
 - **Risk**: Data loss during D1 to PostgreSQL migration
 - **Mitigation**: Comprehensive backup strategy, staged migration with validation
 
 ### 7.2 Service Compatibility
+
 - **Risk**: AI service integration changes
 - **Mitigation**: Abstraction layer for AI providers, fallback mechanisms
 
 ### 7.3 Performance Impact
+
 - **Risk**: Latency increase from Cloudflare Edge to single droplet
 - **Mitigation**: Redis caching, CDN for static assets, database optimization
 
 ### 7.4 Deployment Complexity
+
 - **Risk**: Docker orchestration complexity
 - **Mitigation**: Comprehensive documentation, automated deployment scripts, monitoring
 

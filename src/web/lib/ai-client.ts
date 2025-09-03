@@ -4,7 +4,12 @@
  */
 
 export interface AIAnalysisRequest {
-  type: 'transaction-analysis' | 'categorize-expense' | 'generate-insights' | 'analyze-document' | 'fraud-detection';
+  type:
+    | "transaction-analysis"
+    | "categorize-expense"
+    | "generate-insights"
+    | "analyze-document"
+    | "fraud-detection";
   data: any;
 }
 
@@ -18,7 +23,7 @@ export interface CategorizationSuggestion {
   confidence: number;
   reasoning: string;
   createdAt: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 export interface CategorizationResponse {
@@ -36,7 +41,7 @@ export interface AIAnalysisResponse {
 export class AIClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = '/api') {
+  constructor(baseUrl: string = "/api") {
     this.baseUrl = baseUrl;
   }
 
@@ -45,44 +50,51 @@ export class AIClient {
    */
   async analyzeTransaction(transaction: any): Promise<AIAnalysisResponse> {
     return this.makeRequest({
-      type: 'transaction-analysis',
-      data: transaction
+      type: "transaction-analysis",
+      data: transaction,
     });
   }
 
   /**
    * Categorize an expense automatically (legacy method)
    */
-  async categorizeExpense(description: string, amount: number): Promise<AIAnalysisResponse> {
+  async categorizeExpense(
+    description: string,
+    amount: number
+  ): Promise<AIAnalysisResponse> {
     return this.makeRequest({
-      type: 'categorize-expense',
-      data: { description, amount }
+      type: "categorize-expense",
+      data: { description, amount },
     });
   }
 
   /**
    * Generate categorization suggestion with approval workflow
    */
-  async suggestCategorization(description: string, amount: number, transactionId?: string): Promise<CategorizationResponse> {
+  async suggestCategorization(
+    description: string,
+    amount: number,
+    transactionId?: string
+  ): Promise<CategorizationResponse> {
     try {
-      const response = await fetch('/api/categorization/suggest', {
-        method: 'POST',
+      const response = await fetch("/api/categorization/suggest", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ description, amount, transactionId })
+        body: JSON.stringify({ description, amount, transactionId }),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json() as CategorizationResponse;
+      return (await response.json()) as CategorizationResponse;
     } catch (error) {
-      console.error('Categorization suggestion error:', error);
+      console.error("Categorization suggestion error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -90,20 +102,28 @@ export class AIClient {
   /**
    * Get pending categorization suggestions
    */
-  async getPendingSuggestions(): Promise<{ success: boolean; suggestions?: CategorizationSuggestion[]; error?: string }> {
+  async getPendingSuggestions(): Promise<{
+    success: boolean;
+    suggestions?: CategorizationSuggestion[];
+    error?: string;
+  }> {
     try {
-      const response = await fetch('/api/categorization/pending');
-      
+      const response = await fetch("/api/categorization/pending");
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json() as { success: boolean; suggestions?: CategorizationSuggestion[]; error?: string };
+      return (await response.json()) as {
+        success: boolean;
+        suggestions?: CategorizationSuggestion[];
+        error?: string;
+      };
     } catch (error) {
-      console.error('Failed to fetch pending suggestions:', error);
+      console.error("Failed to fetch pending suggestions:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -111,26 +131,28 @@ export class AIClient {
   /**
    * Approve a categorization suggestion
    */
-  async approveSuggestion(suggestionId: string): Promise<{ success: boolean; error?: string }> {
+  async approveSuggestion(
+    suggestionId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch('/api/categorization/approve', {
-        method: 'POST',
+      const response = await fetch("/api/categorization/approve", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ suggestionId, approved: true })
+        body: JSON.stringify({ suggestionId, approved: true }),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json() as { success: boolean; error?: string };
+      return (await response.json()) as { success: boolean; error?: string };
     } catch (error) {
-      console.error('Failed to approve suggestion:', error);
+      console.error("Failed to approve suggestion:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -138,26 +160,28 @@ export class AIClient {
   /**
    * Reject a categorization suggestion
    */
-  async rejectSuggestion(suggestionId: string): Promise<{ success: boolean; error?: string }> {
+  async rejectSuggestion(
+    suggestionId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch('/api/categorization/approve', {
-        method: 'POST',
+      const response = await fetch("/api/categorization/approve", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ suggestionId, approved: false })
+        body: JSON.stringify({ suggestionId, approved: false }),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json() as { success: boolean; error?: string };
+      return (await response.json()) as { success: boolean; error?: string };
     } catch (error) {
-      console.error('Failed to reject suggestion:', error);
+      console.error("Failed to reject suggestion:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -165,20 +189,28 @@ export class AIClient {
   /**
    * Get categorization history
    */
-  async getCategorizationHistory(): Promise<{ success: boolean; data?: any; error?: string }> {
+  async getCategorizationHistory(): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
     try {
-      const response = await fetch('/api/categorization/history');
-      
+      const response = await fetch("/api/categorization/history");
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json() as { success: boolean; data?: any; error?: string };
+      return (await response.json()) as {
+        success: boolean;
+        data?: any;
+        error?: string;
+      };
     } catch (error) {
-      console.error('Failed to fetch categorization history:', error);
+      console.error("Failed to fetch categorization history:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -189,25 +221,24 @@ export class AIClient {
   async generateInsights(data: any): Promise<AIAnalysisResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/ai-insights`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json() as AIAnalysisResponse;
+      const result = (await response.json()) as AIAnalysisResponse;
       return result;
-
     } catch (error) {
-      console.error('AI Insights Client error:', error);
+      console.error("AI Insights Client error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -215,10 +246,13 @@ export class AIClient {
   /**
    * Analyze a financial document (OCR + classification)
    */
-  async analyzeDocument(content: string, type: string): Promise<AIAnalysisResponse> {
+  async analyzeDocument(
+    content: string,
+    type: string
+  ): Promise<AIAnalysisResponse> {
     return this.makeRequest({
-      type: 'analyze-document',
-      data: { content, type }
+      type: "analyze-document",
+      data: { content, type },
     });
   }
 
@@ -227,36 +261,37 @@ export class AIClient {
    */
   async detectFraud(transaction: any): Promise<AIAnalysisResponse> {
     return this.makeRequest({
-      type: 'fraud-detection',
-      data: { transaction }
+      type: "fraud-detection",
+      data: { transaction },
     });
   }
 
   /**
    * Make API request to AI analysis endpoint
    */
-  private async makeRequest(request: AIAnalysisRequest): Promise<AIAnalysisResponse> {
+  private async makeRequest(
+    request: AIAnalysisRequest
+  ): Promise<AIAnalysisResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/ai-analysis`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json() as AIAnalysisResponse;
+      const result = (await response.json()) as AIAnalysisResponse;
       return result;
-
     } catch (error) {
-      console.error('AI Client error:', error);
+      console.error("AI Client error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }

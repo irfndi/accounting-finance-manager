@@ -1,6 +1,10 @@
-import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types';
-import type { Ai, Vectorize } from '@cloudflare/workers-types';
-import type { InferSelectModel } from 'drizzle-orm';
+import type {
+  D1Database,
+  KVNamespace,
+  R2Bucket,
+} from "@cloudflare/workers-types";
+import type { Ai, Vectorize } from "@cloudflare/workers-types";
+import type { InferSelectModel } from "drizzle-orm";
 
 // Environment bindings interface
 export type Env = {
@@ -31,12 +35,21 @@ export type JwtPayload = {
   sub: string;
 };
 
-import type { RawDocument } from '../types/index.js';
-import type { users, sessions, budgets, transactions, categories } from '../db/schema';
-import type { Database } from '../db';
-import type { MagicLinkManager, MagicLinkRateLimiter } from '../lib/auth/magicLink';
+import type { RawDocument } from "../types/index.js";
+import type {
+  users,
+  sessions,
+  budgets,
+  transactions,
+  categories,
+} from "../db/schema";
+import type { Database } from "../db";
+import type {
+  MagicLinkManager,
+  MagicLinkRateLimiter,
+} from "../lib/auth/magicLink";
 
-import type { AIService } from '../ai/services/ai-service';
+import type { AIService } from "../ai/services/ai-service";
 
 // Define type aliases using InferSelectModel
 export type User = InferSelectModel<typeof users>;
@@ -48,7 +61,11 @@ export type Category = InferSelectModel<typeof categories>;
 // Mock Cache interface for now
 export interface Cache {
   get(key: string): Promise<string | null>;
-  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+  put(
+    key: string,
+    value: string,
+    options?: { expirationTtl?: number }
+  ): Promise<void>;
   delete(key: string): Promise<void>;
 }
 
@@ -81,8 +98,8 @@ export type AppContext = {
 
 // Define the variables that the middleware will add to the context
 export type AuthVariables = {
-  user: AppContext['Variables']['user'];
-  jwtPayload: AppContext['Variables']['jwtPayload'];
+  user: AppContext["Variables"]["user"];
+  jwtPayload: AppContext["Variables"]["jwtPayload"];
 };
 
 // Define the variables that the middleware will add to the context
@@ -97,7 +114,7 @@ export type SearchResultDocument = RawDocument & {
 };
 
 export type DocVariable = {
-  doc: AppContext['Variables']['doc'];
+  doc: AppContext["Variables"]["doc"];
 };
 
 // Type aliases are already exported above

@@ -11,21 +11,21 @@ graph TB
         B[TypeScript Frontend]
         C[Worker Services]
     end
-    
+
     subgraph "Infrastructure Layer"
         D[Nginx Load Balancer]
         E[PostgreSQL Database]
         F[Redis Cache]
         G[Docker Containers]
     end
-    
+
     subgraph "Observability Stack"
         H[OpenTelemetry Collector]
         I[SigNoz Backend]
         J[SigNoz Frontend]
         K[Alert Manager]
     end
-    
+
     A --> H
     B --> H
     C --> H
@@ -33,7 +33,7 @@ graph TB
     E --> H
     F --> H
     G --> H
-    
+
     H --> I
     I --> J
     I --> K
@@ -58,7 +58,7 @@ graph TB
 
 ```yaml
 # docker-compose.observability.yml
-version: '3.8'
+version: "3.8"
 services:
   # ClickHouse for metrics and traces
   clickhouse:
@@ -96,15 +96,15 @@ services:
     environment:
       - OTEL_RESOURCE_ATTRIBUTES=service.name=signoz-otel-collector,service.version=0.88.11
     ports:
-      - "1777:1777"     # pprof extension
-      - "4317:4317"     # OTLP gRPC receiver
-      - "4318:4318"     # OTLP HTTP receiver
-      - "8888:8888"     # OtelCollector internal metrics
-      - "8889:8889"     # signoz spanmetrics exposed by the agent
-      - "9411:9411"     # Zipkin port
-      - "13133:13133"   # health_check extension
-      - "14250:14250"   # Jaeger gRPC
-      - "14268:14268"   # Jaeger thrift HTTP
+      - "1777:1777" # pprof extension
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+      - "8888:8888" # OtelCollector internal metrics
+      - "8889:8889" # signoz spanmetrics exposed by the agent
+      - "9411:9411" # Zipkin port
+      - "13133:13133" # health_check extension
+      - "14250:14250" # Jaeger gRPC
+      - "14268:14268" # Jaeger thrift HTTP
     restart: on-failure
     depends_on:
       clickhouse:
@@ -203,26 +203,26 @@ receivers:
   prometheus:
     config:
       scrape_configs:
-        - job_name: 'otel-collector'
+        - job_name: "otel-collector"
           scrape_interval: 10s
           static_configs:
-            - targets: ['0.0.0.0:8888']
-        - job_name: 'finance-manager-backend'
+            - targets: ["0.0.0.0:8888"]
+        - job_name: "finance-manager-backend"
           scrape_interval: 15s
           static_configs:
-            - targets: ['backend:8080']
-        - job_name: 'nginx'
+            - targets: ["backend:8080"]
+        - job_name: "nginx"
           scrape_interval: 15s
           static_configs:
-            - targets: ['nginx:9113']
-        - job_name: 'redis'
+            - targets: ["nginx:9113"]
+        - job_name: "redis"
           scrape_interval: 15s
           static_configs:
-            - targets: ['redis:6379']
-        - job_name: 'postgres'
+            - targets: ["redis:6379"]
+        - job_name: "postgres"
           scrape_interval: 15s
           static_configs:
-            - targets: ['postgres:5432']
+            - targets: ["postgres:5432"]
 
 processors:
   batch:
@@ -333,7 +333,7 @@ type Telemetry struct {
 
 func New(config Config) (*Telemetry, error) {
     ctx := context.Background()
-    
+
     // Create resource
     res, err := resource.New(ctx,
         resource.WithAttributes(
@@ -474,7 +474,7 @@ func NewTelemetryMiddleware() *TelemetryMiddleware {
 func (tm *TelemetryMiddleware) Handler() gin.HandlerFunc {
     return gin.HandlerFunc(func(c *gin.Context) {
         start := time.Now()
-        
+
         // Increment active connections
         tm.activeConnections.Add(c.Request.Context(), 1)
         defer tm.activeConnections.Add(c.Request.Context(), -1)
@@ -491,7 +491,7 @@ func (tm *TelemetryMiddleware) Handler() gin.HandlerFunc {
         // Record metrics
         duration := time.Since(start).Seconds()
         status := c.Writer.Status()
-        
+
         labels := []attribute.KeyValue{
             attribute.String("method", c.Request.Method),
             attribute.String("route", c.FullPath()),
@@ -624,14 +624,17 @@ func NewInstrumentedClient(config Config) *redis.Client {
 
 ```typescript
 // src/lib/telemetry/index.ts
-import { WebSDK } from '@opentelemetry/sdk-web';
-import { getWebAutoInstrumentations } from '@opentelemetry/auto-instrumentations-web';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { B3Propagator } from '@opentelemetry/propagator-b3';
-import { JaegerPropagator } from '@opentelemetry/propagator-jaeger';
-import { CompositePropagator, W3CTraceContextPropagator } from '@opentelemetry/core';
+import { WebSDK } from "@opentelemetry/sdk-web";
+import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-otlp-http";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { B3Propagator } from "@opentelemetry/propagator-b3";
+import { JaegerPropagator } from "@opentelemetry/propagator-jaeger";
+import {
+  CompositePropagator,
+  W3CTraceContextPropagator,
+} from "@opentelemetry/core";
 
 interface TelemetryConfig {
   serviceName: string;
@@ -653,14 +656,15 @@ class TelemetryService {
     const resource = new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: this.config.serviceName,
       [SemanticResourceAttributes.SERVICE_VERSION]: this.config.serviceVersion,
-      [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: this.config.environment,
-      'service.namespace': 'finance-manager',
+      [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
+        this.config.environment,
+      "service.namespace": "finance-manager",
     });
 
     const traceExporter = new OTLPTraceExporter({
       url: `${this.config.otlpEndpoint}/v1/traces`,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -669,10 +673,10 @@ class TelemetryService {
       traceExporter,
       instrumentations: [
         getWebAutoInstrumentations({
-          '@opentelemetry/instrumentation-fs': {
+          "@opentelemetry/instrumentation-fs": {
             enabled: false,
           },
-          '@opentelemetry/instrumentation-fetch': {
+          "@opentelemetry/instrumentation-fetch": {
             enabled: true,
             propagateTraceHeaderCorsUrls: [
               new RegExp(`${window.location.origin}/api/.*`),
@@ -681,22 +685,23 @@ class TelemetryService {
             clearTimingResources: true,
             applyCustomAttributesOnSpan: (span, request, result) => {
               span.setAttributes({
-                'http.request.body.size': request.body?.toString().length || 0,
-                'http.response.body.size': result.headers.get('content-length') || 0,
+                "http.request.body.size": request.body?.toString().length || 0,
+                "http.response.body.size":
+                  result.headers.get("content-length") || 0,
               });
             },
           },
-          '@opentelemetry/instrumentation-xml-http-request': {
+          "@opentelemetry/instrumentation-xml-http-request": {
             enabled: true,
             propagateTraceHeaderCorsUrls: [
               new RegExp(`${window.location.origin}/api/.*`),
             ],
           },
-          '@opentelemetry/instrumentation-user-interaction': {
+          "@opentelemetry/instrumentation-user-interaction": {
             enabled: true,
-            eventNames: ['click', 'submit', 'keydown'],
+            eventNames: ["click", "submit", "keydown"],
           },
-          '@opentelemetry/instrumentation-document-load': {
+          "@opentelemetry/instrumentation-document-load": {
             enabled: true,
           },
         }),
@@ -712,7 +717,7 @@ class TelemetryService {
     });
 
     this.sdk.start();
-    console.log('OpenTelemetry initialized successfully');
+    console.log("OpenTelemetry initialized successfully");
   }
 
   shutdown(): Promise<void> {
@@ -725,17 +730,17 @@ class TelemetryService {
 
 // Initialize telemetry
 const telemetryConfig: TelemetryConfig = {
-  serviceName: 'finance-manager-frontend',
-  serviceVersion: '1.0.0',
-  environment: import.meta.env.MODE || 'development',
-  otlpEndpoint: import.meta.env.VITE_OTEL_ENDPOINT || 'http://localhost:4318',
-  enableConsoleExporter: import.meta.env.MODE === 'development',
+  serviceName: "finance-manager-frontend",
+  serviceVersion: "1.0.0",
+  environment: import.meta.env.MODE || "development",
+  otlpEndpoint: import.meta.env.VITE_OTEL_ENDPOINT || "http://localhost:4318",
+  enableConsoleExporter: import.meta.env.MODE === "development",
 };
 
 export const telemetryService = new TelemetryService(telemetryConfig);
 
 // Auto-initialize in browser
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   telemetryService.initialize();
 }
 ```
@@ -744,18 +749,21 @@ if (typeof window !== 'undefined') {
 
 ```typescript
 // src/lib/telemetry/custom-instrumentation.ts
-import { trace, context, SpanStatusCode, SpanKind } from '@opentelemetry/api';
+import { trace, context, SpanStatusCode, SpanKind } from "@opentelemetry/api";
 
-const tracer = trace.getTracer('finance-manager-frontend', '1.0.0');
+const tracer = trace.getTracer("finance-manager-frontend", "1.0.0");
 
 export class CustomInstrumentation {
   // Track user interactions
-  static trackUserAction(actionName: string, attributes: Record<string, any> = {}) {
+  static trackUserAction(
+    actionName: string,
+    attributes: Record<string, any> = {}
+  ) {
     const span = tracer.startSpan(`user.${actionName}`, {
       kind: SpanKind.CLIENT,
       attributes: {
-        'user.action': actionName,
-        'user.timestamp': Date.now(),
+        "user.action": actionName,
+        "user.timestamp": Date.now(),
         ...attributes,
       },
     });
@@ -764,7 +772,10 @@ export class CustomInstrumentation {
       end: (error?: Error) => {
         if (error) {
           span.recordException(error);
-          span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: error.message,
+          });
         } else {
           span.setStatus({ code: SpanStatusCode.OK });
         }
@@ -788,18 +799,24 @@ export class CustomInstrumentation {
     const span = tracer.startSpan(`api.${operationName}`, {
       kind: SpanKind.CLIENT,
       attributes: {
-        'api.operation': operationName,
+        "api.operation": operationName,
         ...attributes,
       },
     });
 
     try {
-      const result = await context.with(trace.setSpan(context.active(), span), apiCall);
+      const result = await context.with(
+        trace.setSpan(context.active(), span),
+        apiCall
+      );
       span.setStatus({ code: SpanStatusCode.OK });
       return result;
     } catch (error) {
       span.recordException(error as Error);
-      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: (error as Error).message,
+      });
       throw error;
     } finally {
       span.end();
@@ -811,29 +828,33 @@ export class CustomInstrumentation {
     const span = tracer.startSpan(`page.view`, {
       kind: SpanKind.CLIENT,
       attributes: {
-        'page.name': pageName,
-        'page.url': window.location.href,
-        'page.referrer': document.referrer,
+        "page.name": pageName,
+        "page.url": window.location.href,
+        "page.referrer": document.referrer,
         ...attributes,
       },
     });
-    
+
     span.end();
   }
 
   // Track form submissions
-  static trackFormSubmission(formName: string, success: boolean, attributes: Record<string, any> = {}) {
+  static trackFormSubmission(
+    formName: string,
+    success: boolean,
+    attributes: Record<string, any> = {}
+  ) {
     const span = tracer.startSpan(`form.submit`, {
       kind: SpanKind.CLIENT,
       attributes: {
-        'form.name': formName,
-        'form.success': success,
+        "form.name": formName,
+        "form.success": success,
         ...attributes,
       },
     });
-    
-    span.setStatus({ 
-      code: success ? SpanStatusCode.OK : SpanStatusCode.ERROR 
+
+    span.setStatus({
+      code: success ? SpanStatusCode.OK : SpanStatusCode.ERROR,
     });
     span.end();
   }
@@ -855,7 +876,7 @@ http {
     opentracing_tag http_user_agent $http_user_agent;
     opentracing_tag http_host $http_host;
     opentracing_tag request_id $request_id;
-    
+
     # Prometheus metrics
     server {
         listen 9113;
@@ -866,26 +887,26 @@ http {
             deny all;
         }
     }
-    
+
     upstream backend {
         server backend:8080;
     }
-    
+
     upstream frontend {
         server frontend:3000;
     }
-    
+
     server {
         listen 80;
         server_name localhost;
-        
+
         # Add request ID for tracing
         add_header X-Request-ID $request_id;
-        
+
         # OpenTracing span
         opentracing_operation_name "$request_method $uri";
         opentracing_propagate_context;
-        
+
         location /api/ {
             opentracing_operation_name "api_proxy";
             proxy_pass http://backend;
@@ -893,13 +914,13 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Request-ID $request_id;
-            
+
             # CORS headers
             add_header Access-Control-Allow-Origin *;
             add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
             add_header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,X-Request-ID,traceparent,tracestate";
         }
-        
+
         location / {
             opentracing_operation_name "frontend_proxy";
             proxy_pass http://frontend;
@@ -991,10 +1012,10 @@ func NewStructuredLogger(serviceName string) *StructuredLogger {
             return a
         },
     }
-    
+
     handler := slog.NewJSONHandler(os.Stdout, opts)
     logger := slog.New(handler)
-    
+
     return &StructuredLogger{
         logger: logger,
     }
@@ -1033,28 +1054,28 @@ func (cl *ContextualLogger) log(level slog.Level, msg string, fields ...slog.Att
     // Extract trace information from context
     span := trace.SpanFromContext(cl.ctx)
     spanContext := span.SpanContext()
-    
+
     attrs := []slog.Attr{
         slog.String("service", "finance-manager-backend"),
     }
-    
+
     if spanContext.IsValid() {
         attrs = append(attrs,
             slog.String("trace_id", spanContext.TraceID().String()),
             slog.String("span_id", spanContext.SpanID().String()),
         )
     }
-    
+
     // Add request ID if available
     if requestID := cl.ctx.Value("request_id"); requestID != nil {
         attrs = append(attrs, slog.String("request_id", requestID.(string)))
     }
-    
+
     // Add user ID if available
     if userID := cl.ctx.Value("user_id"); userID != nil {
         attrs = append(attrs, slog.String("user_id", userID.(string)))
     }
-    
+
     attrs = append(attrs, fields...)
     cl.logger.LogAttrs(cl.ctx, level, msg, attrs...)
 }
@@ -1080,16 +1101,16 @@ type BusinessMetrics struct {
     userRegistrations    metric.Int64Counter
     userLogins          metric.Int64Counter
     activeUsers         metric.Int64UpDownCounter
-    
+
     // Transaction metrics
     transactionCount    metric.Int64Counter
     transactionAmount   metric.Float64Histogram
     transactionErrors   metric.Int64Counter
-    
+
     // Account metrics
     accountCreations    metric.Int64Counter
     accountBalance      metric.Float64Gauge
-    
+
     // System metrics
     databaseConnections metric.Int64UpDownCounter
     cacheHitRate       metric.Float64Gauge
@@ -1098,7 +1119,7 @@ type BusinessMetrics struct {
 
 func NewBusinessMetrics() (*BusinessMetrics, error) {
     meter := otel.Meter("finance-manager-business")
-    
+
     userRegistrations, err := meter.Int64Counter(
         "user_registrations_total",
         metric.WithDescription("Total number of user registrations"),
@@ -1106,7 +1127,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     userLogins, err := meter.Int64Counter(
         "user_logins_total",
         metric.WithDescription("Total number of user logins"),
@@ -1114,7 +1135,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     activeUsers, err := meter.Int64UpDownCounter(
         "active_users",
         metric.WithDescription("Number of currently active users"),
@@ -1122,7 +1143,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     transactionCount, err := meter.Int64Counter(
         "transactions_total",
         metric.WithDescription("Total number of transactions"),
@@ -1130,7 +1151,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     transactionAmount, err := meter.Float64Histogram(
         "transaction_amount",
         metric.WithDescription("Transaction amounts"),
@@ -1139,7 +1160,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     transactionErrors, err := meter.Int64Counter(
         "transaction_errors_total",
         metric.WithDescription("Total number of transaction errors"),
@@ -1147,7 +1168,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     accountCreations, err := meter.Int64Counter(
         "account_creations_total",
         metric.WithDescription("Total number of account creations"),
@@ -1155,7 +1176,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     accountBalance, err := meter.Float64Gauge(
         "account_balance",
         metric.WithDescription("Current account balance"),
@@ -1164,7 +1185,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     databaseConnections, err := meter.Int64UpDownCounter(
         "database_connections",
         metric.WithDescription("Number of active database connections"),
@@ -1172,7 +1193,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     cacheHitRate, err := meter.Float64Gauge(
         "cache_hit_rate",
         metric.WithDescription("Cache hit rate percentage"),
@@ -1181,7 +1202,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     apiResponseTime, err := meter.Float64Histogram(
         "api_response_time",
         metric.WithDescription("API response time"),
@@ -1190,7 +1211,7 @@ func NewBusinessMetrics() (*BusinessMetrics, error) {
     if err != nil {
         return nil, err
     }
-    
+
     return &BusinessMetrics{
         userRegistrations:   userRegistrations,
         userLogins:         userLogins,
@@ -1230,7 +1251,7 @@ func (bm *BusinessMetrics) RecordTransaction(ctx context.Context, amount float64
         attribute.String("transaction_type", transactionType),
         attribute.String("status", status),
     }
-    
+
     bm.transactionCount.Add(ctx, 1, metric.WithAttributes(attrs...))
     bm.transactionAmount.Record(ctx, amount, metric.WithAttributes(attrs...))
 }
@@ -1388,35 +1409,35 @@ groups:
 ```yaml
 # alertmanager/config.yml
 global:
-  smtp_smarthost: 'localhost:587'
-  smtp_from: 'alerts@finance-manager.com'
-  smtp_auth_username: 'alerts@finance-manager.com'
-  smtp_auth_password: 'password'
+  smtp_smarthost: "localhost:587"
+  smtp_from: "alerts@finance-manager.com"
+  smtp_auth_username: "alerts@finance-manager.com"
+  smtp_auth_password: "password"
 
 route:
-  group_by: ['alertname', 'service']
+  group_by: ["alertname", "service"]
   group_wait: 10s
   group_interval: 10s
   repeat_interval: 1h
-  receiver: 'web.hook'
+  receiver: "web.hook"
   routes:
     - match:
         severity: critical
-      receiver: 'critical-alerts'
+      receiver: "critical-alerts"
     - match:
         severity: warning
-      receiver: 'warning-alerts'
+      receiver: "warning-alerts"
 
 receivers:
-  - name: 'web.hook'
+  - name: "web.hook"
     webhook_configs:
-      - url: 'http://localhost:5001/webhook'
+      - url: "http://localhost:5001/webhook"
         send_resolved: true
 
-  - name: 'critical-alerts'
+  - name: "critical-alerts"
     email_configs:
-      - to: 'oncall@finance-manager.com'
-        subject: '[CRITICAL] {{ .GroupLabels.alertname }}'
+      - to: "oncall@finance-manager.com"
+        subject: "[CRITICAL] {{ .GroupLabels.alertname }}"
         body: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
@@ -1425,9 +1446,9 @@ receivers:
           Severity: {{ .Labels.severity }}
           {{ end }}
     slack_configs:
-      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
-        channel: '#alerts-critical'
-        title: '[CRITICAL] {{ .GroupLabels.alertname }}'
+      - api_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+        channel: "#alerts-critical"
+        title: "[CRITICAL] {{ .GroupLabels.alertname }}"
         text: |
           {{ range .Alerts }}
           *Alert:* {{ .Annotations.summary }}
@@ -1435,10 +1456,10 @@ receivers:
           *Service:* {{ .Labels.service }}
           {{ end }}
 
-  - name: 'warning-alerts'
+  - name: "warning-alerts"
     email_configs:
-      - to: 'team@finance-manager.com'
-        subject: '[WARNING] {{ .GroupLabels.alertname }}'
+      - to: "team@finance-manager.com"
+        subject: "[WARNING] {{ .GroupLabels.alertname }}"
         body: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
@@ -1446,9 +1467,9 @@ receivers:
           Service: {{ .Labels.service }}
           {{ end }}
     slack_configs:
-      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
-        channel: '#alerts-warning'
-        title: '[WARNING] {{ .GroupLabels.alertname }}'
+      - api_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+        channel: "#alerts-warning"
+        title: "[WARNING] {{ .GroupLabels.alertname }}"
         text: |
           {{ range .Alerts }}
           *Alert:* {{ .Annotations.summary }}
@@ -1458,69 +1479,68 @@ receivers:
 
 inhibit_rules:
   - source_match:
-      severity: 'critical'
+      severity: "critical"
     target_match:
-      severity: 'warning'
-    equal: ['alertname', 'service']
+      severity: "warning"
+    equal: ["alertname", "service"]
 ```
 
 ## 4. Migration Plan
 
 ### 4.1 Phase 1: Infrastructure Setup (Week 1)
 
-* Deploy SigNoz stack using Docker Compose
+- Deploy SigNoz stack using Docker Compose
 
-* Configure OpenTelemetry Collector
+- Configure OpenTelemetry Collector
 
-* Set up basic monitoring dashboards
+- Set up basic monitoring dashboards
 
-* Test connectivity between components
+- Test connectivity between components
 
 ### 4.2 Phase 2: Backend Instrumentation (Week 2)
 
-* Add OpenTelemetry dependencies to Go backend
+- Add OpenTelemetry dependencies to Go backend
 
-* Implement telemetry package and middleware
+- Implement telemetry package and middleware
 
-* Instrument database and Redis connections
+- Instrument database and Redis connections
 
-* Add structured logging
+- Add structured logging
 
-* Deploy and test backend instrumentation
+- Deploy and test backend instrumentation
 
 ### 4.3 Phase 3: Frontend Instrumentation (Week 3)
 
-* Add OpenTelemetry dependencies to TypeScript frontend
+- Add OpenTelemetry dependencies to TypeScript frontend
 
-* Implement browser-side telemetry
+- Implement browser-side telemetry
 
-* Add custom instrumentation for user interactions
+- Add custom instrumentation for user interactions
 
-* Configure trace propagation between frontend and backend
+- Configure trace propagation between frontend and backend
 
-* Test end-to-end tracing
+- Test end-to-end tracing
 
 ### 4.4 Phase 4: Infrastructure Monitoring (Week 4)
 
-* Configure Nginx with OpenTracing
+- Configure Nginx with OpenTracing
 
-* Add PostgreSQL and Redis monitoring
+- Add PostgreSQL and Redis monitoring
 
-* Set up Docker container metrics
+- Set up Docker container metrics
 
-* Implement custom business metrics
+- Implement custom business metrics
 
-* Test complete observability stack
+- Test complete observability stack
 
 ### 4.5 Phase 5: Alerting and Optimization (Week 5)
 
-* Configure alert rules and notifications
+- Configure alert rules and notifications
 
-* Set up dashboards for different stakeholders
+- Set up dashboards for different stakeholders
 
-* Optimize sampling rates and performance
+- Optimize sampling rates and performance
 
-* Document runbooks and troubleshooting guides
+- Document runbooks and troubleshooting guides
 
-* Train team on new observability tools
-
+- Train team on new observability tools

@@ -1,6 +1,7 @@
 # Alchemy Consistency Audit Report
 
 ## Overview
+
 This document summarizes the audit and updates made to ensure consistent use of Alchemy instead of Wrangler commands across the entire project.
 
 ## Changes Made
@@ -10,6 +11,7 @@ This document summarizes the audit and updates made to ensure consistent use of 
 **File**: `package.json`
 
 **Changes**:
+
 - `dev:worker`: `wrangler dev --local` → `alchemy dev`
 - `db:migrate`: `wrangler d1 migrations apply finance-manager-db --env development` → `alchemy run --env development -- wrangler d1 migrations apply finance-manager-db`
 - `db:migrate:prod`: `wrangler d1 migrations apply finance-manager-db-prod --env production` → `alchemy run --env production -- wrangler d1 migrations apply finance-manager-db-prod`
@@ -18,6 +20,7 @@ This document summarizes the audit and updates made to ensure consistent use of 
 - `types`: `wrangler types` → `alchemy run -- wrangler types`
 
 **Kept as-is** (for backward compatibility):
+
 - `deploy:wrangler`: `wrangler deploy`
 - `deploy:prod:wrangler`: `wrangler deploy --env production`
 
@@ -26,6 +29,7 @@ This document summarizes the audit and updates made to ensure consistent use of 
 **File**: `Makefile`
 
 **Changes**:
+
 - `prod/rollback`: `cd worker && wrangler rollback --env production` → `alchemy run --env production -- wrangler rollback`
 - `prod/status`: `cd worker && wrangler tail --env production --format pretty --once` → `alchemy run --env production -- wrangler tail --format pretty --once`
 - `debug`: `wrangler tail --env production --format json | jq...` → `alchemy run --env production -- wrangler tail --format json | jq...`
@@ -45,6 +49,7 @@ This document summarizes the audit and updates made to ensure consistent use of 
 **Status**: ✅ **No wrangler commands found**
 
 Audited files:
+
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy.yml`
 - `.github/workflows/e2e.yml`
@@ -57,6 +62,7 @@ All workflows are clean and do not contain direct wrangler command usage.
 **Status**: ✅ **No scripts found**
 
 The `scripts/` directory contains only placeholder directories:
+
 - `scripts/dev/.gitkeep`
 - `scripts/prod/.gitkeep`
 
@@ -65,6 +71,7 @@ No shell scripts or other executable files contain wrangler commands.
 ## Alchemy Command Pattern
 
 All wrangler commands now follow the consistent pattern:
+
 ```bash
 # Development environment
 alchemy run --env development -- wrangler <command>

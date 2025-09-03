@@ -7,43 +7,43 @@ graph TD
     A[User Browser] --> B[Nginx Load Balancer]
     B --> C[React Frontend Application]
     B --> D[Go Backend API]
-    
+
     C --> E[OpenTelemetry Web SDK]
     D --> F[OpenTelemetry Go SDK]
-    
+
     E --> G[OTLP HTTP Exporter]
     F --> H[OTLP gRPC Exporter]
-    
+
     G --> I[OpenTelemetry Collector]
     H --> I
-    
+
     I --> J[ClickHouse Database]
     I --> K[SigNoz Query Service]
-    
+
     K --> L[SigNoz Frontend]
     K --> M[Alert Manager]
-    
+
     D --> N[PostgreSQL Database]
     D --> O[Redis Cache]
-    
+
     subgraph "Frontend Layer"
         C
         E
         G
     end
-    
+
     subgraph "Backend Layer"
         D
         F
         H
     end
-    
+
     subgraph "Infrastructure Layer"
         B
         N
         O
     end
-    
+
     subgraph "Observability Stack"
         I
         J
@@ -55,15 +55,15 @@ graph TD
 
 ## 2. Technology Description
 
-* **Frontend**: React\@18 + TypeScript + Vite + OpenTelemetry Web SDK
+- **Frontend**: React\@18 + TypeScript + Vite + OpenTelemetry Web SDK
 
-* **Backend**: Go\@1.21 + Gin + OpenTelemetry Go SDK
+- **Backend**: Go\@1.21 + Gin + OpenTelemetry Go SDK
 
-* **Infrastructure**: Docker + Nginx + PostgreSQL + Redis
+- **Infrastructure**: Docker + Nginx + PostgreSQL + Redis
 
-* **Observability**: OpenTelemetry Collector + SigNoz + ClickHouse + AlertManager
+- **Observability**: OpenTelemetry Collector + SigNoz + ClickHouse + AlertManager
 
-* **Deployment**: Docker Compose + Environment-based configuration
+- **Deployment**: Docker Compose + Environment-based configuration
 
 ## 3. Route Definitions
 
@@ -93,20 +93,20 @@ POST /api/telemetry/init
 
 Request:
 
-| Param Name       | Param Type | isRequired | Description                               |
-| ---------------- | ---------- | ---------- | ----------------------------------------- |
-| service\_name    | string     | true       | Name of the service being instrumented    |
-| service\_version | string     | true       | Version of the service                    |
-| environment      | string     | true       | Deployment environment (dev/staging/prod) |
-| sampling\_rate   | float      | false      | Trace sampling rate (0.0-1.0)             |
+| Param Name      | Param Type | isRequired | Description                               |
+| --------------- | ---------- | ---------- | ----------------------------------------- |
+| service_name    | string     | true       | Name of the service being instrumented    |
+| service_version | string     | true       | Version of the service                    |
+| environment     | string     | true       | Deployment environment (dev/staging/prod) |
+| sampling_rate   | float      | false      | Trace sampling rate (0.0-1.0)             |
 
 Response:
 
-| Param Name        | Param Type | Description                   |
-| ----------------- | ---------- | ----------------------------- |
-| status            | boolean    | Initialization success status |
-| trace\_endpoint   | string     | OTLP trace endpoint URL       |
-| metrics\_endpoint | string     | OTLP metrics endpoint URL     |
+| Param Name       | Param Type | Description                   |
+| ---------------- | ---------- | ----------------------------- |
+| status           | boolean    | Initialization success status |
+| trace_endpoint   | string     | OTLP trace endpoint URL       |
+| metrics_endpoint | string     | OTLP metrics endpoint URL     |
 
 Example:
 
@@ -127,20 +127,20 @@ POST /api/telemetry/metrics
 
 Request:
 
-| Param Name   | Param Type | isRequired | Description                       |
-| ------------ | ---------- | ---------- | --------------------------------- |
-| metric\_name | string     | true       | Name of the custom metric         |
-| metric\_type | string     | true       | Type: counter, gauge, histogram   |
-| value        | number     | true       | Metric value                      |
-| labels       | object     | false      | Key-value pairs for metric labels |
-| timestamp    | string     | false      | ISO timestamp (defaults to now)   |
+| Param Name  | Param Type | isRequired | Description                       |
+| ----------- | ---------- | ---------- | --------------------------------- |
+| metric_name | string     | true       | Name of the custom metric         |
+| metric_type | string     | true       | Type: counter, gauge, histogram   |
+| value       | number     | true       | Metric value                      |
+| labels      | object     | false      | Key-value pairs for metric labels |
+| timestamp   | string     | false      | ISO timestamp (defaults to now)   |
 
 Response:
 
 | Param Name | Param Type | Description                               |
 | ---------- | ---------- | ----------------------------------------- |
 | status     | boolean    | Metric recording success                  |
-| metric\_id | string     | Unique identifier for the recorded metric |
+| metric_id  | string     | Unique identifier for the recorded metric |
 
 Example:
 
@@ -164,12 +164,12 @@ GET /api/telemetry/trace-context
 
 Response:
 
-| Param Name   | Param Type | Description                 |
-| ------------ | ---------- | --------------------------- |
-| trace\_id    | string     | Current trace identifier    |
-| span\_id     | string     | Current span identifier     |
-| trace\_flags | string     | Trace sampling flags        |
-| trace\_state | string     | Vendor-specific trace state |
+| Param Name  | Param Type | Description                 |
+| ----------- | ---------- | --------------------------- |
+| trace_id    | string     | Current trace identifier    |
+| span_id     | string     | Current span identifier     |
+| trace_flags | string     | Trace sampling flags        |
+| trace_state | string     | Vendor-specific trace state |
 
 Example:
 
@@ -232,22 +232,22 @@ graph TD
     F --> G[Logging Middleware]
     G --> H[Request ID Middleware]
     H --> I[Controller Layer]
-    
+
     I --> J[Service Layer]
     J --> K[Repository Layer]
     K --> L[(PostgreSQL)]
     K --> M[(Redis Cache)]
-    
+
     E --> N[Trace Exporter]
     G --> O[Log Exporter]
     J --> P[Metrics Collector]
-    
+
     N --> Q[OTLP Collector]
     O --> Q
     P --> Q
-    
+
     Q --> R[SigNoz Backend]
-    
+
     subgraph "Middleware Stack"
         C
         D
@@ -256,18 +256,18 @@ graph TD
         G
         H
     end
-    
+
     subgraph "Application Layer"
         I
         J
         K
     end
-    
+
     subgraph "Data Layer"
         L
         M
     end
-    
+
     subgraph "Observability Pipeline"
         N
         O
@@ -287,16 +287,16 @@ erDiagram
     SPANS ||--o{ SPAN_ATTRIBUTES : has
     SPANS ||--o{ SPAN_EVENTS : contains
     SPANS ||--o{ SPAN_LINKS : references
-    
+
     METRICS ||--o{ METRIC_POINTS : contains
     METRIC_POINTS ||--o{ METRIC_ATTRIBUTES : has
-    
+
     LOGS ||--o{ LOG_ATTRIBUTES : has
     LOGS ||--o{ LOG_RESOURCES : belongs_to
-    
+
     ALERTS ||--o{ ALERT_RULES : triggered_by
     ALERT_RULES ||--o{ ALERT_CONDITIONS : has
-    
+
     TRACES {
         string trace_id PK
         timestamp start_time
@@ -307,7 +307,7 @@ erDiagram
         int span_count
         string status
     }
-    
+
     SPANS {
         string span_id PK
         string trace_id FK
@@ -322,28 +322,28 @@ erDiagram
         string service_name
         string resource_attributes
     }
-    
+
     SPAN_ATTRIBUTES {
         string span_id FK
         string key
         string value
         string type
     }
-    
+
     SPAN_EVENTS {
         string span_id FK
         timestamp event_time
         string event_name
         string event_attributes
     }
-    
+
     SPAN_LINKS {
         string span_id FK
         string linked_trace_id
         string linked_span_id
         string link_attributes
     }
-    
+
     METRICS {
         string metric_id PK
         string metric_name
@@ -353,7 +353,7 @@ erDiagram
         string service_name
         string resource_attributes
     }
-    
+
     METRIC_POINTS {
         string metric_id FK
         timestamp timestamp
@@ -361,13 +361,13 @@ erDiagram
         string exemplar_trace_id
         string exemplar_span_id
     }
-    
+
     METRIC_ATTRIBUTES {
         string metric_id FK
         string key
         string value
     }
-    
+
     LOGS {
         string log_id PK
         timestamp timestamp
@@ -378,14 +378,14 @@ erDiagram
         string span_id
         string service_name
     }
-    
+
     LOG_ATTRIBUTES {
         string log_id FK
         string key
         string value
         string type
     }
-    
+
     LOG_RESOURCES {
         string resource_id PK
         string service_name
@@ -393,7 +393,7 @@ erDiagram
         string deployment_environment
         string resource_attributes
     }
-    
+
     ALERTS {
         string alert_id PK
         string alert_name
@@ -404,7 +404,7 @@ erDiagram
         string description
         string service_name
     }
-    
+
     ALERT_RULES {
         string rule_id PK
         string rule_name
@@ -415,7 +415,7 @@ erDiagram
         string severity
         boolean enabled
     }
-    
+
     ALERT_CONDITIONS {
         string rule_id FK
         string condition_type
@@ -664,7 +664,7 @@ INSERT INTO alert_rules (rule_name, description, query, condition_operator, thre
 
 ```yaml
 # docker-compose.observability.override.yml
-version: '3.8'
+version: "3.8"
 
 services:
   backend:
@@ -707,12 +707,12 @@ services:
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
-      - "1888:1888"   # pprof extension
-      - "8888:8888"   # Prometheus metrics
-      - "8889:8889"   # Prometheus exporter metrics
+      - "1888:1888" # pprof extension
+      - "8888:8888" # Prometheus metrics
+      - "8889:8889" # Prometheus exporter metrics
       - "13133:13133" # health_check extension
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
       - "55679:55679" # zpages extension
     depends_on:
       - clickhouse
@@ -871,4 +871,3 @@ SMTP_USER=alerts@finance-manager.com
 SMTP_PASSWORD=
 SLACK_WEBHOOK
 ```
-

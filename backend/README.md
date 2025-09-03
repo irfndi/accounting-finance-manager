@@ -174,6 +174,7 @@ The API returns consistent error responses:
 ```
 
 HTTP status codes:
+
 - `200` - Success
 - `201` - Created
 - `400` - Bad Request

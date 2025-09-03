@@ -1,10 +1,24 @@
-export type Currency = 'IDR' | 'USD' | 'EUR' | 'GBP' | 'SGD' | 'MYR';
-export interface Money { amount: number; currency: Currency; }
+export type Currency = "IDR" | "USD" | "EUR" | "GBP" | "SGD" | "MYR";
+export interface Money {
+  amount: number;
+  currency: Currency;
+}
 
 // Account Types
-export type AccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
-export type NormalBalance = 'DEBIT' | 'CREDIT';
-export type TransactionStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'POSTED' | 'CANCELLED' | 'REVERSED';
+export type AccountType =
+  | "ASSET"
+  | "LIABILITY"
+  | "EQUITY"
+  | "REVENUE"
+  | "EXPENSE";
+export type NormalBalance = "DEBIT" | "CREDIT";
+export type TransactionStatus =
+  | "DRAFT"
+  | "PENDING"
+  | "APPROVED"
+  | "POSTED"
+  | "CANCELLED"
+  | "REVERSED";
 
 // Account Interface
 export interface Account {
@@ -128,8 +142,13 @@ export interface TrialBalance {
 }
 
 // Document Types
-export type DocumentStatus = 'PENDING' | 'UPLOADED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
-export type DocumentType = 'INVOICE' | 'RECEIPT' | 'BANK_STATEMENT' | 'OTHER';
+export type DocumentStatus =
+  | "PENDING"
+  | "UPLOADED"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED";
+export type DocumentType = "INVOICE" | "RECEIPT" | "BANK_STATEMENT" | "OTHER";
 
 export interface RawDocument {
   id: number;

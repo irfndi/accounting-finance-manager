@@ -148,8 +148,8 @@ func (h *AccountHandler) UpdateAccount(c *gin.Context) {
 	}
 
 	var req models.UpdateAccountRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.NewErrorResponse(models.ErrBadRequest, err.Error()))
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse(models.ErrBadRequest, bindErr.Error()))
 		return
 	}
 
@@ -246,8 +246,8 @@ func (h *AccountHandler) UpdateAccountBalance(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.Parse(c.Param("id"))
-	if err != nil {
+	id, parseErr := uuid.Parse(c.Param("id"))
+	if parseErr != nil {
 		c.JSON(http.StatusBadRequest, models.NewErrorResponse(models.ErrBadRequest, "Invalid account ID"))
 		return
 	}
@@ -255,8 +255,8 @@ func (h *AccountHandler) UpdateAccountBalance(c *gin.Context) {
 	var req struct {
 		Amount float64 `json:"amount" binding:"required"`
 	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.NewErrorResponse(models.ErrBadRequest, err.Error()))
+	if bindErr := c.ShouldBindJSON(&req); bindErr != nil {
+		c.JSON(http.StatusBadRequest, models.NewErrorResponse(models.ErrBadRequest, bindErr.Error()))
 		return
 	}
 
@@ -267,17 +267,17 @@ func (h *AccountHandler) UpdateAccountBalance(c *gin.Context) {
 		return
 	}
 
-	err = h.accountService.UpdateBalance(id, amount)
-	if err != nil {
-		if err == models.ErrAccountNotFound {
-			c.JSON(http.StatusNotFound, models.NewErrorResponse(models.ErrAccountNotFound, err.Error()))
+	updateErr := h.accountService.UpdateBalance(id, amount)
+	if updateErr != nil {
+		if updateErr == models.ErrAccountNotFound {
+			c.JSON(http.StatusNotFound, models.NewErrorResponse(models.ErrAccountNotFound, updateErr.Error()))
 			return
 		}
-		if err == models.ErrInsufficientFunds {
-			c.JSON(http.StatusBadRequest, models.NewErrorResponse(models.ErrInsufficientFunds, err.Error()))
+		if updateErr == models.ErrInsufficientFunds {
+			c.JSON(http.StatusBadRequest, models.NewErrorResponse(models.ErrInsufficientFunds, updateErr.Error()))
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(models.ErrInternalServer, err.Error()))
+		c.JSON(http.StatusInternalServerError, models.NewErrorResponse(models.ErrInternalServer, updateErr.Error()))
 		return
 	}
 

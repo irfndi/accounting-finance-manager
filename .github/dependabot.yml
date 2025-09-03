@@ -156,4 +156,4 @@ updates:
     labels:
       - "github-actions"
       - "ci-cd"
-      - "automated" 
+      - "automated"

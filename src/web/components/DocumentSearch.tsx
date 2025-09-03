@@ -3,9 +3,9 @@
  * Provides semantic search interface for documents
  */
 
-import React, { useState, useCallback } from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
+import React, { useState, useCallback } from "react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 
 interface SearchResult {
   id: string;
@@ -38,8 +38,8 @@ interface DocumentSearchProps {
   className?: string;
 }
 
-export function DocumentSearch({ className = '' }: DocumentSearchProps) {
-  const [query, setQuery] = useState('');
+export function DocumentSearch({ className = "" }: DocumentSearchProps) {
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) {
-      setError('Please enter a search query');
+      setError("Please enter a search query");
       return;
     }
 
@@ -60,42 +60,43 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
     setSearchStats(null);
 
     try {
-      const response = await fetch('/api/vectorize/search', {
-        method: 'POST',
+      const response = await fetch("/api/vectorize/search", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('finance_manager_token') || ''}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${
+            localStorage.getItem("finance_manager_token") || ""
+          }`,
         },
         body: JSON.stringify({
           query: query.trim(),
           topK: 10,
-          threshold: 0.7
+          threshold: 0.7,
         }),
       });
 
       const data: SearchResponse = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error || 'Search failed');
+        throw new Error(data.error || "Search failed");
       }
 
       if (data.data) {
         setResults(data.data.results || []);
         setSearchStats({
           totalMatches: data.data.totalMatches || 0,
-          processingTime: data.data.processingTime || 0
+          processingTime: data.data.processingTime || 0,
         });
       }
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Search failed');
+      setError(err instanceof Error ? err.message : "Search failed");
     } finally {
       setLoading(false);
     }
   }, [query]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !loading) {
+    if (e.key === "Enter" && !loading) {
       handleSearch();
     }
   };
@@ -110,7 +111,7 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
 
   const truncateText = (text: string, maxLength: number = 200) => {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    return text.substring(0, maxLength) + "...";
   };
 
   return (
@@ -135,12 +136,12 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={loading}
             />
-            <Button 
-              onClick={handleSearch} 
+            <Button
+              onClick={handleSearch}
               disabled={loading || !query.trim()}
               className="px-6"
             >
-              {loading ? 'Searching...' : 'Search'}
+              {loading ? "Searching..." : "Search"}
             </Button>
           </div>
 
@@ -154,7 +155,8 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
           {/* Search Stats */}
           {searchStats && (
             <div className="text-sm text-gray-600">
-              Found {searchStats.totalMatches} results in {searchStats.processingTime}ms
+              Found {searchStats.totalMatches} results in{" "}
+              {searchStats.processingTime}ms
             </div>
           )}
 
@@ -163,7 +165,10 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">Search Results</h3>
               {results.map((result) => (
-                <Card key={result.id} className="p-4 hover:shadow-md transition-shadow">
+                <Card
+                  key={result.id}
+                  className="p-4 hover:shadow-md transition-shadow"
+                >
                   <div className="space-y-2">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -187,16 +192,17 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
                         )}
                       </div>
                     </div>
-                    
+
                     {result.matchedText && (
                       <p className="text-gray-700 text-sm leading-relaxed">
                         {truncateText(result.matchedText)}
                       </p>
                     )}
-                    
+
                     {result.chunkInfo && (
                       <div className="text-xs text-gray-500">
-                        Chunk {result.chunkInfo.chunkIndex + 1} of {result.chunkInfo.totalChunks}
+                        Chunk {result.chunkInfo.chunkIndex + 1} of{" "}
+                        {result.chunkInfo.totalChunks}
                       </div>
                     )}
                   </div>
@@ -209,7 +215,9 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
           {!loading && results.length === 0 && searchStats && (
             <div className="text-center py-8 text-gray-500">
               <p>No documents found matching your search.</p>
-              <p className="text-sm mt-1">Try using different keywords or phrases.</p>
+              <p className="text-sm mt-1">
+                Try using different keywords or phrases.
+              </p>
             </div>
           )}
         </div>

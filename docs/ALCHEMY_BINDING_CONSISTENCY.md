@@ -1,6 +1,7 @@
 # Alchemy Binding Consistency Implementation
 
 ## Overview
+
 This document outlines the changes made to ensure binding consistency across all environments using Alchemy with `adopt: true` configuration and standardized variables.
 
 ## Changes Made
@@ -10,12 +11,14 @@ This document outlines the changes made to ensure binding consistency across all
 All Alchemy configuration files have been updated to include `adopt: true` for consistent binding management:
 
 #### Files Updated:
+
 - `alchemy.prod.ts` - Production environment
-- `alchemy.dev.ts` - Development environment  
+- `alchemy.dev.ts` - Development environment
 - `alchemy.run.ts` - Main runtime configuration
 - `alchemy.resources.ts` - Resource management
 
 #### Bindings with `adopt: true`:
+
 - **KV Namespaces**: All KV namespace configurations now include `adopt: true`
 - **R2 Buckets**: All R2 bucket configurations now include `adopt: true`
 - **D1 Databases**: All D1 database configurations now include `adopt: true`
@@ -27,13 +30,14 @@ Added consistent Alchemy management variables across all environments:
 ```json
 {
   "ALCHEMY_MANAGED": "true",
-  "CONTAINER_VERSION": "1.0.0", 
+  "CONTAINER_VERSION": "1.0.0",
   "DEPLOYMENT_STRATEGY": "alchemy",
   "STAGE": "prod|dev|test"
 }
 ```
 
 #### Environment-Specific Stages:
+
 - **Production**: `STAGE: "prod"`
 - **Development**: `STAGE: "dev"`
 - **Test**: `STAGE: "test"`
@@ -41,10 +45,12 @@ Added consistent Alchemy management variables across all environments:
 ### 3. Wrangler Configuration Migration
 
 #### From TOML to JSONC:
+
 - **Old**: `wrangler.toml` (backed up as `wrangler.toml.backup`)
 - **New**: `wrangler.jsonc` with JSON Comments support
 
 #### Benefits of JSONC Format:
+
 - Better IDE support with syntax highlighting
 - Comments for documentation
 - Easier programmatic manipulation
@@ -60,21 +66,27 @@ The new `wrangler.jsonc` includes:
   "main": "src/index.ts",
   "compatibility_date": "2024-12-01",
   "compatibility_flags": ["nodejs_compat"],
-  
+
   // Default variables with Alchemy management
   "vars": {
     "ALCHEMY_MANAGED": "true",
     "CONTAINER_VERSION": "1.0.0",
     "DEPLOYMENT_STRATEGY": "alchemy",
-    "STAGE": "dev",
+    "STAGE": "dev"
     // ... other environment variables
   },
-  
+
   // Environment-specific configurations
   "env": {
-    "production": { /* prod config */ },
-    "development": { /* dev config */ },
-    "test": { /* test config */ }
+    "production": {
+      /* prod config */
+    },
+    "development": {
+      /* dev config */
+    },
+    "test": {
+      /* test config */
+    }
   }
 }
 ```
@@ -82,13 +94,17 @@ The new `wrangler.jsonc` includes:
 ## Verification
 
 ### Wrangler Types Generation
+
 Successfully tested with `wrangler types` command, confirming:
+
 - ✅ Configuration file is properly detected
 - ✅ Types are generated correctly
 - ✅ All bindings are recognized
 
 ### Alchemy Adoption
+
 With `adopt: true` configuration:
+
 - ✅ Existing resources will be adopted rather than recreated
 - ✅ Consistent binding management across environments
 - ✅ Reduced resource conflicts and duplication
@@ -111,6 +127,7 @@ With `adopt: true` configuration:
 ## Rollback Plan
 
 If issues arise:
+
 1. Restore `wrangler.toml.backup` to `wrangler.toml`
 2. Remove `adopt: true` from Alchemy configurations
 3. Redeploy with original configuration

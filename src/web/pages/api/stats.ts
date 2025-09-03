@@ -1,69 +1,72 @@
-import type { APIRoute } from 'astro';
-import { validateToken } from '../../../lib/auth/index.ts';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { APIRoute } from "astro";
+import { validateToken } from "../../../lib/auth/index.ts";
+import type { D1Database } from "@cloudflare/workers-types";
 
 export const GET: APIRoute = async ({ request, locals }) => {
   try {
     // Validate authentication
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    
+    const authHeader = request.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
+
     if (!token) {
       return new Response(
-        JSON.stringify({ error: 'Authorization token required' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Authorization token required" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
     const tokenValidation = await validateToken(token);
     if (!tokenValidation.valid) {
       return new Response(
-        JSON.stringify({ error: tokenValidation.error || 'Invalid token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: tokenValidation.error || "Invalid token" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Try to get D1 database from different possible locations
     let db: D1Database | undefined;
-    
+
     // Check Cloudflare runtime first
-    const runtime = (locals as any).runtime as { env: { FINANCE_MANAGER_DB: D1Database } };
+    const runtime = (locals as any).runtime as {
+      env: { FINANCE_MANAGER_DB: D1Database };
+    };
     if (runtime?.env?.FINANCE_MANAGER_DB) {
       db = runtime.env.FINANCE_MANAGER_DB;
     }
-    
+
     // Check platformProxy (for local development)
     const platformProxy = (locals as any).platformProxy;
     if (!db && platformProxy?.env?.FINANCE_MANAGER_DB) {
       db = platformProxy.env.FINANCE_MANAGER_DB;
     }
-    
+
     // Check direct env access
     if (!db && (locals as any).env?.FINANCE_MANAGER_DB) {
       db = (locals as any).env.FINANCE_MANAGER_DB;
     }
-    
+
     if (!db) {
       return new Response(
-        JSON.stringify({ 
-          error: 'Database configuration error',
-          message: 'This API requires Cloudflare D1 database but is running in Node.js mode'
+        JSON.stringify({
+          error: "Database configuration error",
+          message:
+            "This API requires Cloudflare D1 database but is running in Node.js mode",
         }),
-        { status: 503, headers: { 'Content-Type': 'application/json' } }
+        { status: 503, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Get query parameters
     const url = new URL(request.url);
-    const entityId = url.searchParams.get('entityId') || 'default';
+    const entityId = url.searchParams.get("entityId") || "default";
 
     // Calculate current month date range
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    
-    const startDate = startOfMonth.toISOString().split('T')[0];
-    const endDate = endOfMonth.toISOString().split('T')[0];
+
+    const startDate = startOfMonth.toISOString().split("T")[0];
+    const endDate = endOfMonth.toISOString().split("T")[0];
 
     // Get account statistics
     const accountStatsQuery = `
@@ -79,8 +82,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
       FROM accounts 
       WHERE entity_id = ?
     `;
-    
-    const accountStats = await db.prepare(accountStatsQuery).bind(entityId).first();
+
+    const accountStats = await db
+      .prepare(accountStatsQuery)
+      .bind(entityId)
+      .first();
 
     // Get transaction statistics for current month
     const transactionStatsQuery = `
@@ -96,8 +102,9 @@ export const GET: APIRoute = async ({ request, locals }) => {
         AND transaction_date >= ? 
         AND transaction_date <= ?
     `;
-    
-    const transactionStats = await db.prepare(transactionStatsQuery)
+
+    const transactionStats = await db
+      .prepare(transactionStatsQuery)
       .bind(entityId, startDate, endDate)
       .first();
 
@@ -117,8 +124,9 @@ export const GET: APIRoute = async ({ request, locals }) => {
       WHERE t.entity_id = ?
         AND ABS(COALESCE(je.total_debits, 0) - COALESCE(je.total_credits, 0)) > 0.01
     `;
-    
-    const unbalancedStats = await db.prepare(unbalancedQuery)
+
+    const unbalancedStats = await db
+      .prepare(unbalancedQuery)
       .bind(entityId, entityId)
       .first();
 
@@ -135,9 +143,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
         AND created_at >= ? 
         AND created_at <= ?
     `;
-    
-    const journalStats = await db.prepare(journalStatsQuery)
-      .bind(entityId, startDate + 'T00:00:00Z', endDate + 'T23:59:59Z')
+
+    const journalStats = await db
+      .prepare(journalStatsQuery)
+      .bind(entityId, startDate + "T00:00:00Z", endDate + "T23:59:59Z")
       .first();
 
     // Compile the response
@@ -151,8 +160,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
           liabilities: (accountStats as any)?.liability_accounts || 0,
           equity: (accountStats as any)?.equity_accounts || 0,
           revenue: (accountStats as any)?.revenue_accounts || 0,
-          expenses: (accountStats as any)?.expense_accounts || 0
-        }
+          expenses: (accountStats as any)?.expense_accounts || 0,
+        },
       },
       transactions: {
         monthlyCount: (transactionStats as any)?.monthly_transactions || 0,
@@ -160,24 +169,29 @@ export const GET: APIRoute = async ({ request, locals }) => {
         totalAmount: (transactionStats as any)?.total_amount || 0,
         averageAmount: (transactionStats as any)?.average_amount || 0,
         minAmount: (transactionStats as any)?.min_amount || 0,
-        maxAmount: (transactionStats as any)?.max_amount || 0
+        maxAmount: (transactionStats as any)?.max_amount || 0,
       },
       journalEntries: {
         total: (journalStats as any)?.total_journal_entries || 0,
         debits: (journalStats as any)?.debit_entries || 0,
         credits: (journalStats as any)?.credit_entries || 0,
         totalDebits: (journalStats as any)?.total_debits || 0,
-        totalCredits: (journalStats as any)?.total_credits || 0
+        totalCredits: (journalStats as any)?.total_credits || 0,
       },
       compliance: {
         unbalancedEntries: (unbalancedStats as any)?.unbalanced_entries || 0,
-        balanceIntegrity: ((journalStats as any)?.total_debits || 0) === ((journalStats as any)?.total_credits || 0)
+        balanceIntegrity:
+          ((journalStats as any)?.total_debits || 0) ===
+          ((journalStats as any)?.total_credits || 0),
       },
       period: {
         startDate,
         endDate,
-        description: `${startOfMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
-      }
+        description: `${startOfMonth.toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        })}`,
+      },
     };
 
     return new Response(
@@ -185,19 +199,18 @@ export const GET: APIRoute = async ({ request, locals }) => {
         success: true,
         stats,
         entityId,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
-
   } catch (error) {
-    console.error('Error fetching statistics:', error);
+    console.error("Error fetching statistics:", error);
     return new Response(
       JSON.stringify({
-        error: 'Failed to fetch statistics',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        error: "Failed to fetch statistics",
+        message: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 };

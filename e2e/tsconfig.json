@@ -3,10 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": [
-      "@playwright/test",
-      "@types/node"
-    ],
+    "types": ["@playwright/test", "@types/node"],
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "verbatimModuleSyntax": true,
@@ -23,16 +20,6 @@
     },
     "jsx": "preserve"
   },
-  "include": [
-    "./**/*.ts",
-    "./**/*.tsx",
-    "../src/**/*.ts",
-    "../src/**/*.tsx"
-  ],
-  "exclude": [
-    "../node_modules",
-    "../dist",
-    "../.astro",
-    "../tests/**/*"
-  ]
+  "include": ["./**/*.ts", "./**/*.tsx", "../src/**/*.ts", "../src/**/*.tsx"],
+  "exclude": ["../node_modules", "../dist", "../.astro", "../tests/**/*"]
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import {
   getRawDocByFileId,
@@ -7,9 +7,9 @@ import {
   updateRawDoc,
   generateSearchableText,
   parseTags,
-  getUploadStats
-} from '../../src/db/raw-docs';
-import { rawDocs } from '../../src/db/schema/documents';
+  getUploadStats,
+} from "../../src/db/raw-docs";
+import { rawDocs } from "../../src/db/schema/documents";
 
 // Mock the database
 const mockDb = {
@@ -28,9 +28,9 @@ const mockDb = {
   max: vi.fn(),
   query: {
     rawDocs: {
-      findFirst: vi.fn()
-    }
-  }
+      findFirst: vi.fn(),
+    },
+  },
 };
 
 // Create chainable mock methods
@@ -47,58 +47,63 @@ const createChainableMock = () => ({
   sum: vi.fn().mockReturnThis(),
   avg: vi.fn().mockReturnThis(),
   min: vi.fn().mockReturnThis(),
-  max: vi.fn().mockReturnThis()
+  max: vi.fn().mockReturnThis(),
 });
 
-describe('Raw Documents Database Operations', () => {
+describe("Raw Documents Database Operations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Object.assign(mockDb, createChainableMock());
   });
 
-  describe('getRawDocByFileId', () => {
-    it('should retrieve a raw document by file ID', async () => {
+  describe("getRawDocByFileId", () => {
+    it("should retrieve a raw document by file ID", async () => {
       const mockDoc = {
         id: 1,
-        fileId: 'test-file-id',
-        originalName: 'test.pdf',
-        mimeType: 'application/pdf',
+        fileId: "test-file-id",
+        originalName: "test.pdf",
+        mimeType: "application/pdf",
         fileSize: 1024,
-        r2Key: 'documents/test-file-id.pdf',
-        uploadedBy: 'user-1',
+        r2Key: "documents/test-file-id.pdf",
+        uploadedBy: "user-1",
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockDb.query.rawDocs.findFirst.mockResolvedValue(mockDoc);
 
-      const result = await getRawDocByFileId(mockDb as any, 'test-file-id');
+      const result = await getRawDocByFileId(mockDb as any, "test-file-id");
 
       expect(mockDb.query.rawDocs.findFirst).toHaveBeenCalled();
       expect(result).toEqual(mockDoc);
     });
 
-    it('should return undefined if document not found', async () => {
+    it("should return undefined if document not found", async () => {
       mockDb.query.rawDocs.findFirst.mockResolvedValue(undefined);
 
-      const result = await getRawDocByFileId(mockDb as any, 'non-existent');
+      const result = await getRawDocByFileId(mockDb as any, "non-existent");
 
       expect(result).toBeUndefined();
     });
   });
 
-  describe('createRawDoc', () => {
-    it('should create a new raw document', async () => {
+  describe("createRawDoc", () => {
+    it("should create a new raw document", async () => {
       const newDoc = {
-        fileId: 'new-file-id',
-        originalName: 'new-test.pdf',
-        mimeType: 'application/pdf',
+        fileId: "new-file-id",
+        originalName: "new-test.pdf",
+        mimeType: "application/pdf",
         fileSize: 2048,
-        r2Key: 'documents/new-file-id.pdf',
-        uploadedBy: 'user-1'
+        r2Key: "documents/new-file-id.pdf",
+        uploadedBy: "user-1",
       };
 
-      const createdDoc = { id: 2, ...newDoc, createdAt: new Date(), updatedAt: new Date() };
+      const createdDoc = {
+        id: 2,
+        ...newDoc,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       mockDb.insert.mockReturnValue(mockDb);
       mockDb.values.mockReturnValue(mockDb);
@@ -113,18 +118,18 @@ describe('Raw Documents Database Operations', () => {
     });
   });
 
-  describe('updateRawDocOCR', () => {
-    it('should update OCR data for a raw document', async () => {
+  describe("updateRawDocOCR", () => {
+    it("should update OCR data for a raw document", async () => {
       const ocrData = {
-        extractedText: 'Extracted text content',
+        extractedText: "Extracted text content",
         ocrConfidence: 0.95,
-        ocrProcessedAt: new Date()
+        ocrProcessedAt: new Date(),
       };
 
       const updatedDoc = {
-        id: '1',
-        fileId: 'test-file-id',
-        ...ocrData
+        id: "1",
+        fileId: "test-file-id",
+        ...ocrData,
       };
 
       mockDb.update.mockReturnValue(mockDb);
@@ -132,7 +137,11 @@ describe('Raw Documents Database Operations', () => {
       mockDb.where.mockReturnValue(mockDb);
       mockDb.returning.mockResolvedValue([updatedDoc]);
 
-      const result = await updateRawDocOCR(mockDb as any, 'test-file-id', ocrData);
+      const result = await updateRawDocOCR(
+        mockDb as any,
+        "test-file-id",
+        ocrData
+      );
 
       expect(mockDb.update).toHaveBeenCalledWith(rawDocs);
       expect(mockDb.set).toHaveBeenCalledWith(ocrData);
@@ -141,17 +150,17 @@ describe('Raw Documents Database Operations', () => {
     });
   });
 
-  describe('updateRawDoc', () => {
-    it('should update a raw document', async () => {
+  describe("updateRawDoc", () => {
+    it("should update a raw document", async () => {
       const updateData = {
-        originalName: 'updated-name.pdf',
-        tags: '["invoice","expense"]'
+        originalName: "updated-name.pdf",
+        tags: '["invoice","expense"]',
       };
 
       const updatedDoc = {
-        id: '1',
-        fileId: 'test-file-id',
-        ...updateData
+        id: "1",
+        fileId: "test-file-id",
+        ...updateData,
       };
 
       mockDb.update.mockReturnValue(mockDb);
@@ -159,7 +168,11 @@ describe('Raw Documents Database Operations', () => {
       mockDb.where.mockReturnValue(mockDb);
       mockDb.returning.mockResolvedValue([updatedDoc]);
 
-      const result = await updateRawDoc(mockDb as any, 'test-file-id', updateData);
+      const result = await updateRawDoc(
+        mockDb as any,
+        "test-file-id",
+        updateData
+      );
 
       expect(mockDb.update).toHaveBeenCalledWith(rawDocs);
       expect(mockDb.set).toHaveBeenCalledWith(updateData);
@@ -167,41 +180,41 @@ describe('Raw Documents Database Operations', () => {
     });
   });
 
-  describe('generateSearchableText', () => {
-    it('should generate searchable text from input', () => {
-      const input = 'Invoice #12345 - Amount: $1,234.56';
+  describe("generateSearchableText", () => {
+    it("should generate searchable text from input", () => {
+      const input = "Invoice #12345 - Amount: $1,234.56";
       const result = generateSearchableText(input);
 
-      expect(result).toBe('invoice 12345  amount 123456');
+      expect(result).toBe("invoice 12345  amount 123456");
     });
 
-    it('should handle empty input', () => {
-      const result = generateSearchableText('');
-      expect(result).toBe('');
+    it("should handle empty input", () => {
+      const result = generateSearchableText("");
+      expect(result).toBe("");
     });
   });
 
-  describe('parseTags', () => {
-    it('should parse JSON array tags', () => {
+  describe("parseTags", () => {
+    it("should parse JSON array tags", () => {
       const tags = '["invoice", "expense", "business"]';
       const result = parseTags(tags);
 
-      expect(result).toEqual(['invoice', 'expense', 'business']);
+      expect(result).toEqual(["invoice", "expense", "business"]);
     });
 
-    it('should handle empty tags', () => {
-      const result = parseTags('');
+    it("should handle empty tags", () => {
+      const result = parseTags("");
       expect(result).toEqual([]);
     });
 
-    it('should handle invalid JSON', () => {
-      const tags = 'invalid json';
+    it("should handle invalid JSON", () => {
+      const tags = "invalid json";
       const result = parseTags(tags);
 
       expect(result).toEqual([]);
     });
 
-    it('should handle non-array JSON', () => {
+    it("should handle non-array JSON", () => {
       const tags = '{"key": "value"}';
       const result = parseTags(tags);
 
@@ -209,18 +222,18 @@ describe('Raw Documents Database Operations', () => {
     });
   });
 
-  describe('getUploadStats', () => {
-    it('should return upload statistics for a user', async () => {
+  describe("getUploadStats", () => {
+    it("should return upload statistics for a user", async () => {
       const mockStats = {
         count: 10,
-        totalSize: 1024000
+        totalSize: 1024000,
       };
 
       mockDb.select.mockReturnValue(mockDb);
       mockDb.from.mockReturnValue(mockDb);
       mockDb.where.mockResolvedValue([mockStats]);
 
-      const result = await getUploadStats(mockDb as any, 'user-1');
+      const result = await getUploadStats(mockDb as any, "user-1");
 
       expect(mockDb.select).toHaveBeenCalled();
       expect(mockDb.from).toHaveBeenCalledWith(rawDocs);
@@ -228,17 +241,17 @@ describe('Raw Documents Database Operations', () => {
       expect(result).toEqual(mockStats);
     });
 
-    it('should handle user with no uploads', async () => {
+    it("should handle user with no uploads", async () => {
       const emptyStats = {
         count: 0,
-        totalSize: 0
+        totalSize: 0,
       };
 
       mockDb.select.mockReturnValue(mockDb);
       mockDb.from.mockReturnValue(mockDb);
       mockDb.where.mockResolvedValue([emptyStats]);
 
-      const result = await getUploadStats(mockDb as any, 'user-no-uploads');
+      const result = await getUploadStats(mockDb as any, "user-no-uploads");
 
       expect(result).toEqual(emptyStats);
     });

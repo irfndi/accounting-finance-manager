@@ -3,6 +3,7 @@
 ## 1. Pre-Migration Preparation
 
 ### 1.1 Environment Setup
+
 - [ ] Install Docker and Docker Compose
 - [ ] Install Bun package manager (`curl -fsSL https://bun.sh/install | bash`)
 - [ ] Install Go 1.21+ (`https://golang.org/dl/`)
@@ -11,6 +12,7 @@
 - [ ] Create backup of current project
 
 ### 1.2 Project Analysis
+
 - [ ] Review current Cloudflare Workers configuration
 - [ ] Document existing API endpoints and functionality
 - [ ] Export current database schema and data
@@ -18,6 +20,7 @@
 - [ ] Identify external service dependencies
 
 ### 1.3 Infrastructure Planning
+
 - [ ] Plan Digital Ocean droplet specifications
 - [ ] Design Docker network architecture
 - [ ] Plan SSL certificate strategy
@@ -26,6 +29,7 @@
 ## 2. Phase 1: Infrastructure Setup
 
 ### 2.1 Digital Ocean Droplet Setup
+
 - [ ] Create Digital Ocean droplet (minimum 4GB RAM, 2 vCPUs)
 - [ ] Configure SSH access and security groups
 - [ ] Install Docker and Docker Compose on droplet
@@ -33,12 +37,14 @@
 - [ ] Configure domain DNS to point to droplet IP
 
 ### 2.2 Local Development Environment
+
 - [ ] Set up Docker development environment
 - [ ] Configure local PostgreSQL and Redis containers
 - [ ] Set up Nginx reverse proxy configuration
 - [ ] Test local container orchestration
 
 ### 2.3 CI/CD Pipeline Setup
+
 - [ ] Configure GitHub Actions workflow
 - [ ] Set up deployment secrets in GitHub
 - [ ] Test automated deployment pipeline
@@ -47,6 +53,7 @@
 ## 3. Phase 2: Database Migration
 
 ### 3.1 Schema Migration
+
 - [ ] Export current Cloudflare D1 database schema
 - [ ] Convert Drizzle schema to PostgreSQL DDL
 - [ ] Create Go database migration files
@@ -54,6 +61,7 @@
 - [ ] Validate all table relationships and constraints
 
 ### 3.2 Data Migration
+
 - [ ] Export data from Cloudflare D1 database
 - [ ] Transform data format for PostgreSQL compatibility
 - [ ] Create data import scripts
@@ -61,6 +69,7 @@
 - [ ] Validate data integrity after migration
 
 ### 3.3 Database Configuration
+
 - [ ] Configure PostgreSQL Docker container
 - [ ] Set up database connection pooling
 - [ ] Configure backup strategy
@@ -70,6 +79,7 @@
 ## 4. Phase 3: Backend Migration
 
 ### 4.1 Go Backend Setup
+
 - [ ] Initialize Go module (`go mod init finance-manager`)
 - [ ] Set up project structure (cmd, internal, pkg)
 - [ ] Configure Gin web framework
@@ -77,6 +87,7 @@
 - [ ] Configure Redis connection
 
 ### 4.2 API Migration
+
 - [ ] Convert authentication endpoints from Hono to Gin
 - [ ] Migrate account management APIs
 - [ ] Convert transaction APIs
@@ -85,6 +96,7 @@
 - [ ] Migrate reporting and analytics APIs
 
 ### 4.3 Middleware and Security
+
 - [ ] Implement JWT authentication middleware
 - [ ] Set up CORS configuration
 - [ ] Implement rate limiting
@@ -92,6 +104,7 @@
 - [ ] Configure security headers
 
 ### 4.4 External Service Integration
+
 - [ ] Migrate OpenRouter LLM integration
 - [ ] Convert document processing services
 - [ ] Set up file storage (replace Cloudflare R2)
@@ -101,6 +114,7 @@
 ## 5. Phase 4: Frontend Migration
 
 ### 5.1 Package Manager Migration
+
 - [ ] Remove pnpm-lock.yaml and pnpm-workspace.yaml
 - [ ] Update package.json for Bun compatibility
 - [ ] Install dependencies with Bun (`bun install`)
@@ -108,6 +122,7 @@
 - [ ] Update build scripts for Bun
 
 ### 5.2 Astro to React Migration
+
 - [ ] Create new React application structure
 - [ ] Convert Astro components to React components
 - [ ] Migrate layouts and pages
@@ -115,6 +130,7 @@
 - [ ] Convert API calls to use new Go backend
 
 ### 5.3 Build Configuration
+
 - [ ] Configure Vite for React development
 - [ ] Set up Tailwind CSS configuration
 - [ ] Configure TypeScript for React
@@ -122,6 +138,7 @@
 - [ ] Configure production build process
 
 ### 5.4 State Management
+
 - [ ] Set up React Query for server state
 - [ ] Configure Zustand for client state
 - [ ] Migrate authentication state management
@@ -131,6 +148,7 @@
 ## 6. Phase 5: Docker Configuration
 
 ### 6.1 Container Setup
+
 - [ ] Create Dockerfile for Go backend
 - [ ] Create Dockerfile for React frontend
 - [ ] Configure PostgreSQL container
@@ -138,6 +156,7 @@
 - [ ] Configure Nginx container
 
 ### 6.2 Docker Compose Configuration
+
 - [ ] Create production docker-compose.yml
 - [ ] Create development docker-compose.override.yml
 - [ ] Configure container networking
@@ -145,6 +164,7 @@
 - [ ] Configure environment variables
 
 ### 6.3 Nginx Configuration
+
 - [ ] Configure reverse proxy for backend API
 - [ ] Set up static file serving for frontend
 - [ ] Configure SSL termination
@@ -154,6 +174,7 @@
 ## 7. Phase 6: Testing and Validation
 
 ### 7.1 Unit Testing
+
 - [ ] Set up Vitest for frontend testing
 - [ ] Configure Go testing framework
 - [ ] Write unit tests for critical functions
@@ -161,6 +182,7 @@
 - [ ] Integrate tests into CI/CD pipeline
 
 ### 7.2 Integration Testing
+
 - [ ] Set up Playwright for E2E testing
 - [ ] Test API endpoints with Go testing
 - [ ] Test database operations
@@ -168,6 +190,7 @@
 - [ ] Validate authentication flows
 
 ### 7.3 Performance Testing
+
 - [ ] Load test API endpoints
 - [ ] Test database performance
 - [ ] Validate frontend performance
@@ -177,6 +200,7 @@
 ## 8. Phase 7: Deployment
 
 ### 8.1 Production Deployment
+
 - [ ] Deploy containers to Digital Ocean droplet
 - [ ] Configure production environment variables
 - [ ] Set up SSL certificates (Let's Encrypt)
@@ -184,6 +208,7 @@
 - [ ] Test production deployment
 
 ### 8.2 Data Migration to Production
+
 - [ ] Export data from current production system
 - [ ] Import data to new PostgreSQL database
 - [ ] Validate data integrity in production
@@ -191,6 +216,7 @@
 - [ ] Perform user acceptance testing
 
 ### 8.3 Monitoring and Logging
+
 - [ ] Set up application logging
 - [ ] Configure system monitoring
 - [ ] Set up alerting for critical issues
@@ -200,6 +226,7 @@
 ## 9. Phase 8: File Consolidation
 
 ### 9.1 Remove Obsolete Files
+
 - [ ] Delete Cloudflare Workers configurations
 - [ ] Remove pnpm-specific files
 - [ ] Clean up redundant agent directories
@@ -207,6 +234,7 @@
 - [ ] Delete development artifacts
 
 ### 9.2 Consolidate Configurations
+
 - [ ] Merge agent configurations into .ai-agents/
 - [ ] Consolidate test configurations
 - [ ] Update TypeScript configurations
@@ -214,6 +242,7 @@
 - [ ] Reorganize documentation
 
 ### 9.3 Update Documentation
+
 - [ ] Update README.md with new architecture
 - [ ] Create API documentation
 - [ ] Document deployment procedures
@@ -223,6 +252,7 @@
 ## 10. Post-Migration Validation
 
 ### 10.1 Functionality Testing
+
 - [ ] Test user authentication and authorization
 - [ ] Validate account and transaction management
 - [ ] Test document upload and processing
@@ -230,6 +260,7 @@
 - [ ] Test reporting and analytics features
 
 ### 10.2 Performance Validation
+
 - [ ] Measure API response times
 - [ ] Test database query performance
 - [ ] Validate frontend loading times
@@ -237,6 +268,7 @@
 - [ ] Compare with previous system performance
 
 ### 10.3 Security Validation
+
 - [ ] Perform security audit
 - [ ] Test authentication and authorization
 - [ ] Validate data encryption
@@ -246,6 +278,7 @@
 ## 11. Go-Live Checklist
 
 ### 11.1 Pre-Launch
+
 - [ ] Complete final testing in staging environment
 - [ ] Prepare rollback plan
 - [ ] Schedule maintenance window
@@ -253,6 +286,7 @@
 - [ ] Prepare support documentation
 
 ### 11.2 Launch
+
 - [ ] Execute final data migration
 - [ ] Switch DNS to new system
 - [ ] Monitor system performance
@@ -260,6 +294,7 @@
 - [ ] Confirm user access
 
 ### 11.3 Post-Launch
+
 - [ ] Monitor system stability for 24-48 hours
 - [ ] Address any immediate issues
 - [ ] Collect user feedback
@@ -269,6 +304,7 @@
 ## 12. Rollback Plan
 
 ### 12.1 Rollback Triggers
+
 - [ ] Critical functionality failures
 - [ ] Performance degradation > 50%
 - [ ] Data integrity issues
@@ -276,6 +312,7 @@
 - [ ] User access problems
 
 ### 12.2 Rollback Procedure
+
 - [ ] Switch DNS back to original system
 - [ ] Restore database from backup
 - [ ] Revert application code
@@ -285,6 +322,7 @@
 ## 13. Success Criteria
 
 ### 13.1 Technical Metrics
+
 - [ ] All API endpoints responding correctly
 - [ ] Database queries performing within acceptable limits
 - [ ] Frontend loading in < 3 seconds
@@ -292,6 +330,7 @@
 - [ ] Zero data loss during migration
 
 ### 13.2 Business Metrics
+
 - [ ] All user accounts migrated successfully
 - [ ] All transaction data preserved
 - [ ] All documents accessible
@@ -299,6 +338,7 @@
 - [ ] AI features functioning correctly
 
 ### 13.3 Operational Metrics
+
 - [ ] Deployment automation working
 - [ ] Monitoring and alerting active
 - [ ] Backup procedures validated
@@ -307,22 +347,23 @@
 
 ## 14. Timeline Estimates
 
-| Phase | Duration | Dependencies |
-|-------|----------|-------------|
-| Infrastructure Setup | 3-5 days | Digital Ocean account, domain setup |
-| Database Migration | 5-7 days | Schema analysis, data export |
-| Backend Migration | 10-14 days | Go expertise, API complexity |
-| Frontend Migration | 7-10 days | React migration, UI testing |
-| Docker Configuration | 3-5 days | Container expertise |
-| Testing & Validation | 5-7 days | Test coverage requirements |
-| Deployment | 2-3 days | Infrastructure readiness |
-| File Consolidation | 2-3 days | Documentation review |
+| Phase                | Duration   | Dependencies                        |
+| -------------------- | ---------- | ----------------------------------- |
+| Infrastructure Setup | 3-5 days   | Digital Ocean account, domain setup |
+| Database Migration   | 5-7 days   | Schema analysis, data export        |
+| Backend Migration    | 10-14 days | Go expertise, API complexity        |
+| Frontend Migration   | 7-10 days  | React migration, UI testing         |
+| Docker Configuration | 3-5 days   | Container expertise                 |
+| Testing & Validation | 5-7 days   | Test coverage requirements          |
+| Deployment           | 2-3 days   | Infrastructure readiness            |
+| File Consolidation   | 2-3 days   | Documentation review                |
 
 **Total Estimated Duration: 6-8 weeks**
 
 ## 15. Risk Mitigation
 
 ### 15.1 High-Risk Items
+
 - [ ] Data migration complexity - Plan extensive testing
 - [ ] API compatibility - Maintain backward compatibility
 - [ ] Performance degradation - Conduct load testing
@@ -330,6 +371,7 @@
 - [ ] User adoption - Provide training and support
 
 ### 15.2 Contingency Plans
+
 - [ ] Rollback procedures documented and tested
 - [ ] Backup systems maintained during transition
 - [ ] Support team trained on both systems

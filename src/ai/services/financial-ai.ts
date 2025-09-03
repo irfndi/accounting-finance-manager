@@ -3,10 +3,14 @@
  * Specialized AI service for financial operations and analysis
  */
 
-
-import type { AIMessage, FinancialAnalysisResponse, OCRResult, DocumentClassification } from '../types.js';
-import type { AIService } from './ai-service.js';
-import { AI_USE_CASES } from '../config.js';
+import type {
+  AIMessage,
+  FinancialAnalysisResponse,
+  OCRResult,
+  DocumentClassification,
+} from "../types.js";
+import type { AIService } from "./ai-service.js";
+import { AI_USE_CASES } from "../config.js";
 // Using any for now to avoid cross-package imports during build
 // In production, these would be properly typed via the main app
 interface Transaction {
@@ -22,7 +26,7 @@ interface TransactionEntry {
   id: string;
   description: string;
   amount: number;
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   accountId: number;
   debitAmount?: number;
   creditAmount?: number;
@@ -42,12 +46,14 @@ export class FinancialAIService {
   /**
    * Analyze a financial transaction for accuracy and compliance
    */
-  async analyzeTransaction(transaction: Transaction): Promise<FinancialAnalysisResponse> {
+  async analyzeTransaction(
+    transaction: Transaction
+  ): Promise<FinancialAnalysisResponse> {
     const useCase = AI_USE_CASES.TRANSACTION_ANALYSIS;
-    
+
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are a financial analyst specializing in transaction analysis. ${useCase.systemPrompt}
         
 Analyze the transaction for:
@@ -60,17 +66,21 @@ Respond with a JSON object containing:
 - analysis: Detailed analysis text
 - confidence: Confidence score (0-1)
 - suggestions: Array of improvement suggestions
-- warnings: Array of potential issues`
+- warnings: Array of potential issues`,
       },
       {
-        role: 'user',
-        content: `Transaction to analyze:\n${JSON.stringify(transaction, null, 2)}`
-      }
+        role: "user",
+        content: `Transaction to analyze:\n${JSON.stringify(
+          transaction,
+          null,
+          2
+        )}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: useCase.maxTokens,
-      temperature: useCase.temperature
+      temperature: useCase.temperature,
     });
 
     try {
@@ -82,7 +92,7 @@ Respond with a JSON object containing:
         analysis: response.content,
         confidence: 0.7,
         suggestions: [],
-        warnings: ['AI response was not in expected JSON format']
+        warnings: ["AI response was not in expected JSON format"],
       };
     }
   }
@@ -91,20 +101,20 @@ Respond with a JSON object containing:
    * Categorize expenses automatically
    */
   async categorizeExpense(
-    description: string, 
-    amount: number, 
+    description: string,
+    amount: number,
     merchant?: string,
     existingCategories?: string[]
   ): Promise<{ category: string; subcategory?: string; confidence: number }> {
     const useCase = AI_USE_CASES.EXPENSE_CATEGORIZATION;
-    
-    const categoriesContext = existingCategories 
-      ? `Available categories: ${existingCategories.join(', ')}`
-      : 'Use standard accounting expense categories';
+
+    const categoriesContext = existingCategories
+      ? `Available categories: ${existingCategories.join(", ")}`
+      : "Use standard accounting expense categories";
 
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are an expert accountant specializing in expense categorization. ${useCase.systemPrompt}
         
 ${categoriesContext}
@@ -114,46 +124,44 @@ Analyze the expense and provide:
 - Optional subcategory for more specific classification
 - Confidence level (0-1)
 
-Respond with JSON: {"category": "...", "subcategory": "...", "confidence": 0.95}`
+Respond with JSON: {"category": "...", "subcategory": "...", "confidence": 0.95}`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Expense Details:
 Description: ${description}
 Amount: ${amount}
-${merchant ? `Merchant: ${merchant}` : ''}`
-      }
+${merchant ? `Merchant: ${merchant}` : ""}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: useCase.maxTokens,
-      temperature: useCase.temperature
+      temperature: useCase.temperature,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
     } catch {
-      throw new Error('Failed to parse AI response');
+      throw new Error("Failed to parse AI response");
     }
   }
 
   /**
    * Generate financial insights and recommendations
    */
-  async generateInsights(
-    data: {
-      transactions?: Transaction[];
-      accounts?: Account[];
-      timeframe?: string;
-      context?: string;
-    }
-  ): Promise<FinancialAnalysisResponse> {
+  async generateInsights(data: {
+    transactions?: Transaction[];
+    accounts?: Account[];
+    timeframe?: string;
+    context?: string;
+  }): Promise<FinancialAnalysisResponse> {
     const useCase = AI_USE_CASES.FINANCIAL_INSIGHTS;
-    
+
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are a senior financial advisor with expertise in business financial analysis. ${useCase.systemPrompt}
         
 Provide insights on:
@@ -163,29 +171,29 @@ Provide insights on:
 - Financial health indicators
 - Actionable recommendations
 
-Format as JSON with analysis, confidence, suggestions, and warnings arrays.`
+Format as JSON with analysis, confidence, suggestions, and warnings arrays.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Financial Data Analysis Request:
-${data.context ? `Context: ${data.context}\n` : ''}
-${data.timeframe ? `Timeframe: ${data.timeframe}\n` : ''}
+${data.context ? `Context: ${data.context}\n` : ""}
+${data.timeframe ? `Timeframe: ${data.timeframe}\n` : ""}
 
 Data:
-${JSON.stringify(data, null, 2)}`
-      }
+${JSON.stringify(data, null, 2)}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: useCase.maxTokens,
-      temperature: useCase.temperature
+      temperature: useCase.temperature,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
     } catch {
-      throw new Error('Failed to parse AI response');
+      throw new Error("Failed to parse AI response");
     }
   }
 
@@ -197,14 +205,14 @@ ${JSON.stringify(data, null, 2)}`
     regulations?: string[]
   ): Promise<FinancialAnalysisResponse> {
     const useCase = AI_USE_CASES.COMPLIANCE_CHECK;
-    
+
     const regulationsContext = regulations
-      ? `Focus on these regulations: ${regulations.join(', ')}`
-      : 'Check against standard financial regulations and accounting principles';
+      ? `Focus on these regulations: ${regulations.join(", ")}`
+      : "Check against standard financial regulations and accounting principles";
 
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are a compliance officer with expertise in financial regulations. ${useCase.systemPrompt}
         
 ${regulationsContext}
@@ -216,25 +224,25 @@ Check for:
 - Potential audit flags
 - Risk indicators
 
-Provide detailed findings with specific recommendations.`
+Provide detailed findings with specific recommendations.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Compliance Check Request:
-${JSON.stringify(data, null, 2)}`
-      }
+${JSON.stringify(data, null, 2)}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: useCase.maxTokens,
-      temperature: useCase.temperature
+      temperature: useCase.temperature,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
     } catch {
-      throw new Error('Failed to parse AI response');
+      throw new Error("Failed to parse AI response");
     }
   }
 
@@ -243,13 +251,17 @@ ${JSON.stringify(data, null, 2)}`
    */
   async generateReportSummary(
     reportData: any,
-    reportType: 'balance_sheet' | 'income_statement' | 'cash_flow' | 'trial_balance'
+    reportType:
+      | "balance_sheet"
+      | "income_statement"
+      | "cash_flow"
+      | "trial_balance"
   ): Promise<string> {
     const useCase = AI_USE_CASES.REPORT_GENERATION;
-    
+
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are a financial analyst creating executive summaries. ${useCase.systemPrompt}
         
 Create a clear, concise summary for a ${reportType} that highlights:
@@ -258,18 +270,18 @@ Create a clear, concise summary for a ${reportType} that highlights:
 - Areas of concern or opportunity
 - Executive-level insights
 
-Write in professional, business-appropriate language.`
+Write in professional, business-appropriate language.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Generate summary for ${reportType}:
-${JSON.stringify(reportData, null, 2)}`
-      }
+${JSON.stringify(reportData, null, 2)}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: useCase.maxTokens,
-      temperature: useCase.temperature
+      temperature: useCase.temperature,
     });
 
     return response.content;
@@ -280,15 +292,17 @@ ${JSON.stringify(reportData, null, 2)}`
    */
   async extractDocumentData(
     ocrResult: OCRResult,
-    documentType?: 'receipt' | 'invoice' | 'bank_statement'
+    documentType?: "receipt" | "invoice" | "bank_statement"
   ): Promise<any> {
     const useCase = AI_USE_CASES.OCR_PROCESSING;
-    
-    const docTypeContext = documentType ? `The document is a(n) ${documentType}.` : '';
+
+    const docTypeContext = documentType
+      ? `The document is a(n) ${documentType}.`
+      : "";
 
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are an OCR data extraction expert. ${useCase.systemPrompt}
         
 ${docTypeContext}
@@ -309,38 +323,40 @@ For bank statements, extract:
 - running balance
 - fee information
 
-Return clean, structured JSON that can be used to create accounting entries.`
+Return clean, structured JSON that can be used to create accounting entries.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `OCR Confidence: ${ocrResult.confidence}
 Text Content:
-${ocrResult.text}`
-      }
+${ocrResult.text}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: 3072,
-      temperature: 0.1
+      temperature: 0.1,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
     } catch {
-      throw new Error('Failed to parse extracted document data');
+      throw new Error("Failed to parse extracted document data");
     }
   }
 
   /**
    * Classify financial documents
    */
-  async classifyDocument(ocrResult: OCRResult): Promise<DocumentClassification> {
+  async classifyDocument(
+    ocrResult: OCRResult
+  ): Promise<DocumentClassification> {
     const useCase = AI_USE_CASES.DOCUMENT_CLASSIFICATION;
 
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are a document classification expert. ${useCase.systemPrompt}
         
 Analyze the OCR text and classify the document type. Return JSON with:
@@ -349,25 +365,25 @@ Analyze the OCR text and classify the document type. Return JSON with:
 - subtype: more specific classification if applicable
 - extractedFields: key fields that indicate the document type
 
-Base your classification on document structure, headers, formatting patterns, and key phrases typically found in each document type.`
+Base your classification on document structure, headers, formatting patterns, and key phrases typically found in each document type.`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `OCR Text (confidence: ${ocrResult.confidence}):
-${ocrResult.text}`
-      }
+${ocrResult.text}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: 1024,
-      temperature: 0.1
+      temperature: 0.1,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
     } catch {
-      throw new Error('Failed to parse document classification');
+      throw new Error("Failed to parse document classification");
     }
   }
 
@@ -382,12 +398,16 @@ ${ocrResult.text}`
     const useCase = AI_USE_CASES.TRANSACTION_DRAFTING;
 
     const accountsContext = availableAccounts
-      ? `Available accounts for debits and credits: ${JSON.stringify(availableAccounts, null, 2)}`
-      : 'Use standard chart of accounts.';
+      ? `Available accounts for debits and credits: ${JSON.stringify(
+          availableAccounts,
+          null,
+          2
+        )}`
+      : "Use standard chart of accounts.";
 
     const messages: AIMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: `You are an expert accountant creating double-entry transactions. ${useCase.systemPrompt}
         
 ${accountsContext}
@@ -398,27 +418,27 @@ Rules:
 - Follow standard accounting principles
 - Return JSON array of entries with accountId, description, debitAmount, creditAmount
 
-Format: [{"accountId": 123, "description": "...", "debitAmount": 100, "creditAmount": 0}, ...]`
+Format: [{"accountId": 123, "description": "...", "debitAmount": 100, "creditAmount": 0}, ...]`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Transaction Description: ${description}
 Amount: ${amount}
 
-Generate the appropriate journal entries.`
-      }
+Generate the appropriate journal entries.`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: 2048,
-      temperature: 0.1
+      temperature: 0.1,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return Array.isArray(parsed) ? parsed : [];
     } catch {
-      throw new Error('Failed to parse transaction entries');
+      throw new Error("Failed to parse transaction entries");
     }
   }
 
@@ -441,29 +461,29 @@ Generate the appropriate journal entries.`
     };
   }> {
     const useCase = AI_USE_CASES.DOCUMENT_ANALYSIS;
-    
+
     const messages: AIMessage[] = [
       {
-        role: 'system',
-        content: `You are an intelligent document analysis system. ${useCase.systemPrompt}`
+        role: "system",
+        content: `You are an intelligent document analysis system. ${useCase.systemPrompt}`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Document to analyze:
-${JSON.stringify(documentData, null, 2)}`
-      }
+${JSON.stringify(documentData, null, 2)}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: useCase.maxTokens,
-      temperature: useCase.temperature
+      temperature: useCase.temperature,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
     } catch {
-      throw new Error('Failed to parse AI response for document analysis');
+      throw new Error("Failed to parse AI response for document analysis");
     }
   }
 
@@ -477,39 +497,39 @@ ${JSON.stringify(documentData, null, 2)}`
     context?: any;
   }): Promise<{
     riskScore: number;
-    riskLevel: 'low' | 'medium' | 'high' | 'critical';
+    riskLevel: "low" | "medium" | "high" | "critical";
     findings: Array<{
       type: string;
       description: string;
-      severity: 'low' | 'medium' | 'high' | 'critical';
+      severity: "low" | "medium" | "high" | "critical";
       evidence: any;
     }>;
     recommendations: string[];
   }> {
     const useCase = AI_USE_CASES.FRAUD_DETECTION;
-    
+
     const messages: AIMessage[] = [
       {
-        role: 'system',
-        content: `You are a fraud detection expert analyzing financial data. ${useCase.systemPrompt}`
+        role: "system",
+        content: `You are a fraud detection expert analyzing financial data. ${useCase.systemPrompt}`,
       },
       {
-        role: 'user',
+        role: "user",
         content: `Data to analyze for fraud:
-${JSON.stringify(data, null, 2)}`
-      }
+${JSON.stringify(data, null, 2)}`,
+      },
     ];
 
     const response = await this.aiService.generateText(messages, {
       maxTokens: useCase.maxTokens,
-      temperature: useCase.temperature
+      temperature: useCase.temperature,
     });
 
     try {
       const parsed = JSON.parse(response.content);
       return parsed;
     } catch {
-      throw new Error('Failed to parse AI response for fraud detection');
+      throw new Error("Failed to parse AI response for fraud detection");
     }
   }
 

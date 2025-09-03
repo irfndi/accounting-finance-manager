@@ -3,46 +3,44 @@
  * Handles document vectorization and semantic search
  */
 
-import { Hono, type Context, type Next } from 'hono';
+import { Hono, type Context, type Next } from "hono";
 
-import { type AppContext, type SearchResultDocument } from '../../types';
-import { authMiddleware } from '../../middleware/auth';
-import { createVectorizeServiceInstance } from '../../services';
-import { createDatabase, getRawDocByFileId } from '../../../db/index.js';
-import { ValidationError } from '../../utils/logger';
+import { type AppContext, type SearchResultDocument } from "../../types";
+import { authMiddleware } from "../../middleware/auth";
+import { createVectorizeServiceInstance } from "../../services";
+import { createDatabase, getRawDocByFileId } from "../../../db/index.js";
+import { ValidationError } from "../../utils/logger";
 
 const vectorize = new Hono<AppContext>();
 
 const docOwnershipMiddleware = async (c: Context<AppContext>, next: Next) => {
-  const user = c.get('user');
+  const user = c.get("user");
   if (!user) {
-    return c.json({ error: 'Unauthorized' }, 401);
+    return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const fileId = c.req.param('fileId');
+  const fileId = c.req.param("fileId");
   if (!fileId) {
-    throw new ValidationError('fileId parameter is required');
+    throw new ValidationError("fileId parameter is required");
   }
 
   const db = createDatabase(c.env.FINANCE_MANAGER_DB);
   const doc = await getRawDocByFileId(db, fileId);
 
   if (!doc) {
-    return c.json({ error: 'Document not found' }, 404);
+    return c.json({ error: "Document not found" }, 404);
   }
 
   if (doc.createdBy !== user.id) {
-    return c.json({ error: 'Forbidden' }, 403);
+    return c.json({ error: "Forbidden" }, 403);
   }
 
-  c.set('doc', doc);
+  c.set("doc", doc);
   await next();
 };
 
-vectorize.use('/*', authMiddleware);
-vectorize.use('/document/:fileId', docOwnershipMiddleware);
-
-
+vectorize.use("/*", authMiddleware);
+vectorize.use("/document/:fileId", docOwnershipMiddleware);
 
 /**
  * @swagger
@@ -103,31 +101,33 @@ vectorize.use('/document/:fileId', docOwnershipMiddleware);
  *                     processingTime:
  *                       type: number
  */
-vectorize.post('/search', async (c: Context<AppContext>) => {
+vectorize.post("/search", async (c: Context<AppContext>) => {
   try {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const { 
-      query, 
-      topK = 10, 
-      threshold = 0.7, 
-      filter = {}, 
-      includeChunks = false 
+    const {
+      query,
+      topK = 10,
+      threshold = 0.7,
+      filter = {},
+      includeChunks = false,
     } = await c.req.json();
 
-    if (!query || typeof query !== 'string' || query.trim().length === 0) {
-      throw new ValidationError('Search query is required and must be a non-empty string');
+    if (!query || typeof query !== "string" || query.trim().length === 0) {
+      throw new ValidationError(
+        "Search query is required and must be a non-empty string"
+      );
     }
 
     if (topK < 1 || topK > 100) {
-      throw new ValidationError('topK must be between 1 and 100');
+      throw new ValidationError("topK must be between 1 and 100");
     }
 
     if (threshold < 0 || threshold > 1) {
-      throw new ValidationError('threshold must be between 0 and 1');
+      throw new ValidationError("threshold must be between 0 and 1");
     }
 
     const vectorizeService = createVectorizeServiceInstance(c.env);
@@ -136,31 +136,33 @@ vectorize.post('/search', async (c: Context<AppContext>) => {
       threshold,
       filter: {
         userId: user.id, // Only search user's documents
-        ...filter
+        ...filter,
       },
-      returnMetadata: true
+      returnMetadata: true,
     });
 
     // Get document details from database
     const db = createDatabase(c.env.FINANCE_MANAGER_DB);
     const documents: SearchResultDocument[] = [];
     const processedFileIds = new Set();
-    
+
     for (const match of searchResponse.matches) {
       // Extract file ID from match ID (handle both direct fileId and chunk IDs)
-      const fileId = match.id.includes('_chunk_') ? match.id.split('_chunk_')[0] : match.id;
-      
+      const fileId = match.id.includes("_chunk_")
+        ? match.id.split("_chunk_")[0]
+        : match.id;
+
       // If not including chunks, only process each file once (use highest scoring chunk)
       if (!includeChunks && processedFileIds.has(fileId)) {
         continue;
       }
-      
+
       const doc = await getRawDocByFileId(db, fileId);
       if (doc) {
         const documentData: SearchResultDocument = {
           ...doc,
           similarity: match.score,
-          matchedText: match.metadata?.text || ''
+          matchedText: match.metadata?.text || "",
         };
 
         // Add chunk information if requested
@@ -168,7 +170,7 @@ vectorize.post('/search', async (c: Context<AppContext>) => {
           documentData.chunkInfo = {
             chunkIndex: match.metadata?.chunkIndex ?? 0,
             totalChunks: match.metadata?.totalChunks ?? 0,
-            chunkId: match.id
+            chunkId: match.id,
           };
         }
 
@@ -185,21 +187,25 @@ vectorize.post('/search', async (c: Context<AppContext>) => {
         totalMatches: searchResponse.totalMatches,
         threshold: searchResponse.threshold,
         processingTime: searchResponse.processingTime,
-        includeChunks
-      }
+        includeChunks,
+      },
     });
   } catch (error) {
     // Vector search error occurred
-    
+
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to perform semantic search',
-      details: errorMessage
-    }, 500);
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to perform semantic search",
+        details: errorMessage,
+      },
+      500
+    );
   }
 });
 
@@ -234,27 +240,29 @@ vectorize.post('/search', async (c: Context<AppContext>) => {
  *       200:
  *         description: Embedding generation result
  */
-vectorize.post('/embed', async (c: Context<AppContext>) => {
+vectorize.post("/embed", async (c: Context<AppContext>) => {
   try {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
     const { fileId, text, metadata = {} } = await c.req.json();
 
-    if (!fileId || typeof fileId !== 'string') {
-      throw new ValidationError('fileId is required and must be a string');
+    if (!fileId || typeof fileId !== "string") {
+      throw new ValidationError("fileId is required and must be a string");
     }
 
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      throw new ValidationError('text is required and must be a non-empty string');
+    if (!text || typeof text !== "string" || text.trim().length === 0) {
+      throw new ValidationError(
+        "text is required and must be a non-empty string"
+      );
     }
 
     const vectorizeService = createVectorizeServiceInstance(c.env);
     const result = await vectorizeService.embedDocument(fileId, text, {
       userId: user.id,
-      ...metadata
+      ...metadata,
     });
 
     return c.json({
@@ -262,22 +270,26 @@ vectorize.post('/embed', async (c: Context<AppContext>) => {
       data: {
         fileId,
         chunksCreated: result.chunksCreated,
-        textLength: text.length
+        textLength: text.length,
       },
-      error: result.error
+      error: result.error,
     });
   } catch (error) {
     // Embedding generation error occurred
-    
+
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to generate embeddings',
-      details: errorMessage
-    }, 500);
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to generate embeddings",
+        details: errorMessage,
+      },
+      500
+    );
   }
 });
 
@@ -300,15 +312,15 @@ vectorize.post('/embed', async (c: Context<AppContext>) => {
  *       200:
  *         description: Document embeddings
  */
-vectorize.get('/document/:fileId', async (c: Context<AppContext>) => {
+vectorize.get("/document/:fileId", async (c: Context<AppContext>) => {
   try {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const fileId = c.req.param('fileId');
-    const __doc = c.get('doc');
+    const fileId = c.req.param("fileId");
+    const __doc = c.get("doc");
     void __doc;
 
     const vectorizeService = createVectorizeServiceInstance(c.env);
@@ -318,26 +330,30 @@ vectorize.get('/document/:fileId', async (c: Context<AppContext>) => {
       success: true,
       data: {
         fileId,
-        embeddings: embeddings.map(embedding => ({
+        embeddings: embeddings.map((embedding) => ({
           id: embedding.id,
           score: embedding.score,
-          metadata: embedding.metadata
+          metadata: embedding.metadata,
         })),
-        totalChunks: embeddings.length
-      }
+        totalChunks: embeddings.length,
+      },
     });
   } catch (error) {
     // Get document embeddings error occurred
-    
+
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to get document embeddings',
-      details: errorMessage
-    }, 500);
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to get document embeddings",
+        details: errorMessage,
+      },
+      500
+    );
   }
 });
 
@@ -360,15 +376,15 @@ vectorize.get('/document/:fileId', async (c: Context<AppContext>) => {
  *       200:
  *         description: Deletion result
  */
-vectorize.delete('/document/:fileId', async (c: Context<AppContext>) => {
+vectorize.delete("/document/:fileId", async (c: Context<AppContext>) => {
   try {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const fileId = c.req.param('fileId');
-    const __doc = c.get('doc');
+    const fileId = c.req.param("fileId");
+    const __doc = c.get("doc");
     void __doc;
 
     const vectorizeService = createVectorizeServiceInstance(c.env);
@@ -378,22 +394,26 @@ vectorize.delete('/document/:fileId', async (c: Context<AppContext>) => {
       success: result.success === true,
       data: {
         fileId,
-        deleted: result.success === true
+        deleted: result.success === true,
       },
-      error: result.error
+      error: result.error,
     });
   } catch (error) {
     // Delete document embeddings error occurred
-    
+
     if (error instanceof ValidationError) {
       return c.json({ error: error.message }, 400);
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to delete document embeddings',
-      details: errorMessage
-    }, 500);
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to delete document embeddings",
+        details: errorMessage,
+      },
+      500
+    );
   }
 });
 
@@ -409,11 +429,11 @@ vectorize.delete('/document/:fileId', async (c: Context<AppContext>) => {
  *       200:
  *         description: Service statistics
  */
-vectorize.get('/stats', async (c: Context<AppContext>) => {
+vectorize.get("/stats", async (c: Context<AppContext>) => {
   try {
-    const user = c.get('user');
+    const user = c.get("user");
     if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
     const vectorizeService = createVectorizeServiceInstance(c.env);
@@ -421,16 +441,20 @@ vectorize.get('/stats', async (c: Context<AppContext>) => {
 
     return c.json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (error) {
     // Get vectorize stats error occurred
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to get vectorize statistics',
-      details: errorMessage
-    }, 500);
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to get vectorize statistics",
+        details: errorMessage,
+      },
+      500
+    );
   }
 });
 

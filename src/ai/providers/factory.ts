@@ -3,26 +3,26 @@
  * Creates AI providers based on configuration
  */
 
-import type { AIProvider } from '../types.js';
-import type { AIModelConfig } from '../config.js';
-import { OpenRouterProvider } from './openrouter.js';
-import { CloudflareAIProvider } from './cloudflare.js';
+import type { AIProvider } from "../types.js";
+import type { AIModelConfig } from "../config.js";
+import { OpenRouterProvider } from "./openrouter.js";
+import { CloudflareAIProvider } from "./cloudflare.js";
 
 export function createProvider(config: AIModelConfig): AIProvider {
   switch (config.provider) {
-    case 'openrouter':
+    case "openrouter":
       if (!config.apiKey) {
-        throw new Error('OpenRouter provider requires an API key');
+        throw new Error("OpenRouter provider requires an API key");
       }
       return new OpenRouterProvider({
         apiKey: config.apiKey,
         modelId: config.modelId,
         baseUrl: config.baseUrl,
         maxRetries: 3,
-        timeout: 30000
+        timeout: 30000,
       });
 
-    case 'cloudflare':
+    case "cloudflare":
       // For Cloudflare, we may not need credentials if running in Worker environment
       return new CloudflareAIProvider({
         modelId: config.modelId,
@@ -30,7 +30,7 @@ export function createProvider(config: AIModelConfig): AIProvider {
         apiToken: config.apiKey || process.env.CLOUDFLARE_API_TOKEN,
         baseUrl: config.baseUrl,
         maxRetries: 3,
-        timeout: 30000
+        timeout: 30000,
       });
 
     default:
@@ -39,30 +39,30 @@ export function createProvider(config: AIModelConfig): AIProvider {
 }
 
 export function createProviderFromEnv(
-  provider: 'openrouter' | 'cloudflare',
+  provider: "openrouter" | "cloudflare",
   modelId: string
 ): AIProvider {
   switch (provider) {
-    case 'openrouter':
+    case "openrouter":
       const openRouterKey = process.env.OPENROUTER_API_KEY;
       if (!openRouterKey) {
-        throw new Error('OPENROUTER_API_KEY environment variable is required');
+        throw new Error("OPENROUTER_API_KEY environment variable is required");
       }
       return new OpenRouterProvider({
         apiKey: openRouterKey,
         modelId,
-        baseUrl: process.env.OPENROUTER_BASE_URL
+        baseUrl: process.env.OPENROUTER_BASE_URL,
       });
 
-    case 'cloudflare':
+    case "cloudflare":
       return new CloudflareAIProvider({
         modelId,
         accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
         apiToken: process.env.CLOUDFLARE_API_TOKEN,
-        baseUrl: process.env.CLOUDFLARE_BASE_URL
+        baseUrl: process.env.CLOUDFLARE_BASE_URL,
       });
 
     default:
       throw new Error(`Unsupported AI provider: ${provider}`);
   }
-} 
+}

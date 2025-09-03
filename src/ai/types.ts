@@ -4,7 +4,7 @@
  */
 
 export interface AIMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -16,7 +16,7 @@ export interface AIResponse {
     totalTokens?: number;
   };
   model?: string;
-  finishReason?: 'stop' | 'length' | 'content_filter' | 'tool_calls';
+  finishReason?: "stop" | "length" | "content_filter" | "tool_calls";
 }
 
 export interface AIStreamResponse {
@@ -32,8 +32,14 @@ export interface AIStreamResponse {
 
 export interface AIProvider {
   name: string;
-  generateText(messages: AIMessage[], options?: AIGenerationOptions): Promise<AIResponse>;
-  generateStream?(messages: AIMessage[], options?: AIGenerationOptions): AsyncGenerator<AIStreamResponse>;
+  generateText(
+    messages: AIMessage[],
+    options?: AIGenerationOptions
+  ): Promise<AIResponse>;
+  generateStream?(
+    messages: AIMessage[],
+    options?: AIGenerationOptions
+  ): AsyncGenerator<AIStreamResponse>;
   isAvailable(): Promise<boolean>;
 }
 
@@ -57,7 +63,7 @@ export interface AIServiceConfig {
 
 // Finance-specific AI types
 export interface FinancialAnalysisRequest {
-  type: 'transaction' | 'expense' | 'report' | 'compliance';
+  type: "transaction" | "expense" | "report" | "compliance";
   data: any;
   context?: string;
   language?: string;
@@ -86,7 +92,7 @@ export interface OCRResult {
 }
 
 export interface DocumentClassification {
-  type: 'receipt' | 'invoice' | 'bank_statement' | 'tax_document' | 'other';
+  type: "receipt" | "invoice" | "bank_statement" | "tax_document" | "other";
   confidence: number;
   subtype?: string;
   extractedFields?: Record<string, any>;
@@ -111,18 +117,14 @@ export class AIServiceError extends Error {
     public readonly originalError?: Error
   ) {
     super(message);
-    this.name = 'AIServiceError';
+    this.name = "AIServiceError";
   }
 }
 
 export class AIProviderError extends AIServiceError {
-  constructor(
-    message: string,
-    provider: string,
-    originalError?: Error
-  ) {
-    super(message, 'PROVIDER_ERROR', provider, originalError);
-    this.name = 'AIProviderError';
+  constructor(message: string, provider: string, originalError?: Error) {
+    super(message, "PROVIDER_ERROR", provider, originalError);
+    this.name = "AIProviderError";
   }
 }
 
@@ -132,26 +134,23 @@ export class AIRateLimitError extends AIServiceError {
     provider: string,
     public readonly retryAfter?: number
   ) {
-    super(message, 'RATE_LIMIT', provider);
-    this.name = 'AIRateLimitError';
+    super(message, "RATE_LIMIT", provider);
+    this.name = "AIRateLimitError";
   }
 }
 
 export class AIQuotaExceededError extends AIServiceError {
-  constructor(
-    message: string,
-    provider: string
-  ) {
-    super(message, 'QUOTA_EXCEEDED', provider);
-    this.name = 'AIQuotaExceededError';
+  constructor(message: string, provider: string) {
+    super(message, "QUOTA_EXCEEDED", provider);
+    this.name = "AIQuotaExceededError";
   }
 }
 
 export class AITimeoutError extends AIServiceError {
   constructor(message: string) {
-    super(message, 'AI_TIMEOUT_ERROR');
-    this.name = 'AITimeoutError';
+    super(message, "AI_TIMEOUT_ERROR");
+    this.name = "AITimeoutError";
   }
 }
 
-// Note: AIProviderConfig and AIUseCase are exported from config.js to avoid conflicts 
+// Note: AIProviderConfig and AIUseCase are exported from config.js to avoid conflicts

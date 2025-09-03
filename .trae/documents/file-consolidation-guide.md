@@ -12,7 +12,7 @@ The project currently contains multiple agent configuration directories that ser
 
 ```
 .clinerules/          # Cline AI agent rules
-.cursor/              # Cursor AI agent rules  
+.cursor/              # Cursor AI agent rules
 .roo/                 # Roo AI agent rules
 .windsurf/            # Windsurf AI agent rules
 .trae/                # Trae AI agent rules
@@ -64,6 +64,7 @@ playwright.minimal.config.ts # Minimal E2E config
 ### 3.1 Phase 1: Remove Obsolete Files
 
 #### 3.1.1 Cloudflare Workers Files
+
 ```bash
 # Files to delete
 rm alchemy.dev.ts
@@ -76,6 +77,7 @@ rm worker-configuration.d.ts
 ```
 
 #### 3.1.2 Package Manager Files
+
 ```bash
 # Files to delete
 rm pnpm-lock.yaml
@@ -83,6 +85,7 @@ rm pnpm-workspace.yaml
 ```
 
 #### 3.1.3 Redundant Configuration Files
+
 ```bash
 # Files to delete
 rm vitest.config.ts.bak
@@ -94,6 +97,7 @@ rm wt-settings.json
 ```
 
 #### 3.1.4 Lighthouse CI Files (Development artifacts)
+
 ```bash
 # Remove lighthouse reports and artifacts
 rm -rf .lighthouseci/
@@ -103,6 +107,7 @@ rm lighthouserc.cjs
 ### 3.2 Phase 2: Consolidate Agent Configurations
 
 #### 3.2.1 Create Unified Agent Directory
+
 ```bash
 # Create new consolidated directory
 mkdir -p .ai-agents/rules
@@ -111,6 +116,7 @@ mkdir -p .ai-agents/settings
 ```
 
 #### 3.2.2 Merge Agent Rules
+
 ```bash
 # Consolidate all agent rules into single files
 # Global rules (common to all agents)
@@ -145,6 +151,7 @@ cat .clinerules/taskmaster.md \
 ```
 
 #### 3.2.3 Consolidate Agent Settings
+
 ```bash
 # Merge configuration files
 cp .taskmaster/config.json .ai-agents/settings/taskmaster-config.json
@@ -152,6 +159,7 @@ cp .kiro/settings/mcp.json.example .ai-agents/settings/mcp-config.example.json
 ```
 
 #### 3.2.4 Remove Original Agent Directories
+
 ```bash
 # Remove original directories after consolidation
 rm -rf .clinerules/
@@ -166,6 +174,7 @@ rm -rf .kiro/
 ### 3.3 Phase 3: Reorganize Project Structure
 
 #### 3.3.1 Create New Directory Structure
+
 ```bash
 # Backend structure
 mkdir -p backend/cmd/server
@@ -206,6 +215,7 @@ mkdir -p scripts/maintenance
 ```
 
 #### 3.3.2 Move Existing Files
+
 ```bash
 # Move source files
 mv src/web/* frontend/src/
@@ -229,37 +239,34 @@ mv scripts/* scripts/development/
 ### 3.4 Phase 4: Consolidate Configuration Files
 
 #### 3.4.1 Testing Configuration
+
 ```typescript
 // tests/vitest.config.ts (unified configuration)
-import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
+import { defineConfig } from "vitest/config";
+import { resolve } from "path";
 
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node',
-    setupFiles: ['./tests/setup.ts'],
+    environment: "node",
+    setupFiles: ["./tests/setup.ts"],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.d.ts',
-        '**/*.config.*',
-      ],
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      exclude: ["node_modules/", "tests/", "**/*.d.ts", "**/*.config.*"],
     },
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, '../backend'),
-      '@frontend': resolve(__dirname, '../frontend/src'),
+      "@": resolve(__dirname, "../backend"),
+      "@frontend": resolve(__dirname, "../frontend/src"),
     },
   },
 });
 ```
 
 #### 3.4.2 Linting Configuration
+
 ```json
 // .oxlintrc.json (consolidated)
 {
@@ -285,6 +292,7 @@ export default defineConfig({
 ```
 
 #### 3.4.3 TypeScript Configuration
+
 ```json
 // tsconfig.json (root configuration)
 {
@@ -304,16 +312,14 @@ export default defineConfig({
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true
   },
-  "references": [
-    { "path": "./frontend" },
-    { "path": "./tests" }
-  ]
+  "references": [{ "path": "./frontend" }, { "path": "./tests" }]
 }
 ```
 
 ## 4. Package.json Migration
 
 ### 4.1 New Package.json Structure
+
 ```json
 {
   "name": "finance-manager",
@@ -321,10 +327,7 @@ export default defineConfig({
   "private": true,
   "type": "module",
   "description": "Corporate Finance Manager - Dockerized Go backend with React frontend",
-  "workspaces": [
-    "frontend",
-    "tests"
-  ],
+  "workspaces": ["frontend", "tests"],
   "scripts": {
     "dev": "docker-compose -f docker-compose.yml -f docker-compose.override.yml up",
     "dev:frontend": "cd frontend && bun run dev",
@@ -364,6 +367,7 @@ export default defineConfig({
 ```
 
 ### 4.2 Frontend Package.json
+
 ```json
 {
   "name": "finance-manager-frontend",
@@ -403,6 +407,7 @@ export default defineConfig({
 ## 5. Documentation Consolidation
 
 ### 5.1 Merge Documentation Files
+
 ```bash
 # Create comprehensive documentation structure
 mkdir -p docs/architecture
@@ -450,7 +455,8 @@ EOF
 ```
 
 ### 5.2 Update README.md
-```markdown
+
+````markdown
 # Finance Manager
 
 A modern, containerized financial management application with Go backend and React frontend.
@@ -467,11 +473,13 @@ A modern, containerized financial management application with Go backend and Rea
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Bun (for frontend development)
 - Go 1.21+ (for backend development)
 
 ### Development Setup
+
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -484,8 +492,10 @@ bun run dev
 bun run dev:frontend  # Frontend only
 bun run dev:backend   # Backend only
 ```
+````
 
 ### Production Deployment
+
 ```bash
 # Deploy to Digital Ocean
 bun run deploy
@@ -514,7 +524,8 @@ bun test:e2e          # Run E2E tests
 ├── scripts/         # Deployment and utility scripts
 └── tests/           # Test configurations and utilities
 ```
-```
+
+````
 
 ## 6. Cleanup Verification
 
@@ -601,11 +612,12 @@ echo "  1. Review consolidated files in .ai-agents/"
 echo "  2. Update package.json for Bun compatibility"
 echo "  3. Set up Docker configurations"
 echo "  4. Test new project structure"
-```
+````
 
 ## 8. Post-Cleanup Validation
 
 ### 8.1 Structure Validation Script
+
 ```bash
 #!/bin/bash
 # scripts/validate-structure.sh

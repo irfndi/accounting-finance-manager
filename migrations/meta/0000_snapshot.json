@@ -171,9 +171,7 @@
       "indexes": {
         "accounts_code_unique": {
           "name": "accounts_code_unique",
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "isUnique": true
         }
       },
@@ -182,12 +180,8 @@
           "name": "accounts_parent_id_accounts_id_fk",
           "tableFrom": "accounts",
           "tableTo": "accounts",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -323,12 +317,8 @@
           "name": "journal_entries_transaction_id_transactions_id_fk",
           "tableFrom": "journal_entries",
           "tableTo": "transactions",
-          "columnsFrom": [
-            "transaction_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["transaction_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -336,12 +326,8 @@
           "name": "journal_entries_account_id_accounts_id_fk",
           "tableFrom": "journal_entries",
           "tableTo": "accounts",
-          "columnsFrom": [
-            "account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["account_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -521,9 +507,7 @@
       "indexes": {
         "transactions_transaction_number_unique": {
           "name": "transactions_transaction_number_unique",
-          "columns": [
-            "transaction_number"
-          ],
+          "columns": ["transaction_number"],
           "isUnique": true
         }
       },
@@ -532,12 +516,8 @@
           "name": "transactions_reversed_transaction_id_transactions_id_fk",
           "tableFrom": "transactions",
           "tableTo": "transactions",
-          "columnsFrom": [
-            "reversed_transaction_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["reversed_transaction_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

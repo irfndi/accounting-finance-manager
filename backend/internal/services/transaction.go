@@ -84,8 +84,9 @@ func (s *transactionService) Create(userID uuid.UUID, req *models.CreateTransact
 			Description:   entryReq.Description,
 			CreatedAt:     time.Now(),
 		}
-		// Note: Journal entry creation would need a repository method
-		_ = entry
+		if err := s.transactionRepo.CreateJournalEntry(entry); err != nil {
+			return nil, err
+		}
 	}
 
 	return s.toTransactionResponse(transaction), nil

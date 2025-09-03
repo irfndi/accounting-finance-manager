@@ -46,7 +46,7 @@ export interface JWTPayload {
   /** User email */
   email?: string;
   /** Token type */
-  type: 'access' | 'refresh';
+  type: "access" | "refresh";
 }
 
 /**
@@ -159,22 +159,22 @@ export interface SessionValidation {
  * User roles for role-based access control
  */
 export enum UserRole {
-  USER = 'USER',
-  ACCOUNTANT = 'ACCOUNTANT',
-  ADMIN = 'ADMIN',
-  VIEWER = 'VIEWER',
-  SUPER_ADMIN = 'SUPER_ADMIN',
+  USER = "USER",
+  ACCOUNTANT = "ACCOUNTANT",
+  ADMIN = "ADMIN",
+  VIEWER = "VIEWER",
+  SUPER_ADMIN = "SUPER_ADMIN",
 }
 
 /**
  * Magic link purposes
  */
 export enum MagicLinkPurpose {
-  LOGIN = 'LOGIN',
-  REGISTER = 'REGISTER',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
-  RESET_PASSWORD = 'RESET_PASSWORD',
-  CHANGE_EMAIL = 'CHANGE_EMAIL',
+  LOGIN = "LOGIN",
+  REGISTER = "REGISTER",
+  VERIFY_EMAIL = "VERIFY_EMAIL",
+  RESET_PASSWORD = "RESET_PASSWORD",
+  CHANGE_EMAIL = "CHANGE_EMAIL",
 }
 
 /**
@@ -182,29 +182,29 @@ export enum MagicLinkPurpose {
  */
 export enum AuditEventType {
   // Authentication events
-  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
-  LOGIN_FAILED = 'LOGIN_FAILED',
-  LOGOUT = 'LOGOUT',
-  REGISTER = 'REGISTER',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  
+  LOGIN_SUCCESS = "LOGIN_SUCCESS",
+  LOGIN_FAILED = "LOGIN_FAILED",
+  LOGOUT = "LOGOUT",
+  REGISTER = "REGISTER",
+  VERIFY_EMAIL = "VERIFY_EMAIL",
+  PASSWORD_RESET = "PASSWORD_RESET",
+
   // Session events
-  SESSION_CREATED = 'SESSION_CREATED',
-  SESSION_RENEWED = 'SESSION_RENEWED',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  SESSION_REVOKED = 'SESSION_REVOKED',
-  
+  SESSION_CREATED = "SESSION_CREATED",
+  SESSION_RENEWED = "SESSION_RENEWED",
+  SESSION_EXPIRED = "SESSION_EXPIRED",
+  SESSION_REVOKED = "SESSION_REVOKED",
+
   // Account events
-  ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
-  ACCOUNT_UNLOCKED = 'ACCOUNT_UNLOCKED',
-  PROFILE_UPDATED = 'PROFILE_UPDATED',
-  ROLE_CHANGED = 'ROLE_CHANGED',
-  
+  ACCOUNT_LOCKED = "ACCOUNT_LOCKED",
+  ACCOUNT_UNLOCKED = "ACCOUNT_UNLOCKED",
+  PROFILE_UPDATED = "PROFILE_UPDATED",
+  ROLE_CHANGED = "ROLE_CHANGED",
+
   // Security events
-  SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
-  TWO_FACTOR_ENABLED = 'TWO_FACTOR_ENABLED',
-  TWO_FACTOR_DISABLED = 'TWO_FACTOR_DISABLED',
+  SUSPICIOUS_ACTIVITY = "SUSPICIOUS_ACTIVITY",
+  TWO_FACTOR_ENABLED = "TWO_FACTOR_ENABLED",
+  TWO_FACTOR_DISABLED = "TWO_FACTOR_DISABLED",
 }
 
 /**
@@ -225,7 +225,7 @@ export interface JWTConfig {
   audience: string;
   accessTokenExpiresIn: number; // seconds
   refreshTokenExpiresIn: number; // seconds
-  algorithm: 'HS256';
+  algorithm: "HS256";
 }
 
 /**
@@ -277,37 +277,37 @@ export class AuthError extends Error {
     public statusCode: number = 400
   ) {
     super(message);
-    this.name = 'AuthError';
+    this.name = "AuthError";
   }
 }
 
 export class UnauthorizedError extends AuthError {
-  constructor(message: string = 'Unauthorized') {
-    super(message, 'UNAUTHORIZED', 401);
+  constructor(message: string = "Unauthorized") {
+    super(message, "UNAUTHORIZED", 401);
   }
 }
 
 export class ForbiddenError extends AuthError {
-  constructor(message: string = 'Forbidden') {
-    super(message, 'FORBIDDEN', 403);
+  constructor(message: string = "Forbidden") {
+    super(message, "FORBIDDEN", 403);
   }
 }
 
 export class NotFoundError extends AuthError {
-  constructor(message: string = 'Not found') {
-    super(message, 'NOT_FOUND', 404);
+  constructor(message: string = "Not found") {
+    super(message, "NOT_FOUND", 404);
   }
 }
 
 export class RateLimitError extends AuthError {
-  constructor(message: string = 'Too many requests') {
-    super(message, 'RATE_LIMIT_EXCEEDED', 429);
+  constructor(message: string = "Too many requests") {
+    super(message, "RATE_LIMIT_EXCEEDED", 429);
   }
 }
 
 export class ValidationError extends AuthError {
   constructor(message: string, public field?: string) {
-    super(message, 'VALIDATION_ERROR', 400);
+    super(message, "VALIDATION_ERROR", 400);
   }
 }
 
@@ -315,17 +315,18 @@ export class ValidationError extends AuthError {
  * Common authentication error codes
  */
 export const AUTH_ERROR_CODES = {
-  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
-  ACCOUNT_LOCKED: 'ACCOUNT_LOCKED',
-  ACCOUNT_NOT_VERIFIED: 'ACCOUNT_NOT_VERIFIED',
-  INVALID_TOKEN: 'INVALID_TOKEN',
-  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
-  SESSION_EXPIRED: 'SESSION_EXPIRED',
-  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
-  WEAK_PASSWORD: 'WEAK_PASSWORD',
-  MAGIC_LINK_EXPIRED: 'MAGIC_LINK_EXPIRED',
-  MAGIC_LINK_INVALID: 'MAGIC_LINK_INVALID',
+  INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+  ACCOUNT_LOCKED: "ACCOUNT_LOCKED",
+  ACCOUNT_NOT_VERIFIED: "ACCOUNT_NOT_VERIFIED",
+  INVALID_TOKEN: "INVALID_TOKEN",
+  TOKEN_EXPIRED: "TOKEN_EXPIRED",
+  SESSION_EXPIRED: "SESSION_EXPIRED",
+  RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
+  EMAIL_ALREADY_EXISTS: "EMAIL_ALREADY_EXISTS",
+  WEAK_PASSWORD: "WEAK_PASSWORD",
+  MAGIC_LINK_EXPIRED: "MAGIC_LINK_EXPIRED",
+  MAGIC_LINK_INVALID: "MAGIC_LINK_INVALID",
 } as const;
 
-export type AuthErrorCode = typeof AUTH_ERROR_CODES[keyof typeof AUTH_ERROR_CODES];
+export type AuthErrorCode =
+  (typeof AUTH_ERROR_CODES)[keyof typeof AUTH_ERROR_CODES];

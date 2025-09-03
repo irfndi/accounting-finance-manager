@@ -1,24 +1,23 @@
 // Vitest setup file for Cloudflare Workers
-import { vi, beforeEach } from 'vitest';
-import React from 'react';
+import { vi, beforeEach } from "vitest";
+import React from "react";
 import '@testing-library/jest-dom';
-import { createTestDatabase } from './helpers/database';
-
+import { createTestDatabase } from "./helpers/database";
 
 // Make React available globally for JSX
 global.React = React;
 
 // Mock environment variables for testing
-vi.stubEnv('NODE_ENV', 'test');
-vi.stubEnv('JWT_SECRET', 'test-secret-key-for-testing');
-vi.stubEnv('DATABASE_URL', 'file:./test.db');
+vi.stubEnv("NODE_ENV", "test");
+vi.stubEnv("JWT_SECRET", "test-secret-key-for-testing");
+vi.stubEnv("DATABASE_URL", "file:./test.db");
 
 // Mock Cloudflare Workers AI binding for testing
 const mockAI = {
   run: vi.fn().mockResolvedValue({
-    response: 'Mocked AI response',
-    success: true
-  })
+    response: "Mocked AI response",
+    success: true,
+  }),
 };
 
 // Mock KV binding for testing
@@ -49,8 +48,8 @@ const mockD1 = {
 let testDbInstance: any = null;
 
 // Mock the entire database module
-vi.mock('../src/db/index.js', async (_importOriginal) => {
-  const actual = await _importOriginal() as any;
+vi.mock("../src/db/index.js", async (_importOriginal) => {
+  const actual = (await _importOriginal()) as any;
   return {
     ...actual,
     // Provide a mock implementation for createDatabase that returns our test instance
@@ -68,32 +67,37 @@ beforeEach(async () => {
 beforeEach(() => {
   // Reset all mocks before each test
   vi.clearAllMocks();
-  
+
   // Clean up any existing bindings to prevent interference
-  const globalBindings = ['AI', 'FINANCE_MANAGER_CACHE', 'FINANCE_MANAGER_DOCUMENTS', 'FINANCE_MANAGER_DB'];
-  globalBindings.forEach(binding => {
+  const globalBindings = [
+    "AI",
+    "FINANCE_MANAGER_CACHE",
+    "FINANCE_MANAGER_DOCUMENTS",
+    "FINANCE_MANAGER_DB",
+  ];
+  globalBindings.forEach((binding) => {
     if (binding in global) {
       delete (global as any)[binding];
     }
   });
-  
+
   // Reset mock implementations
   mockAI.run.mockResolvedValue({
-    response: 'Mocked AI response',
-    success: true
+    response: "Mocked AI response",
+    success: true,
   });
-  
+
   mockKV.get.mockResolvedValue(null);
   mockKV.put.mockResolvedValue(undefined);
   mockKV.delete.mockResolvedValue(undefined);
   mockKV.list.mockResolvedValue({ keys: [] });
-  
+
   mockR2.get.mockResolvedValue(null);
   mockR2.put.mockResolvedValue(undefined);
   mockR2.delete.mockResolvedValue(undefined);
   mockR2.list.mockResolvedValue({ objects: [] });
   mockR2.head.mockResolvedValue(null);
-  
+
   mockD1.prepare.mockReturnValue({
     bind: vi.fn().mockReturnThis(),
     first: vi.fn(),

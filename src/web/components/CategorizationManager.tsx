@@ -1,34 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { aiClient, type CategorizationSuggestion } from '../lib/ai-client';
+import React, { useState, useEffect } from "react";
+import { aiClient, type CategorizationSuggestion } from "../lib/ai-client";
 
 interface CategorizationManagerProps {
   onSuggestionApproved?: (suggestion: CategorizationSuggestion) => void;
   className?: string;
 }
 
-export default function CategorizationManager({ 
-  onSuggestionApproved, 
-  className = '' 
+export default function CategorizationManager({
+  onSuggestionApproved,
+  className = "",
 }: CategorizationManagerProps) {
-  const [suggestions, setSuggestions] = useState<CategorizationSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<CategorizationSuggestion[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set<string>());
+  const [processingIds, setProcessingIds] = useState<Set<string>>(
+    new Set<string>()
+  );
 
   // Load pending suggestions
   const loadSuggestions = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await aiClient.getPendingSuggestions();
       if (response.success && response.suggestions) {
         setSuggestions(response.suggestions);
       } else {
-        setError(response.error || 'Failed to load suggestions');
+        setError(response.error || "Failed to load suggestions");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -36,26 +40,26 @@ export default function CategorizationManager({
 
   // Handle suggestion approval
   const handleApprove = async (suggestion: CategorizationSuggestion) => {
-    setProcessingIds(prev => new Set(prev).add(suggestion.id));
-    
+    setProcessingIds((prev) => new Set(prev).add(suggestion.id));
+
     try {
       const response = await aiClient.approveSuggestion(suggestion.id);
       if (response.success) {
         // Remove from pending list
-        setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-        
+        setSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
+
         // Notify parent component
         onSuggestionApproved?.(suggestion);
-        
+
         // Show success feedback
         setError(null);
       } else {
-        setError(response.error || 'Failed to approve suggestion');
+        setError(response.error || "Failed to approve suggestion");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setProcessingIds(prev => {
+      setProcessingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(suggestion.id);
         return newSet;
@@ -65,21 +69,21 @@ export default function CategorizationManager({
 
   // Handle suggestion rejection
   const handleReject = async (suggestion: CategorizationSuggestion) => {
-    setProcessingIds(prev => new Set(prev).add(suggestion.id));
-    
+    setProcessingIds((prev) => new Set(prev).add(suggestion.id));
+
     try {
       const response = await aiClient.rejectSuggestion(suggestion.id);
       if (response.success) {
         // Remove from pending list
-        setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+        setSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
         setError(null);
       } else {
-        setError(response.error || 'Failed to reject suggestion');
+        setError(response.error || "Failed to reject suggestion");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setProcessingIds(prev => {
+      setProcessingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(suggestion.id);
         return newSet;
@@ -99,16 +103,16 @@ export default function CategorizationManager({
 
   // Get confidence color
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-700';
-    if (confidence >= 0.6) return 'text-yellow-600';
-    return 'text-red-600';
+    if (confidence >= 0.8) return "text-green-700";
+    if (confidence >= 0.6) return "text-yellow-600";
+    return "text-red-600";
   };
 
   // Format amount
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -151,7 +155,7 @@ export default function CategorizationManager({
           disabled={loading}
           className="text-blue-600 hover:text-blue-800 text-sm disabled:opacity-50"
         >
-          {loading ? 'Refreshing...' : 'Refresh'}
+          {loading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -164,7 +168,7 @@ export default function CategorizationManager({
       <div className="space-y-4">
         {suggestions.map((suggestion) => {
           const isProcessing = processingIds.has(suggestion.id);
-          
+
           return (
             <div
               key={suggestion.id}
@@ -180,45 +184,51 @@ export default function CategorizationManager({
                       {formatAmount(suggestion.amount)}
                     </span>
                   </div>
-                  
+
                   <div className="mb-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm text-gray-600">Suggested Category:</span>
+                      <span className="text-sm text-gray-600">
+                        Suggested Category:
+                      </span>
                       <span className="text-sm font-medium text-blue-600">
                         {suggestion.suggestedCategory}
                       </span>
-                      <span className={`text-xs font-medium ${getConfidenceColor(suggestion.confidence)}`}>
+                      <span
+                        className={`text-xs font-medium ${getConfidenceColor(
+                          suggestion.confidence
+                        )}`}
+                      >
                         {formatConfidence(suggestion.confidence)}
                       </span>
                     </div>
-                    
+
                     {suggestion.reasoning && (
                       <p className="text-xs text-gray-500 mt-1">
                         {suggestion.reasoning}
                       </p>
                     )}
                   </div>
-                  
+
                   <div className="text-xs text-gray-400">
                     Created: {new Date(suggestion.createdAt).toLocaleString()}
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => handleApprove(suggestion)}
                     disabled={isProcessing}
                     className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isProcessing ? '...' : '✓ Approve'}
+                    {isProcessing ? "..." : "✓ Approve"}
                   </button>
-                  
+
                   <button
                     onClick={() => handleReject(suggestion)}
                     disabled={isProcessing}
                     className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isProcessing ? '...' : '✗ Reject'}
+                    {isProcessing ? "..." : "✗ Reject"}
                   </button>
                 </div>
               </div>

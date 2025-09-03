@@ -1,5 +1,12 @@
 import alchemy from "alchemy";
-import { Worker, D1Database, KVNamespace, R2Bucket, Ai, Assets } from "alchemy/cloudflare";
+import {
+  Worker,
+  D1Database,
+  KVNamespace,
+  R2Bucket,
+  Ai,
+  Assets,
+} from "alchemy/cloudflare";
 
 // Initialize Alchemy app for development
 const app = await alchemy("finance-manager-dev", {

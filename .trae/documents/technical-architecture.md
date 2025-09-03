@@ -10,7 +10,7 @@ graph TD
     D --> E[PostgreSQL Container]
     D --> F[Redis Container]
     D --> G[External AI Services]
-    
+
     subgraph "Digital Ocean Droplet"
         B
         subgraph "Frontend Layer"
@@ -24,13 +24,13 @@ graph TD
             F
         end
     end
-    
+
     subgraph "External Services"
         G
         H[Email Service]
         I[File Storage]
     end
-    
+
     D --> H
     D --> I
 ```
@@ -49,23 +49,24 @@ graph TD
 
 ## 3. Route Definitions
 
-| Route | Purpose |
-|-------|----------|
-| / | React SPA entry point, serves index.html |
-| /login | Authentication page |
-| /dashboard | Main dashboard with financial overview |
-| /accounts | Chart of accounts management |
-| /transactions | Transaction entry and management |
-| /reports | Financial reports and statements |
-| /documents | Document upload and processing |
-| /budget | Budget management and tracking |
-| /api/* | Backend API endpoints (proxied by Nginx) |
+| Route         | Purpose                                  |
+| ------------- | ---------------------------------------- |
+| /             | React SPA entry point, serves index.html |
+| /login        | Authentication page                      |
+| /dashboard    | Main dashboard with financial overview   |
+| /accounts     | Chart of accounts management             |
+| /transactions | Transaction entry and management         |
+| /reports      | Financial reports and statements         |
+| /documents    | Document upload and processing           |
+| /budget       | Budget management and tracking           |
+| /api/\*       | Backend API endpoints (proxied by Nginx) |
 
 ## 4. API Definitions
 
 ### 4.1 Core API
 
 **Authentication Endpoints**
+
 ```
 POST /api/auth/login
 POST /api/auth/register
@@ -76,6 +77,7 @@ POST /api/auth/logout
 ```
 
 **User Authentication**
+
 ```
 POST /api/auth/login
 ```
@@ -96,6 +98,7 @@ Response:
 | user | object | User profile data |
 
 Example Request:
+
 ```json
 {
   "email": "user@example.com",
@@ -104,6 +107,7 @@ Example Request:
 ```
 
 Example Response:
+
 ```json
 {
   "success": true,
@@ -118,6 +122,7 @@ Example Response:
 ```
 
 **Account Management**
+
 ```
 GET /api/accounts
 POST /api/accounts
@@ -127,6 +132,7 @@ GET /api/accounts/:id/balance
 ```
 
 **Transaction Management**
+
 ```
 GET /api/transactions
 POST /api/transactions
@@ -136,6 +142,7 @@ GET /api/transactions/:id/journal-entries
 ```
 
 **Financial Reports**
+
 ```
 GET /api/reports/balance-sheet
 GET /api/reports/income-statement
@@ -144,6 +151,7 @@ POST /api/reports/export
 ```
 
 **Document Processing**
+
 ```
 POST /api/documents/upload
 GET /api/documents
@@ -154,6 +162,7 @@ GET /api/documents/:id/ocr-result
 ### 4.2 AI Integration APIs
 
 **OCR Processing**
+
 ```
 POST /api/ai/ocr
 ```
@@ -173,6 +182,7 @@ Response:
 | confidence | float | OCR confidence score |
 
 **Smart Categorization**
+
 ```
 POST /api/ai/categorize
 ```
@@ -206,7 +216,7 @@ graph TD
     H --> I[(PostgreSQL)]
     G --> J[(Redis Cache)]
     G --> K[External APIs]
-    
+
     subgraph "Go Backend Container"
         C
         D
@@ -215,7 +225,7 @@ graph TD
         G
         H
     end
-    
+
     subgraph "Middleware Components"
         D1[CORS]
         D2[Authentication]
@@ -223,7 +233,7 @@ graph TD
         D4[Rate Limiting]
         D5[Request Validation]
     end
-    
+
     D --> D1
     D --> D2
     D --> D3
@@ -240,19 +250,19 @@ erDiagram
     USERS ||--o{ SESSIONS : has
     USERS ||--o{ AUDIT_LOG : creates
     USERS ||--o{ MAGIC_LINKS : requests
-    
+
     ACCOUNTS ||--o{ ACCOUNTS : parent_child
     ACCOUNTS ||--o{ JOURNAL_ENTRIES : contains
-    
+
     TRANSACTIONS ||--o{ JOURNAL_ENTRIES : has
     TRANSACTIONS ||--o{ TRANSACTIONS : reverses
-    
+
     CATEGORIES ||--o{ CATEGORY_STATS : tracks
-    
+
     BUDGETS ||--o{ BUDGET_PERIODS : spans
     BUDGETS ||--o{ BUDGET_REVISIONS : revised
     BUDGETS ||--o{ BUDGET_ALLOCATIONS : allocated
-    
+
     USERS {
         uuid id PK
         string email UK
@@ -261,7 +271,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     SESSIONS {
         uuid id PK
         uuid user_id FK
@@ -269,7 +279,7 @@ erDiagram
         timestamp expires_at
         timestamp created_at
     }
-    
+
     ACCOUNTS {
         uuid id PK
         string code UK
@@ -281,7 +291,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     TRANSACTIONS {
         uuid id PK
         string reference
@@ -292,7 +302,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     JOURNAL_ENTRIES {
         uuid id PK
         uuid transaction_id FK
@@ -302,7 +312,7 @@ erDiagram
         string description
         timestamp created_at
     }
-    
+
     CATEGORIES {
         uuid id PK
         string name
@@ -311,7 +321,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     BUDGETS {
         uuid id PK
         string name
@@ -323,7 +333,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     RAW_DOCS {
         uuid id PK
         string filename
@@ -339,6 +349,7 @@ erDiagram
 ### 6.2 Data Definition Language
 
 **Users Table**
+
 ```sql
 -- Create users table
 CREATE TABLE users (
@@ -356,6 +367,7 @@ CREATE INDEX idx_users_created_at ON users(created_at DESC);
 ```
 
 **Sessions Table**
+
 ```sql
 -- Create sessions table
 CREATE TABLE sessions (
@@ -373,6 +385,7 @@ CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
 ```
 
 **Accounts Table**
+
 ```sql
 -- Create accounts table
 CREATE TABLE accounts (
@@ -395,6 +408,7 @@ CREATE INDEX idx_accounts_active ON accounts(is_active);
 ```
 
 **Transactions Table**
+
 ```sql
 -- Create transactions table
 CREATE TABLE transactions (
@@ -416,6 +430,7 @@ CREATE INDEX idx_transactions_created_at ON transactions(created_at DESC);
 ```
 
 **Journal Entries Table**
+
 ```sql
 -- Create journal_entries table
 CREATE TABLE journal_entries (
@@ -427,7 +442,7 @@ CREATE TABLE journal_entries (
     description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT check_debit_or_credit CHECK (
-        (debit_amount > 0 AND credit_amount = 0) OR 
+        (debit_amount > 0 AND credit_amount = 0) OR
         (credit_amount > 0 AND debit_amount = 0)
     )
 );
@@ -439,6 +454,7 @@ CREATE INDEX idx_journal_entries_created_at ON journal_entries(created_at DESC);
 ```
 
 **Categories Table**
+
 ```sql
 -- Create categories table
 CREATE TABLE categories (
@@ -456,6 +472,7 @@ CREATE INDEX idx_categories_type ON categories(category_type);
 ```
 
 **Raw Documents Table**
+
 ```sql
 -- Create raw_docs table
 CREATE TABLE raw_docs (
@@ -477,6 +494,7 @@ CREATE INDEX idx_raw_docs_metadata ON raw_docs USING GIN(metadata);
 ```
 
 **Initial Data**
+
 ```sql
 -- Insert default account types
 INSERT INTO accounts (code, name, account_type) VALUES
@@ -501,7 +519,7 @@ INSERT INTO categories (name, description, category_type) VALUES
 
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   nginx:
@@ -577,6 +595,7 @@ networks:
 ### 7.2 Environment Configuration
 
 **Backend Environment Variables**
+
 ```env
 # Database
 DB_HOST=postgres
@@ -616,11 +635,13 @@ APP_DEBUG=false
 ### 8.1 Digital Ocean Droplet Setup
 
 1. **Droplet Specifications**
+
    - Size: 2 vCPUs, 4GB RAM, 80GB SSD
    - OS: Ubuntu 22.04 LTS
    - Docker and Docker Compose pre-installed
 
 2. **Security Configuration**
+
    - SSH key authentication only
    - UFW firewall with ports 22, 80, 443 open
    - Automatic security updates enabled
@@ -646,28 +667,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
-          
+
       - name: Install dependencies
         run: bun install
-        
+
       - name: Run tests
         run: bun test
-        
+
       - name: Build frontend
         run: |
           cd frontend
           bun run build
-          
+
       - name: Build Go backend
         run: |
           cd backend
           go build -o app ./cmd/server
-          
+
       - name: Deploy to Digital Ocean
         uses: appleboy/ssh-action@v0.1.5
         with:

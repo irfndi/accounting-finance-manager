@@ -15,6 +15,7 @@ The Finance Manager API is built on Cloudflare Workers using the Hono framework.
 The API uses magic link authentication with JWT tokens for session management.
 
 #### Request Magic Link
+
 ```http
 POST /api/auth/magic-link
 Content-Type: application/json
@@ -26,6 +27,7 @@ Content-Type: application/json
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -34,11 +36,13 @@ Content-Type: application/json
 ```
 
 #### Verify Magic Link
+
 ```http
 GET /api/auth/verify?token=<magic_link_token>
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -52,12 +56,14 @@ GET /api/auth/verify?token=<magic_link_token>
 ```
 
 #### Logout
+
 ```http
 POST /api/auth/logout
 Authorization: Bearer <jwt_token>
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -68,6 +74,7 @@ Authorization: Bearer <jwt_token>
 ### Authorization Header
 
 For protected endpoints, include the JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <jwt_token>
 ```
@@ -77,11 +84,13 @@ Authorization: Bearer <jwt_token>
 ### Health Check
 
 #### Get System Health
+
 ```http
 GET /health
 ```
 
 **Response**:
+
 ```json
 {
   "status": "healthy",
@@ -95,12 +104,14 @@ GET /health
 ### User Management
 
 #### Get Current User
+
 ```http
 GET /api/user/profile
 Authorization: Bearer <jwt_token>
 ```
 
 **Response**:
+
 ```json
 {
   "id": "user-uuid",
@@ -120,6 +131,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 #### Update User Profile
+
 ```http
 PUT /api/user/profile
 Authorization: Bearer <jwt_token>
@@ -137,12 +149,14 @@ Content-Type: application/json
 ### Entity Management
 
 #### List Entities
+
 ```http
 GET /api/entities
 Authorization: Bearer <jwt_token>
 ```
 
 **Response**:
+
 ```json
 {
   "entities": [
@@ -162,6 +176,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 #### Create Entity
+
 ```http
 POST /api/entities
 Authorization: Bearer <jwt_token>
@@ -180,18 +195,21 @@ Content-Type: application/json
 ### Chart of Accounts
 
 #### List Accounts
+
 ```http
 GET /api/accounts?entityId=<entity-uuid>
 Authorization: Bearer <jwt_token>
 ```
 
 **Query Parameters**:
+
 - `entityId` (required): Entity UUID
 - `type` (optional): Filter by account type (asset, liability, equity, revenue, expense)
 - `active` (optional): Filter by active status (true/false)
 - `parentId` (optional): Filter by parent account
 
 **Response**:
+
 ```json
 {
   "accounts": [
@@ -230,6 +248,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 #### Create Account
+
 ```http
 POST /api/accounts
 Authorization: Bearer <jwt_token>
@@ -246,6 +265,7 @@ Content-Type: application/json
 ```
 
 #### Update Account
+
 ```http
 PUT /api/accounts/<account-uuid>
 Authorization: Bearer <jwt_token>
@@ -259,6 +279,7 @@ Content-Type: application/json
 ```
 
 #### Delete Account
+
 ```http
 DELETE /api/accounts/<account-uuid>
 Authorization: Bearer <jwt_token>
@@ -267,12 +288,14 @@ Authorization: Bearer <jwt_token>
 ### Transactions
 
 #### List Transactions
+
 ```http
 GET /api/transactions?entityId=<entity-uuid>
 Authorization: Bearer <jwt_token>
 ```
 
 **Query Parameters**:
+
 - `entityId` (required): Entity UUID
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 50, max: 100)
@@ -282,6 +305,7 @@ Authorization: Bearer <jwt_token>
 - `accountId` (optional): Filter by account involvement
 
 **Response**:
+
 ```json
 {
   "transactions": [
@@ -336,6 +360,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 #### Create Transaction
+
 ```http
 POST /api/transactions
 Authorization: Bearer <jwt_token>
@@ -364,6 +389,7 @@ Content-Type: application/json
 ```
 
 #### Update Transaction
+
 ```http
 PUT /api/transactions/<transaction-uuid>
 Authorization: Bearer <jwt_token>
@@ -376,6 +402,7 @@ Content-Type: application/json
 ```
 
 #### Delete Transaction
+
 ```http
 DELETE /api/transactions/<transaction-uuid>
 Authorization: Bearer <jwt_token>
@@ -384,16 +411,19 @@ Authorization: Bearer <jwt_token>
 ### Financial Reports
 
 #### Balance Sheet
+
 ```http
 GET /api/reports/balance-sheet?entityId=<entity-uuid>&asOfDate=2024-12-31
 Authorization: Bearer <jwt_token>
 ```
 
 **Query Parameters**:
+
 - `entityId` (required): Entity UUID
 - `asOfDate` (required): Report date (YYYY-MM-DD)
 
 **Response**:
+
 ```json
 {
   "reportDate": "2024-12-31",
@@ -435,18 +465,21 @@ Authorization: Bearer <jwt_token>
 ```
 
 #### Profit & Loss Statement
+
 ```http
 GET /api/reports/profit-loss?entityId=<entity-uuid>&startDate=2024-01-01&endDate=2024-12-31
 Authorization: Bearer <jwt_token>
 ```
 
 #### Cash Flow Statement
+
 ```http
 GET /api/reports/cash-flow?entityId=<entity-uuid>&startDate=2024-01-01&endDate=2024-12-31
 Authorization: Bearer <jwt_token>
 ```
 
 #### Custom Report
+
 ```http
 POST /api/reports/custom
 Authorization: Bearer <jwt_token>
@@ -468,6 +501,7 @@ Content-Type: application/json
 ### Document Management
 
 #### Upload Document
+
 ```http
 POST /api/documents/upload
 Authorization: Bearer <jwt_token>
@@ -480,6 +514,7 @@ description: Receipt for office supplies
 ```
 
 **Response**:
+
 ```json
 {
   "id": "document-uuid",
@@ -493,12 +528,14 @@ description: Receipt for office supplies
 ```
 
 #### Process OCR
+
 ```http
 POST /api/documents/<document-uuid>/ocr
 Authorization: Bearer <jwt_token>
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -518,18 +555,21 @@ Authorization: Bearer <jwt_token>
 ```
 
 #### List Documents
+
 ```http
 GET /api/documents?entityId=<entity-uuid>
 Authorization: Bearer <jwt_token>
 ```
 
 #### Download Document
+
 ```http
 GET /api/documents/<document-uuid>/download
 Authorization: Bearer <jwt_token>
 ```
 
 #### Delete Document
+
 ```http
 DELETE /api/documents/<document-uuid>
 Authorization: Bearer <jwt_token>
@@ -538,6 +578,7 @@ Authorization: Bearer <jwt_token>
 ## Error Handling
 
 ### Error Response Format
+
 ```json
 {
   "error": {
@@ -588,6 +629,7 @@ Authorization: Bearer <jwt_token>
 - **Report Generation**: 100 reports per hour per user
 
 Rate limit headers are included in responses:
+
 ```
 X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 999
@@ -597,6 +639,7 @@ X-RateLimit-Reset: 1640000000
 ## Webhooks (Future Feature)
 
 ### Webhook Events
+
 - `transaction.created`
 - `transaction.updated`
 - `transaction.approved`
@@ -605,6 +648,7 @@ X-RateLimit-Reset: 1640000000
 - `report.generated`
 
 ### Webhook Payload
+
 ```json
 {
   "event": "transaction.created",
@@ -619,34 +663,40 @@ X-RateLimit-Reset: 1640000000
 ## SDK and Libraries
 
 ### JavaScript/TypeScript SDK
+
 ```bash
 npm install @finance-manager/sdk
 ```
 
 ```typescript
-import { FinanceManagerClient } from '@finance-manager/sdk';
+import { FinanceManagerClient } from "@finance-manager/sdk";
 
 const client = new FinanceManagerClient({
-  baseUrl: 'https://finance-manager.irfandimarsya.workers.dev',
-  apiKey: 'your-jwt-token'
+  baseUrl: "https://finance-manager.irfandimarsya.workers.dev",
+  apiKey: "your-jwt-token",
 });
 
-const accounts = await client.accounts.list({ entityId: 'entity-uuid' });
+const accounts = await client.accounts.list({ entityId: "entity-uuid" });
 ```
 
 ## Testing
 
 ### Test Environment
+
 **Base URL**: `https://finance-manager-staging.irfandimarsya.workers.dev`
 
 ### Postman Collection
+
 Import the Postman collection for easy API testing:
+
 ```
 https://finance-manager.irfandimarsya.workers.dev/api/postman-collection.json
 ```
 
 ### OpenAPI Specification
+
 View the complete API specification:
+
 ```
 https://finance-manager.irfandimarsya.workers.dev/api/openapi.json
 ```

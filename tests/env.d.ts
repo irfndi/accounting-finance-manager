@@ -1,4 +1,4 @@
-declare module 'cloudflare:test' {
+declare module "cloudflare:test" {
   // ProvidedEnv controls the type of `import("cloudflare:test").env`
   interface ProvidedEnv extends Env {
     // Add any test-specific environment variables here
@@ -10,9 +10,9 @@ declare module 'cloudflare:test' {
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: 'test' | 'development' | 'production';
+      NODE_ENV: "test" | "development" | "production";
     }
   }
 }
 
-export {}; 
+export {};

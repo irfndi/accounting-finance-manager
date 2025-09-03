@@ -1,9 +1,16 @@
 import alchemy from "alchemy";
-import { Worker, D1Database, KVNamespace, R2Bucket, Ai, Assets } from "alchemy/cloudflare";
+import {
+  Worker,
+  D1Database,
+  KVNamespace,
+  R2Bucket,
+  Ai,
+  Assets,
+} from "alchemy/cloudflare";
 
 // Create app with proper scope configuration
 const app = await alchemy("finance-manager", {
-  stage: process.env.NODE_ENV === "production" ? "prod" : "dev"
+  stage: process.env.NODE_ENV === "production" ? "prod" : "dev",
 });
 
 // Create D1 Database (adopt existing if present)
@@ -39,7 +46,6 @@ const bindings: Record<string, unknown> = {
   FINANCE_MANAGER_DOCUMENTS: r2Bucket,
   AI: ai,
   ASSETS: assets,
-
 };
 
 const worker = await Worker("finance-manager", {

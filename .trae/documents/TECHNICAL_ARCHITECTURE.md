@@ -43,27 +43,27 @@ graph TD
 
 ## 2. Technology Description
 
-* **Frontend**: Astro\@4.16 + React\@18 + TypeScript\@5.6 + Tailwind CSS\@3.4 + shadcn/ui
+- **Frontend**: Astro\@4.16 + React\@18 + TypeScript\@5.6 + Tailwind CSS\@3.4 + shadcn/ui
 
-* **Backend**: Cloudflare Workers + Hono\@4.6 + TypeScript\@5.6
+- **Backend**: Cloudflare Workers + Hono\@4.6 + TypeScript\@5.6
 
-* **Database**: Cloudflare D1 (SQLite) + Drizzle ORM\@0.36 + Drizzle Kit\@0.26
+- **Database**: Cloudflare D1 (SQLite) + Drizzle ORM\@0.36 + Drizzle Kit\@0.26
 
-* **Storage**: Cloudflare R2 (S3-compatible) + Cloudflare KV
+- **Storage**: Cloudflare R2 (S3-compatible) + Cloudflare KV
 
-* **AI Services**: OpenRouter API + Moonshot AI + Cloudflare Vectorize + Cloudflare AI
+- **AI Services**: OpenRouter API + Moonshot AI + Cloudflare Vectorize + Cloudflare AI
 
-* **Authentication**: Supabase Auth + JWT + Magic Links
+- **Authentication**: Supabase Auth + JWT + Magic Links
 
-* **Email**: AWS SES
+- **Email**: AWS SES
 
-* **Testing**: Vitest\@2.1 + Playwright\@1.48 + Miniflare\@3.20 + Testing Library
+- **Testing**: Vitest\@2.1 + Playwright\@1.48 + Miniflare\@3.20 + Testing Library
 
-* **Code Quality**: OxLint\@0.15 + Prettier\@3.3 + TypeScript ESLint\@8.8
+- **Code Quality**: OxLint\@0.15 + Prettier\@3.3 + TypeScript ESLint\@8.8
 
-* **Infrastructure**: Alchemy\@0.21 + Wrangler\@3.84
+- **Infrastructure**: Alchemy\@0.21 + Wrangler\@3.84
 
-* **Build Tools**: Vite\@5.4 + ESBuild + pnpm\@9.12
+- **Build Tools**: Vite\@5.4 + ESBuild + pnpm\@9.12
 
 ## 3. Route Definitions
 
@@ -79,7 +79,7 @@ graph TD
 | /auth/login    | Magic link authentication page                           |
 | /auth/callback | Authentication callback handler                          |
 | /auth/logout   | User logout and session cleanup                          |
-| /api/*         | RESTful API endpoints for all backend operations        |
+| /api/\*        | RESTful API endpoints for all backend operations         |
 
 ## 4. API Definitions
 
@@ -120,10 +120,10 @@ Example:
 
 **Token Verification:**
 
-| Param Name | Param Type | isRequired | Description           |
-| ---------- | ---------- | ---------- | --------------------- |
-| token      | string     | true       | Magic link token      |
-| code       | string     | true       | Verification code     |
+| Param Name | Param Type | isRequired | Description       |
+| ---------- | ---------- | ---------- | ----------------- |
+| token      | string     | true       | Magic link token  |
+| code       | string     | true       | Verification code |
 
 Response:
 
@@ -206,19 +206,19 @@ graph TD
     B --> C[Authentication Middleware]
     B --> D[Validation Middleware]
     B --> E[CORS Middleware]
-    
+
     C --> F[Controller Layer]
     F --> G[Service Layer]
     G --> H[Repository Layer]
-    
+
     H --> I[(Cloudflare D1)]
     H --> J[(Cloudflare KV)]
     H --> K[(Cloudflare R2)]
-    
+
     G --> L[AI Service]
     L --> M[OpenRouter API]
     L --> N[Vectorize]
-    
+
     G --> O[Email Service]
     O --> P[AWS SES]
 
@@ -246,11 +246,11 @@ erDiagram
     ENTITIES ||--o{ ACCOUNTS : has
     ENTITIES ||--o{ TRANSACTIONS : has
     ENTITIES ||--o{ DOCUMENTS : has
-    
+
     ACCOUNTS ||--o{ TRANSACTION_ENTRIES : has
     TRANSACTIONS ||--o{ TRANSACTION_ENTRIES : contains
     TRANSACTIONS ||--o{ DOCUMENTS : attached_to
-    
+
     USERS {
         uuid id PK
         string email UK
@@ -258,7 +258,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     ENTITIES {
         uuid id PK
         string name
@@ -267,14 +267,14 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     USER_ENTITIES {
         uuid user_id FK
         uuid entity_id FK
         string role
         timestamp created_at
     }
-    
+
     ACCOUNTS {
         uuid id PK
         uuid entity_id FK
@@ -286,7 +286,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     TRANSACTIONS {
         uuid id PK
         uuid entity_id FK
@@ -298,7 +298,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     TRANSACTION_ENTRIES {
         uuid id PK
         uuid transaction_id FK
@@ -307,7 +307,7 @@ erDiagram
         decimal credit_amount
         string description
     }
-    
+
     DOCUMENTS {
         uuid id PK
         uuid entity_id FK
@@ -496,4 +496,3 @@ INSERT INTO accounts (entity_id, code, name, type) VALUES
 ('entity_id', '5000', 'Cost of Goods Sold', 'expense'),
 ('entity_id', '6000', 'Operating Expenses', 'expense');
 ```
-

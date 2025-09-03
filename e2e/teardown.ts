@@ -1,15 +1,15 @@
-import type { FullConfig } from '@playwright/test';
-import { getTestDatabaseUrl } from './config/environments';
-import { unlink } from 'fs/promises';
-import { existsSync } from 'fs';
+import type { FullConfig } from "@playwright/test";
+import { getTestDatabaseUrl } from "./config/environments";
+import { unlink } from "fs/promises";
+import { existsSync } from "fs";
 
 async function globalTeardown(_config: FullConfig) {
-  console.log('Cleaning up test environment...');
-  
+  console.log("Cleaning up test environment...");
+
   const testDbUrl = getTestDatabaseUrl();
-  
+
   // If using SQLite, delete the test database file
-  if (testDbUrl.includes('.sqlite')) {
+  if (testDbUrl.includes(".sqlite")) {
     try {
       if (existsSync(testDbUrl)) {
         await unlink(testDbUrl);
@@ -19,13 +19,10 @@ async function globalTeardown(_config: FullConfig) {
       console.warn(`Failed to delete test database ${testDbUrl}:`, error);
     }
   }
-  
+
   // Clean up any test artifacts
-  const testArtifacts = [
-    './test-results',
-    './playwright-report'
-  ];
-  
+  const testArtifacts = ["./test-results", "./playwright-report"];
+
   for (const artifact of testArtifacts) {
     try {
       if (existsSync(artifact)) {
@@ -35,8 +32,8 @@ async function globalTeardown(_config: FullConfig) {
       console.warn(`Error checking artifact ${artifact}:`, error);
     }
   }
-  
-  console.log('Test environment cleanup complete');
+
+  console.log("Test environment cleanup complete");
 }
 
 export default globalTeardown;

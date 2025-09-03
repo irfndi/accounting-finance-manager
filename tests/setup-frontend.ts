@@ -1,12 +1,12 @@
-import { vi, beforeEach } from 'vitest';
-import React from 'react';
-import '@testing-library/jest-dom';
+import { vi, beforeEach } from "vitest";
+import React from "react";
+import "@testing-library/jest-dom";
 
 // Make React available globally for JSX
 global.React = React;
 
 // Mock React DOM for better compatibility
-vi.mock('react-dom/client', () => ({
+vi.mock("react-dom/client", () => ({
   createRoot: vi.fn(() => ({
     render: vi.fn(),
     unmount: vi.fn(),
@@ -14,10 +14,10 @@ vi.mock('react-dom/client', () => ({
 }));
 
 // Mock window.matchMedia (only in browser environment)
-if (typeof window !== 'undefined') {
-  Object.defineProperty(window, 'matchMedia', {
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "matchMedia", {
     writable: true,
-    value: vi.fn().mockImplementation(query => ({
+    value: vi.fn().mockImplementation((query) => ({
       matches: false,
       media: query,
       onchange: null,
@@ -31,18 +31,18 @@ if (typeof window !== 'undefined') {
 }
 
 // Mock environment variables for testing
-vi.stubEnv('NODE_ENV', 'test');
-vi.stubEnv('JWT_SECRET', 'test-secret-key-for-testing');
-vi.stubEnv('DATABASE_URL', 'file:./test.db');
+vi.stubEnv("NODE_ENV", "test");
+vi.stubEnv("JWT_SECRET", "test-secret-key-for-testing");
+vi.stubEnv("DATABASE_URL", "file:./test.db");
 
 // Mock fetch globally
 global.fetch = vi.fn();
 
 // Mock localStorage (only in browser environment)
-if (typeof window !== 'undefined') {
-  Object.defineProperty(window, 'localStorage', {
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "localStorage", {
     value: {
-      getItem: vi.fn(() => 'mock-token'),
+      getItem: vi.fn(() => "mock-token"),
       setItem: vi.fn(),
       removeItem: vi.fn(),
       clear: vi.fn(),
@@ -52,7 +52,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Mock Astro modules that are not available in test environment
-vi.mock('astro:transitions/client', () => ({
+vi.mock("astro:transitions/client", () => ({
   navigate: vi.fn(),
 }));
 

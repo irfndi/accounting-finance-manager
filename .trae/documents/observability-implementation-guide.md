@@ -50,48 +50,48 @@ receivers:
             - "https://*.finance-manager.com"
           allowed_headers:
             - "*"
-  
+
   prometheus:
     config:
       scrape_configs:
-        - job_name: 'otel-collector'
+        - job_name: "otel-collector"
           scrape_interval: 10s
           static_configs:
-            - targets: ['0.0.0.0:8888']
-        
-        - job_name: 'finance-manager-backend'
+            - targets: ["0.0.0.0:8888"]
+
+        - job_name: "finance-manager-backend"
           scrape_interval: 15s
           static_configs:
-            - targets: ['backend:8080']
-          metrics_path: '/metrics'
-        
-        - job_name: 'nginx'
+            - targets: ["backend:8080"]
+          metrics_path: "/metrics"
+
+        - job_name: "nginx"
           scrape_interval: 15s
           static_configs:
-            - targets: ['nginx:9113']
-          metrics_path: '/metrics'
-        
-        - job_name: 'redis'
+            - targets: ["nginx:9113"]
+          metrics_path: "/metrics"
+
+        - job_name: "redis"
           scrape_interval: 15s
           static_configs:
-            - targets: ['redis:6379']
-        
-        - job_name: 'postgres'
+            - targets: ["redis:6379"]
+
+        - job_name: "postgres"
           scrape_interval: 15s
           static_configs:
-            - targets: ['postgres:5432']
+            - targets: ["postgres:5432"]
 
 processors:
   batch:
     timeout: 1s
     send_batch_size: 1024
     send_batch_max_size: 2048
-  
+
   memory_limiter:
     limit_mib: 512
     spike_limit_mib: 128
     check_interval: 5s
-  
+
   resource:
     attributes:
       - key: service.namespace
@@ -100,7 +100,7 @@ processors:
       - key: deployment.environment
         from_attribute: environment
         action: upsert
-  
+
   attributes:
     actions:
       - key: http.user_agent
@@ -120,14 +120,14 @@ exporters:
     logs_table_name: signoz_logs
     traces_table_name: signoz_index_v2
     metrics_table_name: signoz_metrics
-  
+
   prometheus:
     endpoint: "0.0.0.0:8889"
     namespace: signoz
     const_labels:
       cluster: finance-manager
       environment: ${ENVIRONMENT}
-  
+
   logging:
     loglevel: info
 
@@ -137,19 +137,19 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, resource, attributes, batch]
       exporters: [clickhouse]
-    
+
     metrics:
       receivers: [otlp, prometheus]
       processors: [memory_limiter, resource, batch]
       exporters: [clickhouse, prometheus]
-    
+
     logs:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
       exporters: [clickhouse]
-  
+
   extensions: [health_check, pprof, zpages]
-  
+
   telemetry:
     logs:
       level: info
@@ -167,35 +167,35 @@ service:
         <level>information</level>
         <console>true</console>
     </logger>
-    
+
     <http_port>8123</http_port>
     <tcp_port>9000</tcp_port>
     <mysql_port>9004</mysql_port>
     <postgresql_port>9005</postgresql_port>
     <interserver_http_port>9009</interserver_http_port>
-    
+
     <listen_host>::</listen_host>
-    
+
     <max_connections>4096</max_connections>
     <keep_alive_timeout>3</keep_alive_timeout>
     <max_concurrent_queries>100</max_concurrent_queries>
     <uncompressed_cache_size>8589934592</uncompressed_cache_size>
     <mark_cache_size>5368709120</mark_cache_size>
-    
+
     <path>/var/lib/clickhouse/</path>
     <tmp_path>/var/lib/clickhouse/tmp/</tmp_path>
     <user_files_path>/var/lib/clickhouse/user_files/</user_files_path>
     <access_control_path>/var/lib/clickhouse/access/</access_control_path>
-    
+
     <users_config>users.xml</users_config>
-    
+
     <default_profile>default</default_profile>
     <default_database>default</default_database>
-    
+
     <timezone>UTC</timezone>
-    
+
     <mlock_executable>false</mlock_executable>
-    
+
     <remote_servers>
         <signoz_cluster>
             <shard>
@@ -206,51 +206,51 @@ service:
             </shard>
         </signoz_cluster>
     </remote_servers>
-    
+
     <zookeeper incl="zookeeper-servers" optional="true" />
-    
+
     <macros incl="macros" optional="true" />
-    
+
     <builtin_dictionaries_reload_interval>3600</builtin_dictionaries_reload_interval>
-    
+
     <max_session_timeout>3600</max_session_timeout>
     <default_session_timeout>60</default_session_timeout>
-    
+
     <query_log>
         <database>system</database>
         <table>query_log</table>
         <partition_by>toYYYYMM(event_date)</partition_by>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
     </query_log>
-    
+
     <trace_log>
         <database>system</database>
         <table>trace_log</table>
         <partition_by>toYYYYMM(event_date)</partition_by>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
     </trace_log>
-    
+
     <query_thread_log>
         <database>system</database>
         <table>query_thread_log</table>
         <partition_by>toYYYYMM(event_date)</partition_by>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
     </query_thread_log>
-    
+
     <metric_log>
         <database>system</database>
         <table>metric_log</table>
         <partition_by>toYYYYMM(event_date)</partition_by>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
     </metric_log>
-    
+
     <asynchronous_metric_log>
         <database>system</database>
         <table>asynchronous_metric_log</table>
         <partition_by>toYYYYMM(event_date)</partition_by>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
     </asynchronous_metric_log>
-    
+
     <openSSL>
         <server>
             <certificateFile>/etc/clickhouse-server/server.crt</certificateFile>
@@ -469,7 +469,7 @@ type Telemetry struct {
 
 func New(config Config) (*Telemetry, error) {
     ctx := context.Background()
-    
+
     // Create resource
     res, err := resource.New(ctx,
         resource.WithAttributes(
@@ -599,23 +599,23 @@ func (t *Telemetry) Meter() metric.Meter {
 
 func (t *Telemetry) Shutdown(ctx context.Context) error {
     var errs []error
-    
+
     if t.traceProvider != nil {
         if err := t.traceProvider.Shutdown(ctx); err != nil {
             errs = append(errs, fmt.Errorf("failed to shutdown trace provider: %w", err))
         }
     }
-    
+
     if t.metricProvider != nil {
         if err := t.metricProvider.Shutdown(ctx); err != nil {
             errs = append(errs, fmt.Errorf("failed to shutdown metric provider: %w", err))
         }
     }
-    
+
     if len(errs) > 0 {
         return fmt.Errorf("shutdown errors: %v", errs)
     }
-    
+
     return nil
 }
 
@@ -653,7 +653,7 @@ import (
     "github.com/gin-gonic/gin"
     "github.com/joho/godotenv"
     "go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-    
+
     "finance-manager/internal/config"
     "finance-manager/internal/database"
     "finance-manager/internal/middleware"
@@ -714,7 +714,7 @@ func main() {
     }
 
     router := gin.New()
-    
+
     // Add telemetry middleware
     router.Use(otelgin.Middleware("finance-manager-backend"))
     router.Use(middleware.NewTelemetryMiddleware().Handler())
@@ -748,7 +748,7 @@ func main() {
     // Graceful shutdown with timeout
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
-    
+
     if err := srv.Shutdown(ctx); err != nil {
         log.Fatalf("Server forced to shutdown: %v", err)
     }
@@ -801,15 +801,18 @@ npm install @opentelemetry/api@^1.7.0 \
 
 ```typescript
 // src/lib/telemetry/index.ts
-import { WebSDK } from '@opentelemetry/sdk-web';
-import { getWebAutoInstrumentations } from '@opentelemetry/auto-instrumentations-web';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { B3Propagator } from '@opentelemetry/propagator-b3';
-import { JaegerPropagator } from '@opentelemetry/propagator-jaeger';
-import { CompositePropagator, W3CTraceContextPropagator } from '@opentelemetry/core';
-import { ZoneContextManager } from '@opentelemetry/context-zone';
+import { WebSDK } from "@opentelemetry/sdk-web";
+import { getWebAutoInstrumentations } from "@opentelemetry/auto-instrumentations-web";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-otlp-http";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { B3Propagator } from "@opentelemetry/propagator-b3";
+import { JaegerPropagator } from "@opentelemetry/propagator-jaeger";
+import {
+  CompositePropagator,
+  W3CTraceContextPropagator,
+} from "@opentelemetry/core";
+import { ZoneContextManager } from "@opentelemetry/context-zone";
 
 interface TelemetryConfig {
   serviceName: string;
@@ -838,25 +841,27 @@ class TelemetryService {
 
   initialize(): void {
     if (this.isInitialized) {
-      console.warn('Telemetry already initialized');
+      console.warn("Telemetry already initialized");
       return;
     }
 
     try {
       const resource = new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: this.config.serviceName,
-        [SemanticResourceAttributes.SERVICE_VERSION]: this.config.serviceVersion,
-        [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: this.config.environment,
-        'service.namespace': 'finance-manager',
-        'telemetry.sdk.name': 'opentelemetry',
-        'telemetry.sdk.language': 'webjs',
-        'telemetry.sdk.version': '1.18.1',
+        [SemanticResourceAttributes.SERVICE_VERSION]:
+          this.config.serviceVersion,
+        [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
+          this.config.environment,
+        "service.namespace": "finance-manager",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.language": "webjs",
+        "telemetry.sdk.version": "1.18.1",
       });
 
       const traceExporter = new OTLPTraceExporter({
         url: `${this.config.otlpEndpoint}/v1/traces`,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -865,10 +870,10 @@ class TelemetryService {
         traceExporter,
         instrumentations: [
           getWebAutoInstrumentations({
-            '@opentelemetry/instrumentation-fs': {
+            "@opentelemetry/instrumentation-fs": {
               enabled: false,
             },
-            '@opentelemetry/instrumentation-fetch': {
+            "@opentelemetry/instrumentation-fetch": {
               enabled: true,
               propagateTraceHeaderCorsUrls: [
                 new RegExp(`${window.location.origin}/api/.*`),
@@ -879,28 +884,28 @@ class TelemetryService {
               applyCustomAttributesOnSpan: (span, request, result) => {
                 const requestSize = this.getRequestSize(request);
                 const responseSize = this.getResponseSize(result);
-                
+
                 span.setAttributes({
-                  'http.request.body.size': requestSize,
-                  'http.response.body.size': responseSize,
-                  'http.user_agent': navigator.userAgent,
-                  'browser.name': this.getBrowserName(),
-                  'browser.version': this.getBrowserVersion(),
+                  "http.request.body.size": requestSize,
+                  "http.response.body.size": responseSize,
+                  "http.user_agent": navigator.userAgent,
+                  "browser.name": this.getBrowserName(),
+                  "browser.version": this.getBrowserVersion(),
                 });
               },
             },
-            '@opentelemetry/instrumentation-xml-http-request': {
+            "@opentelemetry/instrumentation-xml-http-request": {
               enabled: true,
               propagateTraceHeaderCorsUrls: [
                 new RegExp(`${window.location.origin}/api/.*`),
                 /^http:\/\/localhost:8080\/api\/.*/,
               ],
             },
-            '@opentelemetry/instrumentation-user-interaction': {
+            "@opentelemetry/instrumentation-user-interaction": {
               enabled: this.config.enableUserInteraction,
-              eventNames: ['click', 'submit', 'keydown', 'change'],
+              eventNames: ["click", "submit", "keydown", "change"],
             },
-            '@opentelemetry/instrumentation-document-load': {
+            "@opentelemetry/instrumentation-document-load": {
               enabled: this.config.enableDocumentLoad,
             },
           }),
@@ -917,20 +922,19 @@ class TelemetryService {
 
       this.sdk.start();
       this.isInitialized = true;
-      
-      console.log('✅ OpenTelemetry initialized successfully');
-      
+
+      console.log("✅ OpenTelemetry initialized successfully");
+
       // Track initial page load
       this.trackPageLoad();
-      
     } catch (error) {
-      console.error('❌ Failed to initialize OpenTelemetry:', error);
+      console.error("❌ Failed to initialize OpenTelemetry:", error);
     }
   }
 
   private getRequestSize(request: Request | RequestInit): number {
-    if ('body' in request && request.body) {
-      if (typeof request.body === 'string') {
+    if ("body" in request && request.body) {
+      if (typeof request.body === "string") {
         return new Blob([request.body]).size;
       }
       if (request.body instanceof FormData) {
@@ -943,7 +947,7 @@ class TelemetryService {
 
   private getResponseSize(result: Response | XMLHttpRequest): number {
     if (result instanceof Response) {
-      const contentLength = result.headers.get('content-length');
+      const contentLength = result.headers.get("content-length");
       return contentLength ? parseInt(contentLength, 10) : 0;
     }
     return 0;
@@ -951,29 +955,32 @@ class TelemetryService {
 
   private getBrowserName(): string {
     const userAgent = navigator.userAgent;
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    return 'Unknown';
+    if (userAgent.includes("Chrome")) return "Chrome";
+    if (userAgent.includes("Firefox")) return "Firefox";
+    if (userAgent.includes("Safari")) return "Safari";
+    if (userAgent.includes("Edge")) return "Edge";
+    return "Unknown";
   }
 
   private getBrowserVersion(): string {
     const userAgent = navigator.userAgent;
     const match = userAgent.match(/(Chrome|Firefox|Safari|Edge)\/([\d.]+)/);
-    return match ? match[2] : 'Unknown';
+    return match ? match[2] : "Unknown";
   }
 
   private trackPageLoad(): void {
     // Track initial page load metrics
-    if (typeof window !== 'undefined' && window.performance) {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    if (typeof window !== "undefined" && window.performance) {
+      const navigation = performance.getEntriesByType(
+        "navigation"
+      )[0] as PerformanceNavigationTiming;
       if (navigation) {
         const loadTime = navigation.loadEventEnd - navigation.fetchStart;
-        const domContentLoaded = navigation.domContentLoadedEventEnd - navigation.fetchStart;
+        const domContentLoaded =
+          navigation.domContentLoadedEventEnd - navigation.fetchStart;
         const firstPaint = this.getFirstPaint();
-        
-        console.log('📊 Page Load Metrics:', {
+
+        console.log("📊 Page Load Metrics:", {
           loadTime,
           domContentLoaded,
           firstPaint,
@@ -983,8 +990,10 @@ class TelemetryService {
   }
 
   private getFirstPaint(): number {
-    const paintEntries = performance.getEntriesByType('paint');
-    const firstPaint = paintEntries.find(entry => entry.name === 'first-paint');
+    const paintEntries = performance.getEntriesByType("paint");
+    const firstPaint = paintEntries.find(
+      (entry) => entry.name === "first-paint"
+    );
     return firstPaint ? firstPaint.startTime : 0;
   }
 
@@ -1003,21 +1012,21 @@ class TelemetryService {
 
 // Create and export telemetry instance
 const telemetryConfig: TelemetryConfig = {
-  serviceName: 'finance-manager-frontend',
-  serviceVersion: '1.0.0',
-  environment: import.meta.env.VITE_ENVIRONMENT || 'development',
-  otlpEndpoint: import.meta.env.VITE_OTEL_ENDPOINT || 'http://localhost:4318',
-  enableConsoleExporter: import.meta.env.VITE_ENVIRONMENT === 'development',
-  samplingRate: parseFloat(import.meta.env.VITE_TRACE_SAMPLING_RATE || '0.1'),
+  serviceName: "finance-manager-frontend",
+  serviceVersion: "1.0.0",
+  environment: import.meta.env.VITE_ENVIRONMENT || "development",
+  otlpEndpoint: import.meta.env.VITE_OTEL_ENDPOINT || "http://localhost:4318",
+  enableConsoleExporter: import.meta.env.VITE_ENVIRONMENT === "development",
+  samplingRate: parseFloat(import.meta.env.VITE_TRACE_SAMPLING_RATE || "0.1"),
 };
 
 export const telemetryService = new TelemetryService(telemetryConfig);
 
 // Auto-initialize in browser
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
       telemetryService.initialize();
     });
   } else {
@@ -1032,27 +1041,30 @@ export default telemetryService;
 
 ```typescript
 // src/lib/telemetry/hooks.ts
-import { trace, context, SpanStatusCode, SpanKind } from '@opentelemetry/api';
-import { useEffect, useCallback } from 'react';
+import { trace, context, SpanStatusCode, SpanKind } from "@opentelemetry/api";
+import { useEffect, useCallback } from "react";
 
-const tracer = trace.getTracer('finance-manager-frontend', '1.0.0');
+const tracer = trace.getTracer("finance-manager-frontend", "1.0.0");
 
 // Hook for tracking page views
-export function usePageTracking(pageName: string, additionalAttributes?: Record<string, any>) {
+export function usePageTracking(
+  pageName: string,
+  additionalAttributes?: Record<string, any>
+) {
   useEffect(() => {
     const span = tracer.startSpan(`page.view`, {
       kind: SpanKind.CLIENT,
       attributes: {
-        'page.name': pageName,
-        'page.url': window.location.href,
-        'page.referrer': document.referrer,
-        'page.title': document.title,
-        'user.agent': navigator.userAgent,
+        "page.name": pageName,
+        "page.url": window.location.href,
+        "page.referrer": document.referrer,
+        "page.title": document.title,
+        "user.agent": navigator.userAgent,
         ...additionalAttributes,
       },
     });
-    
-    span.addEvent('page.loaded');
+
+    span.addEvent("page.loaded");
     span.end();
 
     // Track page unload
@@ -1060,135 +1072,160 @@ export function usePageTracking(pageName: string, additionalAttributes?: Record<
       const unloadSpan = tracer.startSpan(`page.unload`, {
         kind: SpanKind.CLIENT,
         attributes: {
-          'page.name': pageName,
-          'page.url': window.location.href,
+          "page.name": pageName,
+          "page.url": window.location.href,
         },
       });
       unloadSpan.end();
     };
 
-    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener("beforeunload", handleUnload);
     return () => {
-      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener("beforeunload", handleUnload);
     };
   }, [pageName, additionalAttributes]);
 }
 
 // Hook for tracking API calls
 export function useApiTracking() {
-  const trackApiCall = useCallback(async <T>(
-    operationName: string,
-    apiCall: () => Promise<T>,
-    attributes: Record<string, any> = {}
-  ): Promise<T> => {
-    const span = tracer.startSpan(`api.${operationName}`, {
-      kind: SpanKind.CLIENT,
-      attributes: {
-        'api.operation': operationName,
-        'api.timestamp': Date.now(),
-        ...attributes,
-      },
-    });
+  const trackApiCall = useCallback(
+    async <T>(
+      operationName: string,
+      apiCall: () => Promise<T>,
+      attributes: Record<string, any> = {}
+    ): Promise<T> => {
+      const span = tracer.startSpan(`api.${operationName}`, {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          "api.operation": operationName,
+          "api.timestamp": Date.now(),
+          ...attributes,
+        },
+      });
 
-    const startTime = performance.now();
+      const startTime = performance.now();
 
-    try {
-      span.addEvent('api.request.start');
-      const result = await context.with(trace.setSpan(context.active(), span), apiCall);
-      
-      const duration = performance.now() - startTime;
-      span.setAttributes({
-        'api.duration_ms': duration,
-        'api.success': true,
-      });
-      span.addEvent('api.request.success', {
-        'api.duration_ms': duration,
-      });
-      span.setStatus({ code: SpanStatusCode.OK });
-      
-      return result;
-    } catch (error) {
-      const duration = performance.now() - startTime;
-      span.setAttributes({
-        'api.duration_ms': duration,
-        'api.success': false,
-        'api.error': true,
-      });
-      span.recordException(error as Error);
-      span.addEvent('api.request.error', {
-        'api.duration_ms': duration,
-        'error.message': (error as Error).message,
-      });
-      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
-      throw error;
-    } finally {
-      span.end();
-    }
-  }, []);
+      try {
+        span.addEvent("api.request.start");
+        const result = await context.with(
+          trace.setSpan(context.active(), span),
+          apiCall
+        );
+
+        const duration = performance.now() - startTime;
+        span.setAttributes({
+          "api.duration_ms": duration,
+          "api.success": true,
+        });
+        span.addEvent("api.request.success", {
+          "api.duration_ms": duration,
+        });
+        span.setStatus({ code: SpanStatusCode.OK });
+
+        return result;
+      } catch (error) {
+        const duration = performance.now() - startTime;
+        span.setAttributes({
+          "api.duration_ms": duration,
+          "api.success": false,
+          "api.error": true,
+        });
+        span.recordException(error as Error);
+        span.addEvent("api.request.error", {
+          "api.duration_ms": duration,
+          "error.message": (error as Error).message,
+        });
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: (error as Error).message,
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+    []
+  );
 
   return { trackApiCall };
 }
 
 // Hook for tracking user interactions
 export function useUserInteractionTracking() {
-  const trackUserAction = useCallback((actionName: string, attributes: Record<string, any> = {}) => {
-    const span = tracer.startSpan(`user.${actionName}`, {
-      kind: SpanKind.CLIENT,
-      attributes: {
-        'user.action': actionName,
-        'user.timestamp': Date.now(),
-        'page.url': window.location.href,
-        ...attributes,
-      },
-    });
+  const trackUserAction = useCallback(
+    (actionName: string, attributes: Record<string, any> = {}) => {
+      const span = tracer.startSpan(`user.${actionName}`, {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          "user.action": actionName,
+          "user.timestamp": Date.now(),
+          "page.url": window.location.href,
+          ...attributes,
+        },
+      });
 
-    return {
-      end: (error?: Error) => {
-        if (error) {
-          span.recordException(error);
-          span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
-        } else {
-          span.setStatus({ code: SpanStatusCode.OK });
-        }
-        span.end();
-      },
-      addEvent: (name: string, eventAttributes?: Record<string, any>) => {
-        span.addEvent(name, eventAttributes);
-      },
-      setAttributes: (spanAttributes: Record<string, any>) => {
-        span.setAttributes(spanAttributes);
-      },
-    };
-  }, []);
+      return {
+        end: (error?: Error) => {
+          if (error) {
+            span.recordException(error);
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: error.message,
+            });
+          } else {
+            span.setStatus({ code: SpanStatusCode.OK });
+          }
+          span.end();
+        },
+        addEvent: (name: string, eventAttributes?: Record<string, any>) => {
+          span.addEvent(name, eventAttributes);
+        },
+        setAttributes: (spanAttributes: Record<string, any>) => {
+          span.setAttributes(spanAttributes);
+        },
+      };
+    },
+    []
+  );
 
-  const trackFormSubmission = useCallback((formName: string, success: boolean, attributes: Record<string, any> = {}) => {
-    const span = tracer.startSpan(`form.submit`, {
-      kind: SpanKind.CLIENT,
-      attributes: {
-        'form.name': formName,
-        'form.success': success,
-        'form.timestamp': Date.now(),
-        ...attributes,
-      },
-    });
-    
-    span.setStatus({ 
-      code: success ? SpanStatusCode.OK : SpanStatusCode.ERROR 
-    });
-    span.end();
-  }, []);
+  const trackFormSubmission = useCallback(
+    (
+      formName: string,
+      success: boolean,
+      attributes: Record<string, any> = {}
+    ) => {
+      const span = tracer.startSpan(`form.submit`, {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          "form.name": formName,
+          "form.success": success,
+          "form.timestamp": Date.now(),
+          ...attributes,
+        },
+      });
 
-  const trackButtonClick = useCallback((buttonName: string, attributes: Record<string, any> = {}) => {
-    const span = tracer.startSpan(`button.click`, {
-      kind: SpanKind.CLIENT,
-      attributes: {
-        'button.name': buttonName,
-        'button.timestamp': Date.now(),
-        ...attributes,
-      },
-    });
-    span.end();
-  }, []);
+      span.setStatus({
+        code: success ? SpanStatusCode.OK : SpanStatusCode.ERROR,
+      });
+      span.end();
+    },
+    []
+  );
+
+  const trackButtonClick = useCallback(
+    (buttonName: string, attributes: Record<string, any> = {}) => {
+      const span = tracer.startSpan(`button.click`, {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          "button.name": buttonName,
+          "button.timestamp": Date.now(),
+          ...attributes,
+        },
+      });
+      span.end();
+    },
+    []
+  );
 
   return {
     trackUserAction,
@@ -1199,37 +1236,50 @@ export function useUserInteractionTracking() {
 
 // Hook for tracking performance metrics
 export function usePerformanceTracking() {
-  const trackPerformance = useCallback((metricName: string, value: number, attributes: Record<string, any> = {}) => {
-    const span = tracer.startSpan(`performance.${metricName}`, {
-      kind: SpanKind.CLIENT,
-      attributes: {
-        'performance.metric': metricName,
-        'performance.value': value,
-        'performance.timestamp': Date.now(),
-        ...attributes,
-      },
-    });
-    span.end();
-  }, []);
+  const trackPerformance = useCallback(
+    (
+      metricName: string,
+      value: number,
+      attributes: Record<string, any> = {}
+    ) => {
+      const span = tracer.startSpan(`performance.${metricName}`, {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          "performance.metric": metricName,
+          "performance.value": value,
+          "performance.timestamp": Date.now(),
+          ...attributes,
+        },
+      });
+      span.end();
+    },
+    []
+  );
 
-  const trackComponentRender = useCallback((componentName: string, renderTime: number) => {
-    trackPerformance('component.render', renderTime, {
-      'component.name': componentName,
-    });
-  }, [trackPerformance]);
+  const trackComponentRender = useCallback(
+    (componentName: string, renderTime: number) => {
+      trackPerformance("component.render", renderTime, {
+        "component.name": componentName,
+      });
+    },
+    [trackPerformance]
+  );
 
-  const trackRouteChange = useCallback((fromRoute: string, toRoute: string, duration: number) => {
-    const span = tracer.startSpan(`route.change`, {
-      kind: SpanKind.CLIENT,
-      attributes: {
-        'route.from': fromRoute,
-        'route.to': toRoute,
-        'route.duration_ms': duration,
-        'route.timestamp': Date.now(),
-      },
-    });
-    span.end();
-  }, []);
+  const trackRouteChange = useCallback(
+    (fromRoute: string, toRoute: string, duration: number) => {
+      const span = tracer.startSpan(`route.change`, {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          "route.from": fromRoute,
+          "route.to": toRoute,
+          "route.duration_ms": duration,
+          "route.timestamp": Date.now(),
+        },
+      });
+      span.end();
+    },
+    []
+  );
 
   return {
     trackPerformance,
@@ -1387,12 +1437,12 @@ for i in {1..50}; do
     curl -s http://localhost:8080/api/accounts >/dev/null &
     curl -s http://localhost:8080/api/transactions >/dev/null &
     curl -s http://localhost:8080/api/reports >/dev/null &
-    
+
     # Simulate some errors
     if [ $((i % 10)) -eq 0 ]; then
         curl -s http://localhost:8080/api/nonexistent >/dev/null &
     fi
-    
+
     sleep 0.1
 done
 
@@ -1426,9 +1476,9 @@ check_service() {
     local service_name=$1
     local health_url=$2
     local expected_status=${3:-200}
-    
+
     echo -n "Checking $service_name... "
-    
+
     if response=$(curl -s -w "%{http_code}" -o /dev/null "$health_url" 2>/dev/null); then
         if [ "$response" -eq "$expected_status" ]; then
             echo "✅ Healthy (HTTP $response)"
@@ -1447,7 +1497,7 @@ check_service() {
 check_container() {
     local container_name=$1
     echo -n "Checking container $container_name... "
-    
+
     if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "$container_name.*Up"; then
         echo "✅ Running"
         return 0
@@ -1562,11 +1612,13 @@ echo "✅ Backup completed: $BACKUP_DIR"
 #### Issue: OpenTelemetry Collector Not Receiving Data
 
 **Symptoms:**
+
 - No traces/metrics appearing in SigNoz
 - Collector health check fails
 - Application logs show connection errors
 
 **Solutions:**
+
 ```bash
 # Check collector logs
 docker logs otel-collector --tail=50
@@ -1585,11 +1637,13 @@ docker-compose -f docker-compose.observability.yml restart otel-collector
 #### Issue: ClickHouse Connection Problems
 
 **Symptoms:**
+
 - SigNoz shows "Database connection error"
 - Query service fails to start
 - Data not persisting
 
 **Solutions:**
+
 ```bash
 # Check ClickHouse status
 docker exec signoz-clickhouse clickhouse-client --query "SELECT version()"
@@ -1609,11 +1663,13 @@ docker-compose -f docker-compose.observability.yml up -d
 #### Issue: High Memory Usage
 
 **Symptoms:**
+
 - System becomes slow
 - Docker containers getting killed
 - Out of memory errors
 
 **Solutions:**
+
 ```bash
 # Check memory usage
 docker stats --no-stream
@@ -1658,12 +1714,12 @@ processors:
     timeout: 2s
     send_batch_size: 2048
     send_batch_max_size: 4096
-  
+
   memory_limiter:
     limit_mib: 1024
     spike_limit_mib: 256
     check_interval: 2s
-  
+
   resource:
     attributes:
       - key: environment
@@ -1676,11 +1732,13 @@ processors:
 ### 6.1 Pre-Migration Steps
 
 - [ ] **Backup existing monitoring setup**
+
   - Export current dashboards
   - Save alert configurations
   - Document current metrics and thresholds
 
 - [ ] **Infrastructure preparation**
+
   - Verify system requirements (8GB+ RAM, 20GB+ storage)
   - Ensure Docker and Docker Compose are updated
   - Check network port availability (3301, 4317, 4318, 8080, 9000, 9093)
@@ -1693,17 +1751,20 @@ processors:
 ### 6.2 Migration Steps
 
 - [ ] **Phase 1: Infrastructure deployment**
+
   - Deploy ClickHouse and OpenTelemetry Collector
   - Verify basic connectivity
   - Run health checks
 
 - [ ] **Phase 2: Backend instrumentation**
+
   - Add OpenTelemetry dependencies to Go backend
   - Implement telemetry package
   - Update main.go with instrumentation
   - Test trace and metric generation
 
 - [ ] **Phase 3: Frontend instrumentation**
+
   - Add OpenTelemetry dependencies to TypeScript frontend
   - Implement telemetry service
   - Add custom hooks for tracking
@@ -1718,12 +1779,14 @@ processors:
 ### 6.3 Post-Migration Validation
 
 - [ ] **Data validation**
+
   - Verify traces are appearing in SigNoz
   - Check metric collection and aggregation
   - Validate log ingestion
   - Test alert firing
 
 - [ ] **Performance validation**
+
   - Run load tests
   - Monitor system resource usage
   - Verify application performance impact
@@ -1763,6 +1826,7 @@ processors:
 ---
 
 **Next Steps:**
+
 1. Review and customize configurations for your environment
 2. Execute the migration plan in phases
 3. Monitor and optimize based on actual usage patterns

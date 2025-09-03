@@ -17,7 +17,12 @@ import { transactions, journalEntries } from "./transactions";
 import { users, sessions, magicLinks, auditLog } from "./auth";
 import { rawDocs } from "./documents";
 import { categories, categoryStats } from "./categories";
-import { budgets, budgetPeriods, budgetRevisions, budgetAllocations } from "./budgets";
+import {
+  budgets,
+  budgetPeriods,
+  budgetRevisions,
+  budgetAllocations,
+} from "./budgets";
 
 export const schema = {
   accounts,
@@ -48,13 +53,16 @@ export const accountsRelations = relations(accounts, ({ one, many }) => ({
   journalEntries: many(journalEntries),
 }));
 
-export const transactionsRelations = relations(transactions, ({ one, many }) => ({
-  journalEntries: many(journalEntries),
-  reversedTransaction: one(transactions, {
-    fields: [transactions.reversedTransactionId],
-    references: [transactions.id],
-  }),
-}));
+export const transactionsRelations = relations(
+  transactions,
+  ({ one, many }) => ({
+    journalEntries: many(journalEntries),
+    reversedTransaction: one(transactions, {
+      fields: [transactions.reversedTransactionId],
+      references: [transactions.id],
+    }),
+  })
+);
 
 export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
   transaction: one(transactions, {

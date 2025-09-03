@@ -1,13 +1,21 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Minimal Playwright configuration for basic testing
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  testDir: './e2e',
-  testMatch: ['e2e/basic.spec.ts', 'e2e/auth.spec.ts'],
-  testIgnore: ['**/accounts.spec.ts', '**/dashboard.spec.ts', '**/example.spec.ts', '**/simple-login.spec.ts', '**/setup.ts', '**/teardown.ts', '**/helpers/**'],
+  testDir: "./e2e",
+  testMatch: ["e2e/basic.spec.ts", "e2e/auth.spec.ts"],
+  testIgnore: [
+    "**/accounts.spec.ts",
+    "**/dashboard.spec.ts",
+    "**/example.spec.ts",
+    "**/simple-login.spec.ts",
+    "**/setup.ts",
+    "**/teardown.ts",
+    "**/helpers/**",
+  ],
 
   // Timeout configurations
   timeout: 60 * 1000, // 60 seconds per test
@@ -24,20 +32,22 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
 
   // Reporter
-  reporter: process.env.CI ? [['junit', { outputFile: 'test-results/junit.xml' }], ['github']] : [['html', { outputFolder: 'playwright-report', open: 'never' }]],
+  reporter: process.env.CI
+    ? [["junit", { outputFile: "test-results/junit.xml" }], ["github"]]
+    : [["html", { outputFolder: "playwright-report", open: "never" }]],
 
   // Shared settings
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: "http://localhost:3000",
 
     // Timeout configurations
     actionTimeout: 15 * 1000, // 15 seconds for actions
     navigationTimeout: 30 * 1000, // 30 seconds for navigation
 
     // Performance optimizations
-    trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
-    screenshot: process.env.CI ? 'only-on-failure' : 'off',
-    video: process.env.CI ? 'retain-on-failure' : 'off',
+    trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
+    screenshot: process.env.CI ? "only-on-failure" : "off",
+    video: process.env.CI ? "retain-on-failure" : "off",
 
     // Faster page loads
     ignoreHTTPSErrors: true,
@@ -52,32 +62,40 @@ export default defineConfig({
   // Simple projects - just the browsers we're testing
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: process.env.CI ? {
-          args: ['--disable-images', '--disable-css', '--disable-extensions', '--no-sandbox', '--disable-setuid-sandbox']
-        } : undefined,
+        ...devices["Desktop Chrome"],
+        launchOptions: process.env.CI
+          ? {
+              args: [
+                "--disable-images",
+                "--disable-css",
+                "--disable-extensions",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+              ],
+            }
+          : undefined,
       },
     },
     {
-      name: 'firefox',
+      name: "firefox",
       use: {
-        ...devices['Desktop Firefox'],
+        ...devices["Desktop Firefox"],
       },
     },
   ],
 
   // Web server configuration
   webServer: {
-    command: 'pnpm run dev',
-    url: 'http://localhost:3000',
+    command: "pnpm run dev",
+    url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // 2 minutes for server startup
-    stdout: 'pipe',
-    stderr: 'pipe',
+    stdout: "pipe",
+    stderr: "pipe",
   },
 
   // Output directory for reports
-  outputDir: 'test-results',
+  outputDir: "test-results",
 });

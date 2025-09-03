@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface CounterProps {
   initialValue?: number;
   label?: string;
 }
 
-export default function Counter({ initialValue = 0, label = "Counter" }: CounterProps) {
+export default function Counter({
+  initialValue = 0,
+  label = "Counter",
+}: CounterProps) {
   const [count, setCount] = useState(initialValue);
 
   return (
@@ -41,4 +44,4 @@ export default function Counter({ initialValue = 0, label = "Counter" }: Counter
       </button>
     </div>
   );
-} 
+}

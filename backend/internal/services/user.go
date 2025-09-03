@@ -87,7 +87,7 @@ func (s *userService) Login(req *models.LoginRequest) (*models.LoginResponse, er
 	}
 
 	// Verify password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+	if compareErr := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); compareErr != nil {
 		return nil, models.ErrInvalidCredentials
 	}
 
@@ -182,7 +182,7 @@ func (s *userService) ChangePassword(userID uuid.UUID, oldPassword, newPassword 
 	}
 
 	// Verify old password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)); err != nil {
+	if compareErr := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)); compareErr != nil {
 		return models.ErrInvalidCredentials
 	}
 

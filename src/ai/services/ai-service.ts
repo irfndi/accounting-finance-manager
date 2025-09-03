@@ -3,22 +3,22 @@
  * Provides a unified interface with fallback capabilities and retry logic
  */
 
-import type { 
-  AIProvider, 
-  AIMessage, 
-  AIResponse, 
-  AIStreamResponse, 
+import type {
+  AIProvider,
+  AIMessage,
+  AIResponse,
+  AIStreamResponse,
   AIGenerationOptions,
-  AIServiceConfig
-} from '../types.js';
+  AIServiceConfig,
+} from "../types.js";
 import {
   AIServiceError,
   AIProviderError,
   AIRateLimitError,
-  AITimeoutError
-} from '../types.js';
-import { createProvider } from '../providers/factory.js';
-import { DEFAULT_AI_CONFIG, type AIProviderConfig } from '../config.js';
+  AITimeoutError,
+} from "../types.js";
+import { createProvider } from "../providers/factory.js";
+import { DEFAULT_AI_CONFIG, type AIProviderConfig } from "../config.js";
 
 export class AIService {
   private primaryProvider: AIProvider;
@@ -38,7 +38,10 @@ export class AIService {
   /**
    * Generate text using AI with automatic fallback and retry
    */
-  async generateText(messages: AIMessage[], options?: AIGenerationOptions): Promise<AIResponse> {
+  async generateText(
+    messages: AIMessage[],
+    options?: AIGenerationOptions
+  ): Promise<AIResponse> {
     const providers = this.getProviderOrder();
     let lastError: Error | null = null;
 
@@ -56,15 +59,18 @@ export class AIService {
 
         // Attempt generation with retry logic
         return await this.generateWithRetry(provider, messages, options);
-
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         // Log provider failure
         console.warn(`AI Provider ${provider.name} failed:`, lastError.message);
-        
+
         // Rethrow specific, non-retriable errors to prevent fallback
-        if (error instanceof AIProviderError || error instanceof AIRateLimitError || error instanceof AITimeoutError) {
+        if (
+          error instanceof AIProviderError ||
+          error instanceof AIRateLimitError ||
+          error instanceof AITimeoutError
+        ) {
           throw error;
         }
 
@@ -75,7 +81,7 @@ export class AIService {
 
     throw new AIServiceError(
       `All AI providers failed. Last error: ${lastError?.message}`,
-      'ALL_PROVIDERS_FAILED',
+      "ALL_PROVIDERS_FAILED",
       undefined,
       lastError || undefined
     );
@@ -84,7 +90,10 @@ export class AIService {
   /**
    * Generate streaming text with fallback support
    */
-  async *generateStream(messages: AIMessage[], options?: AIGenerationOptions): AsyncGenerator<AIStreamResponse> {
+  async *generateStream(
+    messages: AIMessage[],
+    options?: AIGenerationOptions
+  ): AsyncGenerator<AIStreamResponse> {
     const providers = this.getProviderOrder();
     let lastError: Error | null = null;
 
@@ -97,13 +106,16 @@ export class AIService {
           yield {
             content: response.content,
             done: true,
-            usage: response.usage
+            usage: response.usage,
           };
           return;
         }
 
         // Check if provider is available
-        const isAvailable = await this.withTimeout(provider.isAvailable(), 5000);
+        const isAvailable = await this.withTimeout(
+          provider.isAvailable(),
+          5000
+        );
         if (!isAvailable) {
           continue;
         }
@@ -113,17 +125,19 @@ export class AIService {
           yield chunk;
         }
         return; // Successfully streamed
-
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        console.warn(`AI Provider ${provider.name} streaming failed:`, lastError.message);
+        console.warn(
+          `AI Provider ${provider.name} streaming failed:`,
+          lastError.message
+        );
         continue;
       }
     }
 
     throw new AIServiceError(
       `All AI providers failed for streaming. Last error: ${lastError?.message}`,
-      'ALL_PROVIDERS_FAILED',
+      "ALL_PROVIDERS_FAILED",
       undefined,
       lastError || undefined
     );
@@ -132,19 +146,24 @@ export class AIService {
   /**
    * Get the health status of all providers
    */
-  async getProvidersHealth(): Promise<Record<string, { available: boolean; error?: string }>> {
+  async getProvidersHealth(): Promise<
+    Record<string, { available: boolean; error?: string }>
+  > {
     const providers = this.getProviderOrder();
     const health: Record<string, { available: boolean; error?: string }> = {};
 
     await Promise.allSettled(
       providers.map(async (provider) => {
         try {
-          const available = await this.withTimeout(provider.isAvailable(), 5000);
+          const available = await this.withTimeout(
+            provider.isAvailable(),
+            5000
+          );
           health[provider.name] = { available };
         } catch (error) {
           health[provider.name] = {
             available: false,
-            error: error instanceof Error ? error.message : String(error)
+            error: error instanceof Error ? error.message : String(error),
           };
         }
       })
@@ -178,10 +197,12 @@ export class AIService {
         lastError = error instanceof Error ? error : new Error(String(error));
 
         // Don't retry on certain errors
-        if (error instanceof AIProviderError && 
-            (error.message.includes('Authentication') || 
-             error.message.includes('not found') ||
-             error.message.includes('invalid'))) {
+        if (
+          error instanceof AIProviderError &&
+          (error.message.includes("Authentication") ||
+            error.message.includes("not found") ||
+            error.message.includes("invalid"))
+        ) {
           throw error;
         }
 
@@ -192,7 +213,7 @@ export class AIService {
         // Wait before retry (exponential backoff)
         if (attempt < this.retryAttempts - 1) {
           const delay = this.retryDelay * Math.pow(2, attempt);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
@@ -200,9 +221,18 @@ export class AIService {
     throw lastError;
   }
 
-  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  private async withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number
+  ): Promise<T> {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new AITimeoutError(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
+      setTimeout(
+        () =>
+          reject(
+            new AITimeoutError(`Operation timed out after ${timeoutMs}ms`)
+          ),
+        timeoutMs
+      );
     });
 
     return Promise.race([promise, timeoutPromise]);
@@ -214,48 +244,55 @@ export class AIService {
  */
 export function createAIService(config?: Partial<AIProviderConfig>): AIService {
   const finalConfig = { ...DEFAULT_AI_CONFIG, ...config };
-  
+
   // Handle missing API keys by using available providers
   let primaryConfig = finalConfig.primary;
   let fallbackConfig = finalConfig.fallback;
 
   // If OpenRouter is configured but no API key is available, try Cloudflare
-  if (primaryConfig.provider === 'openrouter' && 
-      !primaryConfig.apiKey && 
-      !getAPIKey('openrouter')) {
+  if (
+    primaryConfig.provider === "openrouter" &&
+    !primaryConfig.apiKey &&
+    !getAPIKey("openrouter")
+  ) {
     // Fall back to Cloudflare for primary if OpenRouter key is missing
     primaryConfig = {
-      provider: 'cloudflare',
-      modelId: '@cf/google/gemma-2b-it',
+      provider: "cloudflare",
+      modelId: "@cf/google/gemma-2b-it",
       maxTokens: 2048,
-      temperature: 0.1
+      temperature: 0.1,
     };
   }
 
   // Create providers with API keys from environment or config
   const primaryProvider = createProvider({
     ...primaryConfig,
-    apiKey: primaryConfig.apiKey || getAPIKey(primaryConfig.provider)
+    apiKey: primaryConfig.apiKey || getAPIKey(primaryConfig.provider),
   });
 
   let fallbackProvider: AIProvider | undefined;
   if (fallbackConfig) {
     // Skip fallback if it's the same as primary after auto-switching
-    if (fallbackConfig.provider === 'openrouter' && 
-        !fallbackConfig.apiKey && 
-        !getAPIKey('openrouter') &&
-        primaryConfig.provider === 'cloudflare') {
+    if (
+      fallbackConfig.provider === "openrouter" &&
+      !fallbackConfig.apiKey &&
+      !getAPIKey("openrouter") &&
+      primaryConfig.provider === "cloudflare"
+    ) {
       // Don't create a fallback if we already switched to Cloudflare
       fallbackProvider = undefined;
     } else {
       try {
         fallbackProvider = createProvider({
           ...fallbackConfig,
-          apiKey: fallbackConfig.apiKey || getAPIKey(fallbackConfig.provider)
+          apiKey: fallbackConfig.apiKey || getAPIKey(fallbackConfig.provider),
         });
       } catch (error) {
         // If fallback provider fails to create, log warning and continue without it
-        console.warn('Failed to create fallback provider:', error instanceof Error ? error.message : String(error));
+        console.warn(
+          "Failed to create fallback provider:",
+          error instanceof Error ? error.message : String(error)
+        );
       }
     }
   }
@@ -265,24 +302,24 @@ export function createAIService(config?: Partial<AIProviderConfig>): AIService {
     fallbackProvider,
     retryAttempts: 3,
     retryDelay: 1000,
-    timeout: 30000
+    timeout: 30000,
   });
 }
 
 /**
  * Get API key from environment variables
  */
-function getAPIKey(provider: 'openrouter' | 'cloudflare'): string | undefined {
+function getAPIKey(provider: "openrouter" | "cloudflare"): string | undefined {
   // Check if we're in Node.js environment
-  if (typeof process !== 'undefined' && process.env) {
+  if (typeof process !== "undefined" && process.env) {
     switch (provider) {
-      case 'openrouter':
+      case "openrouter":
         return process.env.OPENROUTER_API_KEY;
-      case 'cloudflare':
+      case "cloudflare":
         return process.env.CLOUDFLARE_API_TOKEN;
       default:
         return undefined;
     }
   }
   return undefined;
-} 
+}

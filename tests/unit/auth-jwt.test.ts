@@ -3,43 +3,43 @@
  * Tests for JWT token generation, verification, and validation utilities
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DEFAULT_JWT_CONFIG,
   JWTManager,
   createJWTManager,
-  extractUserIdFromToken
-} from '../../src/lib/auth/jwt';
-import type { AuthUser, JWTConfig } from '../../src/lib/auth/types';
-import { UserRole } from '../../src/lib/auth/types';
+  extractUserIdFromToken,
+} from "../../src/lib/auth/jwt";
+import type { AuthUser, JWTConfig } from "../../src/lib/auth/types";
+import { UserRole } from "../../src/lib/auth/types";
 
 // Mock crypto.subtle for Node.js environment
 global.crypto = {
   subtle: {
-    importKey: vi.fn().mockResolvedValue('mock-key'),
+    importKey: vi.fn().mockResolvedValue("mock-key"),
     sign: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4])),
   },
-  randomUUID: vi.fn(() => 'test-uuid-123'),
+  randomUUID: vi.fn(() => "test-uuid-123"),
 } as any;
 
-describe('JWT Authentication', () => {
-  const testSecret = 'test-secret-key-very-long-for-security';
+describe("JWT Authentication", () => {
+  const testSecret = "test-secret-key-very-long-for-security";
   const testConfig: JWTConfig = {
     ...DEFAULT_JWT_CONFIG,
     secret: testSecret,
-    issuer: 'test-app',
+    issuer: "test-app",
   };
 
   const testUser: AuthUser = {
-    id: 'user-123',
-    email: 'test@example.com',
+    id: "user-123",
+    email: "test@example.com",
     role: UserRole.USER,
-    entityId: 'entity-123',
+    entityId: "entity-123",
     emailVerified: true,
     isActive: true,
-    firstName: 'Test',
-    lastName: 'User',
-    displayName: 'Test User',
+    firstName: "Test",
+    lastName: "User",
+    displayName: "Test User",
   };
 
   beforeEach(() => {
@@ -50,286 +50,308 @@ describe('JWT Authentication', () => {
     vi.resetModules();
   });
 
-  describe('JWTManager', () => {
+  describe("JWTManager", () => {
     let jwtManager: JWTManager;
 
     beforeEach(() => {
       jwtManager = new JWTManager(testConfig);
     });
 
-    describe('constructor', () => {
-      it('should create manager with provided config', () => {
+    describe("constructor", () => {
+      it("should create manager with provided config", () => {
         const manager = new JWTManager(testConfig);
         expect(manager).toBeInstanceOf(JWTManager);
       });
 
-      it('should throw error if no secret provided', () => {
-        expect(() => new JWTManager({})).toThrow('JWT secret is required');
+      it("should throw error if no secret provided", () => {
+        expect(() => new JWTManager({})).toThrow("JWT secret is required");
       });
     });
 
-    describe('createAccessToken', () => {
-      it('should create access token for a user', async () => {
-        const sessionId = 'session-123';
+    describe("createAccessToken", () => {
+      it("should create access token for a user", async () => {
+        const sessionId = "session-123";
         const token = await jwtManager.createAccessToken(testUser, sessionId);
 
-        expect(typeof token).toBe('string');
+        expect(typeof token).toBe("string");
         expect(token.length).toBeGreaterThan(0);
         expect(crypto.subtle.sign).toHaveBeenCalled();
       });
 
-      it('should work with userId field', async () => {
-        const userWithUserId = { ...testUser, id: undefined, userId: 'user-456' };
-        const sessionId = 'session-123';
-        const token = await jwtManager.createAccessToken(userWithUserId, sessionId);
+      it("should work with userId field", async () => {
+        const userWithUserId = {
+          ...testUser,
+          id: undefined,
+          userId: "user-456",
+        };
+        const sessionId = "session-123";
+        const token = await jwtManager.createAccessToken(
+          userWithUserId,
+          sessionId
+        );
 
-        expect(typeof token).toBe('string');
+        expect(typeof token).toBe("string");
         expect(token.length).toBeGreaterThan(0);
       });
     });
 
-    describe('createRefreshToken', () => {
-      it('should create refresh token for a user', async () => {
-        const sessionId = 'session-123';
+    describe("createRefreshToken", () => {
+      it("should create refresh token for a user", async () => {
+        const sessionId = "session-123";
         const token = await jwtManager.createRefreshToken(testUser, sessionId);
 
-        expect(typeof token).toBe('string');
+        expect(typeof token).toBe("string");
         expect(token.length).toBeGreaterThan(0);
       });
     });
 
-    describe('extractTokenFromHeader', () => {
-      it('should extract token from valid Bearer header', () => {
-        const token = 'valid-jwt-token';
+    describe("extractTokenFromHeader", () => {
+      it("should extract token from valid Bearer header", () => {
+        const token = "valid-jwt-token";
         const header = `Bearer ${token}`;
         const result = jwtManager.extractTokenFromHeader(header);
-        
+
         expect(result).toBe(token);
       });
 
-      it('should return null for missing header', () => {
+      it("should return null for missing header", () => {
         const result = jwtManager.extractTokenFromHeader(null);
         expect(result).toBeNull();
       });
 
-      it('should return null for invalid header format', () => {
-        const result = jwtManager.extractTokenFromHeader('InvalidHeader');
+      it("should return null for invalid header format", () => {
+        const result = jwtManager.extractTokenFromHeader("InvalidHeader");
         expect(result).toBeNull();
       });
 
-      it('should return null for non-Bearer token', () => {
-        const result = jwtManager.extractTokenFromHeader('Basic abc123');
+      it("should return null for non-Bearer token", () => {
+        const result = jwtManager.extractTokenFromHeader("Basic abc123");
         expect(result).toBeNull();
       });
     });
 
-    describe('getTokenExpiry', () => {
-      it('should return null for invalid token format', () => {
-        const result = jwtManager.getTokenExpiry('invalid-token');
+    describe("getTokenExpiry", () => {
+      it("should return null for invalid token format", () => {
+        const result = jwtManager.getTokenExpiry("invalid-token");
         expect(result).toBeNull();
       });
 
-      it('should return expiry date for valid token', () => {
+      it("should return expiry date for valid token", () => {
         const exp = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
         const payload = { exp };
-        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+          "base64url"
+        );
         const token = `header.${encodedPayload}.signature`;
-        
+
         const result = jwtManager.getTokenExpiry(token);
         expect(result).toBeInstanceOf(Date);
         expect(result?.getTime()).toBe(exp * 1000);
       });
     });
 
-    describe('isTokenExpired', () => {
-      it('should return true for invalid token', () => {
-        const result = jwtManager.isTokenExpired('invalid-token');
+    describe("isTokenExpired", () => {
+      it("should return true for invalid token", () => {
+        const result = jwtManager.isTokenExpired("invalid-token");
         expect(result).toBe(true);
       });
 
-      it('should return true for expired token', () => {
+      it("should return true for expired token", () => {
         const exp = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
         const payload = { exp };
-        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+          "base64url"
+        );
         const token = `header.${encodedPayload}.signature`;
-        
+
         const result = jwtManager.isTokenExpired(token);
         expect(result).toBe(true);
       });
 
-      it('should return false for valid token', () => {
+      it("should return false for valid token", () => {
         const exp = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
         const payload = { exp };
-        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+          "base64url"
+        );
         const token = `header.${encodedPayload}.signature`;
-        
+
         const result = jwtManager.isTokenExpired(token);
         expect(result).toBe(false);
       });
     });
   });
 
-  describe('Utility Functions', () => {
-    describe('createJWTManager', () => {
-      it('should create JWT manager with provided config', () => {
+  describe("Utility Functions", () => {
+    describe("createJWTManager", () => {
+      it("should create JWT manager with provided config", () => {
         const manager = createJWTManager(testConfig);
         expect(manager).toBeInstanceOf(JWTManager);
       });
 
-      it('should create JWT manager with minimal config', () => {
+      it("should create JWT manager with minimal config", () => {
         const manager = createJWTManager({ secret: testSecret });
         expect(manager).toBeInstanceOf(JWTManager);
       });
     });
 
-    describe('extractUserIdFromToken', () => {
-      it('should return null for invalid token', () => {
-        const result = extractUserIdFromToken('invalid-token');
+    describe("extractUserIdFromToken", () => {
+      it("should return null for invalid token", () => {
+        const result = extractUserIdFromToken("invalid-token");
         expect(result).toBeNull();
       });
 
-      it('should extract user ID from valid token', () => {
-        const userId = 'user-123';
+      it("should extract user ID from valid token", () => {
+        const userId = "user-123";
         const payload = { sub: userId };
-        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+          "base64url"
+        );
         const token = `header.${encodedPayload}.signature`;
-        
+
         const result = extractUserIdFromToken(token);
         expect(result).toBe(userId);
       });
 
-      it('should return null for token without sub claim', () => {
-        const payload = { other: 'data' };
-        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+      it("should return null for token without sub claim", () => {
+        const payload = { other: "data" };
+        const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+          "base64url"
+        );
         const token = `header.${encodedPayload}.signature`;
-        
+
         const result = extractUserIdFromToken(token);
         expect(result).toBeNull();
       });
     });
 
-    describe('generateToken', () => {
-      it('should generate token for user', async () => {
+    describe("generateToken", () => {
+      it("should generate token for user", async () => {
         const user = {
-          id: 'user-123',
+          id: "user-123",
           role: UserRole.USER,
-          entityId: 'entity-123',
-          email: 'test@example.com',
+          entityId: "entity-123",
+          email: "test@example.com",
         };
-        
+
         // Use local JWT manager instead of global one
         const localJwtManager = createJWTManager(testConfig);
-        const sessionId = 'test-session-123';
+        const sessionId = "test-session-123";
         const token = await localJwtManager.createAccessToken(user, sessionId);
-        expect(typeof token).toBe('string');
-        expect(token.split('.')).toHaveLength(3);
+        expect(typeof token).toBe("string");
+        expect(token.split(".")).toHaveLength(3);
       });
 
-      it('should handle user with userId field', async () => {
+      it("should handle user with userId field", async () => {
         const user = {
-          userId: 'user-456',
+          userId: "user-456",
           role: UserRole.ADMIN,
-          entityId: 'entity-123',
-          email: 'admin@example.com',
+          entityId: "entity-123",
+          email: "admin@example.com",
         };
-        
+
         // Use local JWT manager instead of global one
         const localJwtManager = createJWTManager(testConfig);
-        const sessionId = 'test-session-456';
+        const sessionId = "test-session-456";
         const token = await localJwtManager.createAccessToken(user, sessionId);
-        expect(typeof token).toBe('string');
+        expect(typeof token).toBe("string");
       });
 
-      it('should use custom expiration', async () => {
+      it("should use custom expiration", async () => {
         const user = {
-          id: 'user-123',
+          id: "user-123",
           role: UserRole.USER,
-          entityId: 'entity-123',
-          email: 'test@example.com',
+          entityId: "entity-123",
+          email: "test@example.com",
         };
-        
+
         // Use local JWT manager with custom expiration
         const customConfig = { ...testConfig, accessTokenExpiresIn: 7200 }; // 2 hours
         const localJwtManager = createJWTManager(customConfig);
-        const sessionId = 'test-session-789';
+        const sessionId = "test-session-789";
         const token = await localJwtManager.createAccessToken(user, sessionId);
-        expect(typeof token).toBe('string');
+        expect(typeof token).toBe("string");
       });
     });
 
-    describe('validateToken', () => {
-      it('should validate token format', async () => {
+    describe("validateToken", () => {
+      it("should validate token format", async () => {
         // Create a valid token using local JWT manager
         const localJwtManager = createJWTManager(testConfig);
         const user = {
-          id: 'user-123',
+          id: "user-123",
           role: UserRole.USER,
-          entityId: 'entity-123',
-          email: 'test@example.com',
+          entityId: "entity-123",
+          email: "test@example.com",
         };
-        const sessionId = 'test-session-validate';
-        const validToken = await localJwtManager.createAccessToken(user, sessionId);
-        
+        const sessionId = "test-session-validate";
+        const validToken = await localJwtManager.createAccessToken(
+          user,
+          sessionId
+        );
+
         // Create a local validateToken function using the local JWT manager
         const localValidateToken = async (token: string) => {
           try {
             if (!token) {
-              return { valid: false, error: 'Token is required' };
+              return { valid: false, error: "Token is required" };
             }
             const payload = await localJwtManager.verifyToken(token);
             return { valid: true, payload };
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Invalid token';
+            const errorMessage =
+              error instanceof Error ? error.message : "Invalid token";
             return { valid: false, error: errorMessage };
           }
         };
-        
+
         const result = await localValidateToken(validToken);
-        expect(result).toHaveProperty('valid');
+        expect(result).toHaveProperty("valid");
         expect(result.valid).toBe(true);
       });
 
-      it('should return invalid for empty token', async () => {
+      it("should return invalid for empty token", async () => {
         // Create a local validateToken function
         const localValidateToken = async (token: string) => {
           try {
             if (!token) {
-              return { valid: false, error: 'Token is required' };
+              return { valid: false, error: "Token is required" };
             }
             return { valid: true };
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Invalid token';
+            const errorMessage =
+              error instanceof Error ? error.message : "Invalid token";
             return { valid: false, error: errorMessage };
           }
         };
-        
-        const result = await localValidateToken('');
+
+        const result = await localValidateToken("");
         expect(result.valid).toBe(false);
-        expect(result.error).toBe('Token is required');
+        expect(result.error).toBe("Token is required");
       });
     });
   });
 
-  describe('Configuration', () => {
-    it('should have correct default values', () => {
+  describe("Configuration", () => {
+    it("should have correct default values", () => {
       expect(DEFAULT_JWT_CONFIG).toEqual({
-        secret: '',
-        issuer: 'finance-manager',
-        audience: 'finance-manager-users',
+        secret: "",
+        issuer: "finance-manager",
+        audience: "finance-manager-users",
         accessTokenExpiresIn: 3600,
         refreshTokenExpiresIn: 604800,
-        algorithm: 'HS256',
+        algorithm: "HS256",
       });
     });
 
-    it('should allow custom configuration override', () => {
+    it("should allow custom configuration override", () => {
       const customConfig: JWTConfig = {
-        secret: 'custom-secret',
-        algorithm: 'HS256',
+        secret: "custom-secret",
+        algorithm: "HS256",
         accessTokenExpiresIn: 7200,
         refreshTokenExpiresIn: 1209600,
-        issuer: 'custom-app',
-        audience: 'custom-users',
+        issuer: "custom-app",
+        audience: "custom-users",
       };
 
       const manager = new JWTManager(customConfig);

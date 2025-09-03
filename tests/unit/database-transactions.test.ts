@@ -3,9 +3,9 @@
  * Tests for transaction-related database operations
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
-import { transactions } from '../../src/db/schema';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { transactions } from "../../src/db/schema";
 
 // Mock Drizzle ORM
 const mockQueryBuilder = {
@@ -55,9 +55,9 @@ const mockDb = {
 };
 
 // Mock crypto.randomUUID
-Object.defineProperty(global, 'crypto', {
+Object.defineProperty(global, "crypto", {
   value: {
-    randomUUID: vi.fn(() => 'test-uuid-123'),
+    randomUUID: vi.fn(() => "test-uuid-123"),
   },
 });
 
@@ -73,7 +73,7 @@ class TransactionService {
       .from(transactions)
       .where(eq(transactions.id, id))
       .limit(1);
-    
+
     return result[0] || null;
   }
 
@@ -88,16 +88,20 @@ class TransactionService {
       .from(transactions)
       .where(and(...conditions))
       .limit(1);
-    
+
     return result[0] || null;
   }
 
-  async getTransactionsByDateRange(startDate: Date, endDate: Date, entityId?: string) {
+  async getTransactionsByDateRange(
+    startDate: Date,
+    endDate: Date,
+    entityId?: string
+  ) {
     const conditions = [
       gte(transactions.transactionDate, startDate),
       lte(transactions.transactionDate, endDate),
     ];
-    
+
     if (entityId) {
       conditions.push(eq(transactions.entityId, entityId));
     }
@@ -107,7 +111,7 @@ class TransactionService {
       .from(transactions)
       .where(and(...conditions))
       .orderBy(desc(transactions.transactionDate));
-    
+
     return result;
   }
 
@@ -122,14 +126,15 @@ class TransactionService {
       .from(transactions)
       .where(and(...conditions))
       .orderBy(desc(transactions.createdAt));
-    
+
     return result;
   }
 
   async createTransaction(transactionData: any) {
     const newTransaction = {
       ...transactionData,
-      transactionNumber: transactionData.transactionNumber || this.generateTransactionNumber(),
+      transactionNumber:
+        transactionData.transactionNumber || this.generateTransactionNumber(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -138,7 +143,7 @@ class TransactionService {
       .insert(transactions)
       .values(newTransaction)
       .returning();
-    
+
     return result[0];
   }
 
@@ -153,7 +158,7 @@ class TransactionService {
       .set(updateData)
       .where(eq(transactions.id, id))
       .returning();
-    
+
     return result[0];
   }
 
@@ -162,13 +167,13 @@ class TransactionService {
       .delete(transactions)
       .where(eq(transactions.id, id))
       .returning();
-    
+
     return result[0] || null;
   }
 
   async postTransaction(id: number, userId: string) {
     const updateData = {
-      status: 'POSTED',
+      status: "POSTED",
       approvedBy: userId,
       approvedAt: new Date(),
       updatedAt: new Date(),
@@ -179,7 +184,7 @@ class TransactionService {
       .set(updateData)
       .where(eq(transactions.id, id))
       .returning();
-    
+
     return result[0];
   }
 
@@ -187,7 +192,7 @@ class TransactionService {
     // Create reversal transaction
     const originalTransaction = await this.getTransactionById(id);
     if (!originalTransaction) {
-      throw new Error('Transaction not found');
+      throw new Error("Transaction not found");
     }
 
     const reversalData = {
@@ -213,7 +218,12 @@ class TransactionService {
     return reversalResult;
   }
 
-  async getTransactionsByType(type: string, entityId?: string, limit = 50, offset = 0) {
+  async getTransactionsByType(
+    type: string,
+    entityId?: string,
+    limit = 50,
+    offset = 0
+  ) {
     const conditions = [eq(transactions.type, type)];
     if (entityId) {
       conditions.push(eq(transactions.entityId, entityId));
@@ -227,23 +237,25 @@ class TransactionService {
       .limit(limit)
       .offset(offset)
       .execute();
-    
+
     return result;
   }
 
   private generateTransactionNumber(): string {
     const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const random = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
     return `TXN-${timestamp}-${random}`;
   }
 }
 
-describe('TransactionService', () => {
+describe("TransactionService", () => {
   let transactionService: TransactionService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Reset all mock implementations to ensure they return mockQueryBuilder
     mockQueryBuilder.select.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.from.mockReturnValue(mockQueryBuilder);
@@ -261,33 +273,33 @@ describe('TransactionService', () => {
     mockQueryBuilder.set.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.delete.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.returning.mockReturnValue(mockQueryBuilder);
-    
+
     // Reset mockDb implementations
     mockDb.select.mockReturnValue(mockQueryBuilder);
     mockDb.insert.mockReturnValue(mockQueryBuilder);
     mockDb.update.mockReturnValue(mockQueryBuilder);
     mockDb.delete.mockReturnValue(mockQueryBuilder);
-    
+
     transactionService = new TransactionService(mockDb as any);
   });
 
-  describe('getTransactionById', () => {
-    it('should return transaction when found', async () => {
+  describe("getTransactionById", () => {
+    it("should return transaction when found", async () => {
       const mockTransaction = {
         id: 1,
-        transactionNumber: 'TXN-001',
-        description: 'Test transaction',
-        totalAmount: 1000.00,
-        status: 'POSTED',
-        entityId: 'entity-1',
+        transactionNumber: "TXN-001",
+        description: "Test transaction",
+        totalAmount: 1000.0,
+        status: "POSTED",
+        entityId: "entity-1",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       mockQueryBuilder.limit.mockResolvedValue([mockTransaction]);
-      
+
       const result = await transactionService.getTransactionById(1);
-      
+
       expect(mockDb.select).toHaveBeenCalled();
       expect(mockQueryBuilder.from).toHaveBeenCalledWith(transactions);
       expect(mockQueryBuilder.where).toHaveBeenCalled();
@@ -295,100 +307,122 @@ describe('TransactionService', () => {
       expect(result).toEqual(mockTransaction);
     });
 
-    it('should return null when transaction not found', async () => {
+    it("should return null when transaction not found", async () => {
       mockQueryBuilder.limit.mockResolvedValue([]);
-      
+
       const result = await transactionService.getTransactionById(999);
-      
+
       expect(result).toBeNull();
     });
   });
 
-  describe('getTransactionByNumber', () => {
-    it('should return transaction when found by number', async () => {
+  describe("getTransactionByNumber", () => {
+    it("should return transaction when found by number", async () => {
       const mockTransaction = {
         id: 1,
-        transactionNumber: 'TXN-001',
-        description: 'Test transaction',
-        entityId: 'entity-1',
+        transactionNumber: "TXN-001",
+        description: "Test transaction",
+        entityId: "entity-1",
       };
-      
+
       mockQueryBuilder.limit.mockResolvedValue([mockTransaction]);
-      
-      const result = await transactionService.getTransactionByNumber('TXN-001', 'entity-1');
-      
+
+      const result = await transactionService.getTransactionByNumber(
+        "TXN-001",
+        "entity-1"
+      );
+
       expect(mockDb.select).toHaveBeenCalled();
       expect(mockQueryBuilder.where).toHaveBeenCalled();
       expect(result).toEqual(mockTransaction);
     });
 
-    it('should work without entityId parameter', async () => {
+    it("should work without entityId parameter", async () => {
       const mockTransaction = {
         id: 1,
-        transactionNumber: 'TXN-001',
-        description: 'Test transaction',
+        transactionNumber: "TXN-001",
+        description: "Test transaction",
       };
-      
+
       mockQueryBuilder.limit.mockResolvedValue([mockTransaction]);
-      
-      const result = await transactionService.getTransactionByNumber('TXN-001');
-      
+
+      const result = await transactionService.getTransactionByNumber("TXN-001");
+
       expect(result).toEqual(mockTransaction);
     });
   });
 
-  describe('getTransactionsByDateRange', () => {
-    it('should return transactions within date range', async () => {
-      const startDate = new Date('2024-01-01');
-      const endDate = new Date('2024-01-31');
+  describe("getTransactionsByDateRange", () => {
+    it("should return transactions within date range", async () => {
+      const startDate = new Date("2024-01-01");
+      const endDate = new Date("2024-01-31");
       const mockTransactions = [
-        { id: 1, transactionNumber: 'TXN-001', transactionDate: new Date('2024-01-15') },
-        { id: 2, transactionNumber: 'TXN-002', transactionDate: new Date('2024-01-20') },
+        {
+          id: 1,
+          transactionNumber: "TXN-001",
+          transactionDate: new Date("2024-01-15"),
+        },
+        {
+          id: 2,
+          transactionNumber: "TXN-002",
+          transactionDate: new Date("2024-01-20"),
+        },
       ];
-      
+
       mockQueryBuilder.orderBy.mockResolvedValue(mockTransactions);
-      
-      const result = await transactionService.getTransactionsByDateRange(startDate, endDate, 'entity-1');
-      
+
+      const result = await transactionService.getTransactionsByDateRange(
+        startDate,
+        endDate,
+        "entity-1"
+      );
+
       expect(mockDb.select).toHaveBeenCalled();
       expect(mockQueryBuilder.where).toHaveBeenCalled();
-      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(desc(transactions.transactionDate));
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        desc(transactions.transactionDate)
+      );
       expect(result).toEqual(mockTransactions);
     });
   });
 
-  describe('getTransactionsByStatus', () => {
-    it('should return transactions filtered by status', async () => {
+  describe("getTransactionsByStatus", () => {
+    it("should return transactions filtered by status", async () => {
       const mockTransactions = [
-        { id: 1, transactionNumber: 'TXN-001', status: 'POSTED' },
-        { id: 2, transactionNumber: 'TXN-002', status: 'POSTED' },
+        { id: 1, transactionNumber: "TXN-001", status: "POSTED" },
+        { id: 2, transactionNumber: "TXN-002", status: "POSTED" },
       ];
-      
+
       mockQueryBuilder.orderBy.mockResolvedValue(mockTransactions);
-      
-      const result = await transactionService.getTransactionsByStatus('POSTED', 'entity-1');
-      
+
+      const result = await transactionService.getTransactionsByStatus(
+        "POSTED",
+        "entity-1"
+      );
+
       expect(mockDb.select).toHaveBeenCalled();
       expect(mockQueryBuilder.where).toHaveBeenCalled();
-      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(desc(transactions.createdAt));
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        desc(transactions.createdAt)
+      );
       expect(result).toEqual(mockTransactions);
     });
   });
 
-  describe('createTransaction', () => {
-    it('should create transaction with provided data', async () => {
+  describe("createTransaction", () => {
+    it("should create transaction with provided data", async () => {
       const transactionData = {
-        description: 'Test transaction',
-        totalAmount: 1000.00,
-        type: 'JOURNAL',
-        source: 'MANUAL',
-        status: 'DRAFT',
-        entityId: 'entity-1',
-        createdBy: 'user-1',
+        description: "Test transaction",
+        totalAmount: 1000.0,
+        type: "JOURNAL",
+        source: "MANUAL",
+        status: "DRAFT",
+        entityId: "entity-1",
+        createdBy: "user-1",
         transactionDate: new Date(),
         postingDate: new Date(),
       };
-      
+
       const mockCreatedTransaction = {
         id: 1,
         ...transactionData,
@@ -396,197 +430,221 @@ describe('TransactionService', () => {
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
       };
-      
+
       mockQueryBuilder.returning.mockResolvedValue([mockCreatedTransaction]);
-      
-      const result = await transactionService.createTransaction(transactionData);
-      
+
+      const result = await transactionService.createTransaction(
+        transactionData
+      );
+
       expect(mockDb.insert).toHaveBeenCalledWith(transactions);
-      expect(mockQueryBuilder.values).toHaveBeenCalledWith(expect.objectContaining({
-        ...transactionData,
-        transactionNumber: expect.any(String),
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-      }));
+      expect(mockQueryBuilder.values).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...transactionData,
+          transactionNumber: expect.any(String),
+          createdAt: expect.any(Date),
+          updatedAt: expect.any(Date),
+        })
+      );
       expect(mockQueryBuilder.returning).toHaveBeenCalled();
       expect(result).toEqual(mockCreatedTransaction);
     });
 
-    it('should use provided transaction number if given', async () => {
+    it("should use provided transaction number if given", async () => {
       const transactionData = {
-        transactionNumber: 'CUSTOM-001',
-        description: 'Test transaction',
-        totalAmount: 1000.00,
-        type: 'JOURNAL',
-        source: 'MANUAL',
-        createdBy: 'user-1',
+        transactionNumber: "CUSTOM-001",
+        description: "Test transaction",
+        totalAmount: 1000.0,
+        type: "JOURNAL",
+        source: "MANUAL",
+        createdBy: "user-1",
         transactionDate: new Date(),
         postingDate: new Date(),
       };
-      
+
       const mockCreatedTransaction = { id: 1, ...transactionData };
       mockQueryBuilder.returning.mockResolvedValue([mockCreatedTransaction]);
-      
+
       await transactionService.createTransaction(transactionData);
-      
-      expect(mockQueryBuilder.values).toHaveBeenCalledWith(expect.objectContaining({
-        transactionNumber: 'CUSTOM-001',
-      }));
+
+      expect(mockQueryBuilder.values).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactionNumber: "CUSTOM-001",
+        })
+      );
     });
   });
 
-  describe('updateTransaction', () => {
-    it('should update transaction with provided data', async () => {
+  describe("updateTransaction", () => {
+    it("should update transaction with provided data", async () => {
       const updateData = {
-        description: 'Updated transaction',
-        totalAmount: 1500.00,
+        description: "Updated transaction",
+        totalAmount: 1500.0,
       };
-      
+
       const mockUpdatedTransaction = {
         id: 1,
-        transactionNumber: 'TXN-001',
+        transactionNumber: "TXN-001",
         description: updateData.description,
         totalAmount: updateData.totalAmount,
         updatedAt: expect.any(Date),
       };
-      
+
       mockQueryBuilder.returning.mockResolvedValue([mockUpdatedTransaction]);
-      
+
       const result = await transactionService.updateTransaction(1, updateData);
-      
+
       expect(mockDb.update).toHaveBeenCalledWith(transactions);
-      expect(mockQueryBuilder.set).toHaveBeenCalledWith(expect.objectContaining({
-        ...updateData,
-        updatedAt: expect.any(Date),
-      }));
+      expect(mockQueryBuilder.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...updateData,
+          updatedAt: expect.any(Date),
+        })
+      );
       expect(mockQueryBuilder.where).toHaveBeenCalled();
       expect(mockQueryBuilder.returning).toHaveBeenCalled();
       expect(result).toEqual(mockUpdatedTransaction);
     });
   });
 
-  describe('postTransaction', () => {
-    it('should post transaction and set approval fields', async () => {
+  describe("postTransaction", () => {
+    it("should post transaction and set approval fields", async () => {
       const mockPostedTransaction = {
         id: 1,
-        transactionNumber: 'TXN-001',
-        status: 'POSTED',
-        approvedBy: 'user-1',
+        transactionNumber: "TXN-001",
+        status: "POSTED",
+        approvedBy: "user-1",
         approvedAt: expect.any(Date),
         updatedAt: expect.any(Date),
       };
-      
+
       mockQueryBuilder.returning.mockResolvedValue([mockPostedTransaction]);
-      
-      const result = await transactionService.postTransaction(1, 'user-1');
-      
+
+      const result = await transactionService.postTransaction(1, "user-1");
+
       expect(mockDb.update).toHaveBeenCalledWith(transactions);
-      expect(mockQueryBuilder.set).toHaveBeenCalledWith(expect.objectContaining({
-        status: 'POSTED',
-        approvedBy: 'user-1',
-        approvedAt: expect.any(Date),
-        updatedAt: expect.any(Date),
-      }));
+      expect(mockQueryBuilder.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "POSTED",
+          approvedBy: "user-1",
+          approvedAt: expect.any(Date),
+          updatedAt: expect.any(Date),
+        })
+      );
       expect(result).toEqual(mockPostedTransaction);
     });
   });
 
-  describe('reverseTransaction', () => {
-    it('should create reversal transaction and mark original as reversed', async () => {
+  describe("reverseTransaction", () => {
+    it("should create reversal transaction and mark original as reversed", async () => {
       const originalTransaction = {
         id: 1,
-        transactionNumber: 'TXN-001',
-        description: 'Original transaction',
-        totalAmount: 1000.00,
-        type: 'JOURNAL',
-        source: 'MANUAL',
-        entityId: 'entity-1',
+        transactionNumber: "TXN-001",
+        description: "Original transaction",
+        totalAmount: 1000.0,
+        type: "JOURNAL",
+        source: "MANUAL",
+        entityId: "entity-1",
       };
-      
+
       const reversalTransaction = {
         id: 2,
         transactionNumber: expect.any(String),
-        description: 'REVERSAL: Original transaction - Error correction',
-        totalAmount: -1000.00,
+        description: "REVERSAL: Original transaction - Error correction",
+        totalAmount: -1000.0,
         reversedTransactionId: 1,
       };
-      
+
       // Mock getTransactionById
       mockQueryBuilder.limit.mockResolvedValueOnce([originalTransaction]);
-      
+
       // Mock create reversal transaction
       mockQueryBuilder.returning.mockResolvedValueOnce([reversalTransaction]);
-      
+
       // Mock update original transaction
-      mockQueryBuilder.returning.mockResolvedValueOnce([{ ...originalTransaction, isReversed: true }]);
-      
-      const result = await transactionService.reverseTransaction(1, 'user-1', 'Error correction');
-      
+      mockQueryBuilder.returning.mockResolvedValueOnce([
+        { ...originalTransaction, isReversed: true },
+      ]);
+
+      const result = await transactionService.reverseTransaction(
+        1,
+        "user-1",
+        "Error correction"
+      );
+
       expect(result).toEqual(reversalTransaction);
       expect(mockDb.insert).toHaveBeenCalledWith(transactions);
       expect(mockDb.update).toHaveBeenCalledWith(transactions);
     });
 
-    it('should throw error when original transaction not found', async () => {
+    it("should throw error when original transaction not found", async () => {
       mockQueryBuilder.limit.mockResolvedValue([]);
-      
-      await expect(transactionService.reverseTransaction(999, 'user-1', 'Error'))
-        .rejects.toThrow('Transaction not found');
+
+      await expect(
+        transactionService.reverseTransaction(999, "user-1", "Error")
+      ).rejects.toThrow("Transaction not found");
     });
   });
 
-  describe('getTransactionsByType', () => {
-    it('should return transactions filtered by type with pagination', async () => {
+  describe("getTransactionsByType", () => {
+    it("should return transactions filtered by type with pagination", async () => {
       const mockTransactions = [
-        { id: 1, transactionNumber: 'TXN-001', type: 'JOURNAL' },
-        { id: 2, transactionNumber: 'TXN-002', type: 'JOURNAL' },
+        { id: 1, transactionNumber: "TXN-001", type: "JOURNAL" },
+        { id: 2, transactionNumber: "TXN-002", type: "JOURNAL" },
       ];
-      
+
       mockQueryBuilder.execute.mockResolvedValue(mockTransactions);
-      
-      const result = await transactionService.getTransactionsByType('JOURNAL', 'entity-1', 10, 0);
-      
+
+      const result = await transactionService.getTransactionsByType(
+        "JOURNAL",
+        "entity-1",
+        10,
+        0
+      );
+
       expect(mockDb.select).toHaveBeenCalled();
       expect(mockQueryBuilder.where).toHaveBeenCalled();
-      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(desc(transactions.transactionDate));
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        desc(transactions.transactionDate)
+      );
       expect(mockQueryBuilder.limit).toHaveBeenCalledWith(10);
       expect(mockQueryBuilder.offset).toHaveBeenCalledWith(0);
       expect(result).toEqual(mockTransactions);
     });
 
-    it('should use default pagination values', async () => {
+    it("should use default pagination values", async () => {
       mockQueryBuilder.execute.mockResolvedValue([]);
-      
-      await transactionService.getTransactionsByType('JOURNAL');
-      
+
+      await transactionService.getTransactionsByType("JOURNAL");
+
       expect(mockQueryBuilder.limit).toHaveBeenCalledWith(50);
       expect(mockQueryBuilder.offset).toHaveBeenCalledWith(0);
     });
   });
 
-  describe('deleteTransaction', () => {
-    it('should delete transaction and return deleted data', async () => {
+  describe("deleteTransaction", () => {
+    it("should delete transaction and return deleted data", async () => {
       const mockDeletedTransaction = {
         id: 1,
-        transactionNumber: 'TXN-001',
-        description: 'Test transaction',
+        transactionNumber: "TXN-001",
+        description: "Test transaction",
       };
-      
+
       mockQueryBuilder.returning.mockResolvedValue([mockDeletedTransaction]);
-      
+
       const result = await transactionService.deleteTransaction(1);
-      
+
       expect(mockDb.delete).toHaveBeenCalledWith(transactions);
       expect(mockQueryBuilder.where).toHaveBeenCalled();
       expect(mockQueryBuilder.returning).toHaveBeenCalled();
       expect(result).toEqual(mockDeletedTransaction);
     });
 
-    it('should return null when transaction not found for deletion', async () => {
+    it("should return null when transaction not found for deletion", async () => {
       mockQueryBuilder.returning.mockResolvedValue([]);
-      
+
       const result = await transactionService.deleteTransaction(999);
-      
+
       expect(result).toBeNull();
     });
   });

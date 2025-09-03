@@ -3,19 +3,19 @@ name: Deploy
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: "Environment to deploy to"
         required: true
-        default: 'staging'
+        default: "staging"
         type: choice
         options:
           - staging
           - production
       rollback:
-        description: 'Rollback to previous version'
+        description: "Rollback to previous version"
         required: false
         default: false
         type: boolean
@@ -25,8 +25,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: 'latest'
+  NODE_VERSION: "22"
+  PNPM_VERSION: "latest"
 
 jobs:
   # ============================================================================
@@ -64,13 +64,13 @@ jobs:
       - name: Generate version
         id: version
         run: |
-           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-             VERSION="${{ github.ref_name }}"
-           else
-             VERSION="$(date +%Y%m%d)-$(echo '${{ github.sha }}' | cut -c1-7)"
-           fi
-           echo "version=$VERSION" >> $GITHUB_OUTPUT
-           echo "📦 Version: $VERSION"
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="$(date +%Y%m%d)-$(echo '${{ github.sha }}' | cut -c1-7)"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
 
       - name: Check for deployment changes
         id: changes
@@ -424,7 +424,7 @@ jobs:
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ needs.prepare.outputs.environment }}" == "production" ]]; then
             echo "🌐 **Production URL:** https://finance-manager.your-domain.workers.dev" >> $GITHUB_STEP_SUMMARY
           else

@@ -3,10 +3,10 @@
  * Corporate Finance Manager - Passwordless authentication with magic links
  */
 
-import type { MagicLinkData } from './types'
-import { MagicLinkPurpose } from './types';
-import { randomBytes } from '@noble/hashes/utils';
-import type { KVNamespace } from '@cloudflare/workers-types';
+import type { MagicLinkData } from "./types";
+import { MagicLinkPurpose } from "./types";
+import { randomBytes } from "@noble/hashes/utils";
+import type { KVNamespace } from "@cloudflare/workers-types";
 
 /**
  * Magic link manager for generating and validating magic links
@@ -24,7 +24,7 @@ export class MagicLinkManager {
     } = {}
   ) {
     this.kv = kv;
-    this.keyPrefix = options.keyPrefix || 'magic:';
+    this.keyPrefix = options.keyPrefix || "magic:";
     this.defaultTTL = (options.defaultTTLMinutes || 15) * 60; // Default 15 minutes
   }
 
@@ -42,10 +42,10 @@ export class MagicLinkManager {
     // Generate cryptographically secure token
     const tokenBytes = randomBytes(32);
     const token = this.bytesToHex(tokenBytes);
-    
+
     const now = Date.now();
     const ttl = options.ttlMinutes ? options.ttlMinutes * 60 : this.defaultTTL; // Convert to seconds
-    const expiresAt = now + (ttl * 1000);
+    const expiresAt = now + ttl * 1000;
 
     const magicLinkData: MagicLinkData = {
       token,
@@ -56,7 +56,7 @@ export class MagicLinkManager {
     };
 
     const key = this.getMagicLinkKey(token);
-    
+
     await this.kv.put(key, JSON.stringify(magicLinkData), {
       expirationTtl: ttl,
     });
@@ -81,7 +81,7 @@ export class MagicLinkManager {
     if (!token || token.length !== 64) {
       return {
         isValid: false,
-        error: 'Invalid token format',
+        error: "Invalid token format",
       };
     }
 
@@ -91,7 +91,7 @@ export class MagicLinkManager {
     if (!storedData) {
       return {
         isValid: false,
-        error: 'Token not found or expired',
+        error: "Token not found or expired",
       };
     }
 
@@ -101,7 +101,7 @@ export class MagicLinkManager {
     } catch {
       return {
         isValid: false,
-        error: 'Invalid token data',
+        error: "Invalid token data",
       };
     }
 
@@ -111,7 +111,7 @@ export class MagicLinkManager {
       await this.kv.delete(key);
       return {
         isValid: false,
-        error: 'Token has expired',
+        error: "Token has expired",
       };
     }
 
@@ -119,7 +119,7 @@ export class MagicLinkManager {
     if (expectedPurpose && magicLinkData.purpose !== expectedPurpose) {
       return {
         isValid: false,
-        error: 'Token purpose mismatch',
+        error: "Token purpose mismatch",
       };
     }
 
@@ -153,7 +153,7 @@ export class MagicLinkManager {
     try {
       const magicLinkData: MagicLinkData = JSON.parse(storedData);
       const now = Math.floor(Date.now() / 1000);
-      
+
       if (magicLinkData.expiresAt <= now) {
         await this.kv.delete(key);
         return { exists: false };
@@ -174,12 +174,12 @@ export class MagicLinkManager {
   async revokeMagicLink(token: string): Promise<boolean> {
     const key = this.getMagicLinkKey(token);
     const existed = await this.kv.get(key);
-    
+
     if (existed) {
       await this.kv.delete(key);
       return true;
     }
-    
+
     return false;
   }
 
@@ -202,7 +202,7 @@ export class MagicLinkManager {
       if (data) {
         try {
           const magicLinkData: MagicLinkData = JSON.parse(data);
-          
+
           if (magicLinkData.email === normalizedEmail) {
             if (!purpose || magicLinkData.purpose === purpose) {
               await this.kv.delete(key.name);
@@ -228,31 +228,31 @@ export class MagicLinkManager {
     redirectPath?: string
   ): string {
     const url = new URL(baseUrl);
-    
+
     // Set the path based on purpose
     switch (purpose) {
       case MagicLinkPurpose.LOGIN:
-        url.pathname = '/auth/magic-login';
+        url.pathname = "/auth/magic-login";
         break;
       case MagicLinkPurpose.REGISTER:
-        url.pathname = '/auth/magic-register';
+        url.pathname = "/auth/magic-register";
         break;
       case MagicLinkPurpose.VERIFY_EMAIL:
-        url.pathname = '/auth/verify-email';
+        url.pathname = "/auth/verify-email";
         break;
       case MagicLinkPurpose.RESET_PASSWORD:
-        url.pathname = '/auth/reset-password';
+        url.pathname = "/auth/reset-password";
         break;
       case MagicLinkPurpose.CHANGE_EMAIL:
-        url.pathname = '/auth/change-email';
+        url.pathname = "/auth/change-email";
         break;
       default:
-        url.pathname = '/auth/magic-link';
+        url.pathname = "/auth/magic-link";
     }
 
-    url.searchParams.set('token', token);
+    url.searchParams.set("token", token);
     if (redirectPath) {
-      url.searchParams.set('redirect', redirectPath);
+      url.searchParams.set("redirect", redirectPath);
     }
 
     return url.toString();
@@ -270,8 +270,8 @@ export class MagicLinkManager {
    */
   private bytesToHex(bytes: Uint8Array): string {
     return Array.from(bytes)
-      .map(byte => byte.toString(16).padStart(2, '0'))
-      .join('');
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
   }
 }
 
@@ -293,7 +293,7 @@ export class MagicLinkRateLimiter {
     } = {}
   ) {
     this.kv = kv;
-    this.keyPrefix = options.keyPrefix || 'ml_rate:';
+    this.keyPrefix = options.keyPrefix || "ml_rate:";
     this.windowMs = (options.windowMinutes || 10) * 60 * 1000; // Default 10 minutes
     this.maxAttempts = options.maxAttempts || 3;
   }
@@ -311,10 +311,10 @@ export class MagicLinkRateLimiter {
   }> {
     const now = Date.now();
     const windowStart = now - this.windowMs;
-    
+
     // Check both email and IP-based rate limits
-    const emailKey = this.getRateLimitKey('email', email);
-    const ipKey = ipAddress ? this.getRateLimitKey('ip', ipAddress) : null;
+    const emailKey = this.getRateLimitKey("email", email);
+    const ipKey = ipAddress ? this.getRateLimitKey("ip", ipAddress) : null;
 
     const [emailCount, ipCount] = await Promise.all([
       this.getRequestCount(emailKey, windowStart),
@@ -348,7 +348,10 @@ export class MagicLinkRateLimiter {
   /**
    * Get request count for a key within the time window
    */
-  private async getRequestCount(key: string, windowStart: number): Promise<number> {
+  private async getRequestCount(
+    key: string,
+    windowStart: number
+  ): Promise<number> {
     const data = await this.kv.get(key);
     if (!data) {
       return 0;
@@ -356,7 +359,7 @@ export class MagicLinkRateLimiter {
 
     try {
       const requests: number[] = JSON.parse(data);
-      return requests.filter(timestamp => timestamp > windowStart).length;
+      return requests.filter((timestamp) => timestamp > windowStart).length;
     } catch {
       return 0;
     }
@@ -368,7 +371,7 @@ export class MagicLinkRateLimiter {
   private async recordRequest(key: string): Promise<void> {
     const now = Date.now();
     const windowStart = now - this.windowMs;
-    
+
     const data = await this.kv.get(key);
     let requests: number[] = [];
 
@@ -382,7 +385,7 @@ export class MagicLinkRateLimiter {
 
     // Add current request and filter old ones
     requests.push(now);
-    requests = requests.filter(timestamp => timestamp > windowStart);
+    requests = requests.filter((timestamp) => timestamp > windowStart);
 
     await this.kv.put(key, JSON.stringify(requests), {
       expirationTtl: Math.ceil(this.windowMs / 1000),
@@ -424,7 +427,7 @@ export class MagicLinkEmailTemplate {
     html: string;
     text: string;
   } {
-    const greeting = recipientName ? `Hi ${recipientName}` : 'Hello!';
+    const greeting = recipientName ? `Hi ${recipientName}` : "Hello!";
     const expiryText = `This link expires at ${expiresAt.toLocaleString()}.`;
 
     switch (purpose) {
@@ -438,34 +441,70 @@ export class MagicLinkEmailTemplate {
       case MagicLinkPurpose.REGISTER:
         return {
           subject: `Complete your ${this.companyName} registration`,
-          html: this.generateRegisterEmailHtml(greeting, magicLinkUrl, expiryText),
-          text: this.generateRegisterEmailText(greeting, magicLinkUrl, expiryText),
+          html: this.generateRegisterEmailHtml(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
+          text: this.generateRegisterEmailText(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
         };
 
       case MagicLinkPurpose.VERIFY_EMAIL:
         return {
           subject: `Verify your ${this.companyName} email address`,
-          html: this.generateVerifyEmailHtml(greeting, magicLinkUrl, expiryText),
-          text: this.generateVerifyEmailText(greeting, magicLinkUrl, expiryText),
+          html: this.generateVerifyEmailHtml(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
+          text: this.generateVerifyEmailText(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
         };
 
       case MagicLinkPurpose.RESET_PASSWORD:
         return {
           subject: `Reset your ${this.companyName} password`,
-          html: this.generateResetPasswordHtml(greeting, magicLinkUrl, expiryText),
-          text: this.generateResetPasswordText(greeting, magicLinkUrl, expiryText),
+          html: this.generateResetPasswordHtml(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
+          text: this.generateResetPasswordText(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
         };
 
       default:
         return {
           subject: `Access ${this.companyName}`,
-          html: this.generateGenericEmailHtml(greeting, magicLinkUrl, expiryText),
-          text: this.generateGenericEmailText(greeting, magicLinkUrl, expiryText),
+          html: this.generateGenericEmailHtml(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
+          text: this.generateGenericEmailText(
+            greeting,
+            magicLinkUrl,
+            expiryText
+          ),
         };
     }
   }
 
-  private generateLoginEmailHtml(greeting: string, url: string, expiry: string): string {
+  private generateLoginEmailHtml(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>${greeting}!</h2>
@@ -479,11 +518,19 @@ export class MagicLinkEmailTemplate {
     `;
   }
 
-  private generateLoginEmailText(greeting: string, url: string, expiry: string): string {
+  private generateLoginEmailText(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `${greeting}!\n\nClick the link below to sign in to your ${this.companyName} account:\n\n${url}\n\n${expiry}\n\nIf you didn't request this email, you can safely ignore it.`;
   }
 
-  private generateRegisterEmailHtml(greeting: string, url: string, expiry: string): string {
+  private generateRegisterEmailHtml(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Welcome to ${this.companyName}!</h2>
@@ -496,11 +543,19 @@ export class MagicLinkEmailTemplate {
     `;
   }
 
-  private generateRegisterEmailText(greeting: string, url: string, expiry: string): string {
+  private generateRegisterEmailText(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `Welcome to ${this.companyName}!\n\n${greeting}, click the link below to complete your registration:\n\n${url}\n\n${expiry}`;
   }
 
-  private generateVerifyEmailHtml(greeting: string, url: string, expiry: string): string {
+  private generateVerifyEmailHtml(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>${greeting}!</h2>
@@ -513,11 +568,19 @@ export class MagicLinkEmailTemplate {
     `;
   }
 
-  private generateVerifyEmailText(greeting: string, url: string, expiry: string): string {
+  private generateVerifyEmailText(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `${greeting}!\n\nPlease verify your email address by clicking the link below:\n\n${url}\n\n${expiry}`;
   }
 
-  private generateResetPasswordHtml(greeting: string, url: string, expiry: string): string {
+  private generateResetPasswordHtml(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>${greeting}!</h2>
@@ -531,11 +594,19 @@ export class MagicLinkEmailTemplate {
     `;
   }
 
-  private generateResetPasswordText(greeting: string, url: string, expiry: string): string {
+  private generateResetPasswordText(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `${greeting}!\n\nClick the link below to reset your password:\n\n${url}\n\n${expiry}\n\nIf you didn't request this password reset, you can safely ignore it.`;
   }
 
-  private generateGenericEmailHtml(greeting: string, url: string, expiry: string): string {
+  private generateGenericEmailHtml(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>${greeting}!</h2>
@@ -548,7 +619,11 @@ export class MagicLinkEmailTemplate {
     `;
   }
 
-  private generateGenericEmailText(greeting: string, url: string, expiry: string): string {
+  private generateGenericEmailText(
+    greeting: string,
+    url: string,
+    expiry: string
+  ): string {
     return `${greeting}!\n\nClick the link below to access ${this.companyName}:\n\n${url}\n\n${expiry}`;
   }
 }

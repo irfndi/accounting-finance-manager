@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # ClickHouse Database
@@ -41,12 +41,12 @@ services:
     hostname: otel-collector
     command: ["--config=/etc/otel-collector-config.yaml"]
     ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
-      - "8888:8888"   # Prometheus metrics
-      - "8889:8889"   # Prometheus exporter
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+      - "8888:8888" # Prometheus metrics
+      - "8889:8889" # Prometheus exporter
       - "13133:13133" # Health check
-      - "1777:1777"   # pprof extension
+      - "1777:1777" # pprof extension
       - "55679:55679" # zpages extension
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
@@ -134,12 +134,12 @@ services:
       - ./alertmanager/templates:/etc/alertmanager/templates:ro
       - alertmanager_data:/alertmanager
     command:
-      - '--config.file=/etc/alertmanager/config.yml'
-      - '--storage.path=/alertmanager'
-      - '--web.external-url=http://localhost:9093'
-      - '--web.route-prefix=/'
-      - '--cluster.listen-address='
-      - '--log.level=info'
+      - "--config.file=/etc/alertmanager/config.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.external-url=http://localhost:9093"
+      - "--web.route-prefix=/"
+      - "--cluster.listen-address="
+      - "--log.level=info"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9093/-/healthy"]
@@ -161,9 +161,9 @@ services:
       - REDIS_ADDR=redis://redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
     command:
-      - '--redis.addr=redis://redis:6379'
-      - '--web.listen-address=0.0.0.0:9121'
-      - '--web.telemetry-path=/metrics'
+      - "--redis.addr=redis://redis:6379"
+      - "--web.listen-address=0.0.0.0:9121"
+      - "--web.telemetry-path=/metrics"
     restart: unless-stopped
     networks:
       - signoz-network
@@ -191,7 +191,7 @@ services:
     ports:
       - "9113:9113"
     command:
-      - '-nginx.scrape-uri=http://nginx:8080/nginx_status'
+      - "-nginx.scrape-uri=http://nginx:8080/nginx_status"
     restart: unless-stopped
     networks:
       - signoz-network

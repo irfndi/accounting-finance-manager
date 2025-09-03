@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Nginx Reverse Proxy
@@ -98,11 +98,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d:ro
     ports:
-      - "5432:5432"  # Remove in production
+      - "5432:5432" # Remove in production
     networks:
       - finance-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-finance_user} -d ${DB_NAME:-finance_manager}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-finance_user} -d ${DB_NAME:-finance_manager}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -126,7 +130,7 @@ services:
       - redis_data:/data
       - ./redis/redis.conf:/etc/redis/redis.conf:ro
     ports:
-      - "6379:6379"  # Remove in production
+      - "6379:6379" # Remove in production
     networks:
       - finance-network
     healthcheck:

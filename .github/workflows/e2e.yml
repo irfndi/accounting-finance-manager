@@ -5,15 +5,15 @@ on:
   pull_request:
   schedule:
     # Run E2E tests daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: 'latest'
+  NODE_VERSION: "22"
+  PNPM_VERSION: "latest"
 
 jobs:
   # ============================================================================
@@ -69,8 +69,6 @@ jobs:
             pnpm install --no-frozen-lockfile
           }
 
-
-
       - name: Build application
         run: |
           echo "Building application for E2E testing..."
@@ -87,7 +85,7 @@ jobs:
           PREVIEW_PID=$!
           echo $PREVIEW_PID > preview.pid
           echo "Preview server started with PID: $PREVIEW_PID"
-          
+
           # Wait for server to be ready
           echo "Waiting for server to be ready..."
           for i in {1..60}; do
@@ -406,7 +404,7 @@ jobs:
           echo "| Performance | ${{ needs.performance.result }} | Lighthouse CI |" >> $GITHUB_STEP_SUMMARY
           echo "| Accessibility | ${{ needs.accessibility.result }} | axe-playwright |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ needs.e2e-test.result }}" == "failure" || 
                 "${{ needs.visual-regression.result }}" == "failure" || 
                 "${{ needs.performance.result }}" == "failure" || 
@@ -426,7 +424,7 @@ jobs:
           echo "Visual Regression: ${{ needs.visual-regression.result }}"
           echo "Performance: ${{ needs.performance.result }}"
           echo "Accessibility: ${{ needs.accessibility.result }}"
-          
+
           if [[ "${{ needs.e2e-test.result }}" == "failure" || 
                 "${{ needs.visual-regression.result }}" == "failure" || 
                 "${{ needs.performance.result }}" == "failure" || 

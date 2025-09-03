@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono } from "hono";
 import {
   DatabaseAdapter,
   DatabaseAccountRegistry,
@@ -8,11 +8,11 @@ import {
   FINANCIAL_CONSTANTS,
   DatabaseJournalEntryManager,
   DoubleEntryError,
-} from '../../../lib/index.ts';
-import type { Currency, JournalEntry, Account } from '../../../types/index.js';
-import { authMiddleware } from '../../middleware/auth';
-import { FinancialAIService, createAIService } from '../../../ai/index.js';
-import type { AppContext } from '../../types';
+} from "../../../lib/index.ts";
+import type { Currency, JournalEntry, Account } from "../../../types/index.js";
+import { authMiddleware } from "../../middleware/auth";
+import { FinancialAIService, createAIService } from "../../../ai/index.js";
+import type { AppContext } from "../../types";
 
 // Helper function to handle error responses
 function handleAccountingError(error: unknown) {
@@ -22,7 +22,7 @@ function handleAccountingError(error: unknown) {
       error: validationError.message,
       code: validationError.code,
       details: validationError.details,
-      accountingError: true
+      accountingError: true,
     };
   }
   return null;
@@ -37,7 +37,7 @@ function handleDoubleEntryError(error: unknown) {
       code: doubleEntryError.code,
       details: doubleEntryError.details,
       accountingError: true,
-      errorType: 'DOUBLE_ENTRY_VIOLATION'
+      errorType: "DOUBLE_ENTRY_VIOLATION",
     };
   }
   return null;
@@ -45,116 +45,127 @@ function handleDoubleEntryError(error: unknown) {
 
 const transactionsRouter = new Hono<AppContext>();
 
-transactionsRouter.use('*', authMiddleware);
-
-
+transactionsRouter.use("*", authMiddleware);
 
 // Enhanced validation using core logic
-function validateTransactionId(id: string): { valid: boolean; id?: number; error?: string } {
-  const transactionId = Number.parseInt(id, 10)
-  
+function validateTransactionId(id: string): {
+  valid: boolean;
+  id?: number;
+  error?: string;
+} {
+  const transactionId = Number.parseInt(id, 10);
+
   if (Number.isNaN(transactionId) || transactionId <= 0) {
     return {
       valid: false,
-      error: 'Transaction ID must be a positive integer'
-    }
+      error: "Transaction ID must be a positive integer",
+    };
   }
-  
-  return { valid: true, id: transactionId }
+
+  return { valid: true, id: transactionId };
 }
 
 function validateTransactionAmount(amount: unknown): string | null {
-  if (typeof amount !== 'number' || amount <= 0) {
-    return 'Transaction amount must be a positive number'
+  if (typeof amount !== "number" || amount <= 0) {
+    return "Transaction amount must be a positive number";
   }
   if (!Number.isFinite(amount)) {
-    return 'Transaction amount must be a finite number'
+    return "Transaction amount must be a finite number";
   }
   if (amount > 999999999.99) {
-    return 'Transaction amount exceeds maximum allowed value'
+    return "Transaction amount exceeds maximum allowed value";
   }
-  return null
+  return null;
 }
 
 function validateCurrency(currency: string): string | null {
-  if (!currency || typeof currency !== 'string') {
-    return 'Currency is required'
+  if (!currency || typeof currency !== "string") {
+    return "Currency is required";
   }
-  if (!FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.includes(currency as Currency)) {
-    return `Currency must be one of: ${FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.join(', ')}`
+  if (
+    !FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.includes(currency as Currency)
+  ) {
+    return `Currency must be one of: ${FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES.join(
+      ", "
+    )}`;
   }
-  return null
+  return null;
 }
 
-
-
 // GET /transactions - List all transactions with enhanced functionality
-transactionsRouter.get('/', async (c) => {
+transactionsRouter.get("/", async (c) => {
   try {
-    const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    const user = c.get("user");
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-
-    
     // Get query parameters for filtering and pagination
-    const { 
-      limit = '50', 
-      offset = '0', 
-      entityId = 'default', 
-      dateFrom, 
+    const {
+      limit = "50",
+      offset = "0",
+      entityId = "default",
+      dateFrom,
       dateTo,
       status,
-      currency
-    } = c.req.query()
-    
+      currency,
+    } = c.req.query();
+
     // Validate pagination parameters
-    const limitNum = Number.parseInt(limit, 10)
-    const offsetNum = Number.parseInt(offset, 10)
-    
+    const limitNum = Number.parseInt(limit, 10);
+    const offsetNum = Number.parseInt(offset, 10);
+
     if (Number.isNaN(limitNum) || limitNum <= 0 || limitNum > 1000) {
-      return c.json({
-        error: 'Invalid limit parameter',
-        message: 'Limit must be a positive integer between 1 and 1000',
-        code: 'INVALID_LIMIT'
-      }, 400)
+      return c.json(
+        {
+          error: "Invalid limit parameter",
+          message: "Limit must be a positive integer between 1 and 1000",
+          code: "INVALID_LIMIT",
+        },
+        400
+      );
     }
-    
+
     if (Number.isNaN(offsetNum) || offsetNum < 0) {
-      return c.json({
-        error: 'Invalid offset parameter',
-        message: 'Offset must be a non-negative integer',
-        code: 'INVALID_OFFSET'
-      }, 400)
+      return c.json(
+        {
+          error: "Invalid offset parameter",
+          message: "Offset must be a non-negative integer",
+          code: "INVALID_OFFSET",
+        },
+        400
+      );
     }
-    
+
     // Validate currency filter if provided
     if (currency) {
-      const currencyError = validateCurrency(currency)
+      const currencyError = validateCurrency(currency);
       if (currencyError) {
-        return c.json({
-          error: currencyError,
-          code: 'INVALID_CURRENCY'
-        }, 400)
+        return c.json(
+          {
+            error: currencyError,
+            code: "INVALID_CURRENCY",
+          },
+          400
+        );
       }
     }
-    
+
     // For now, use empty array since we don't have transactions yet
     // In a full implementation, we'd use the database adapter to fetch transactions
-    const allTransactions: any[] = []
-    const totalCount = 0
-    
+    const allTransactions: any[] = [];
+    const totalCount = 0;
+
     // Enhance transactions with accounting information
-    const enhancedTransactions = allTransactions.map(transaction => ({
+    const enhancedTransactions = allTransactions.map((transaction) => ({
       ...transaction,
       // Note: Transaction interface doesn't have amount/currency - these come from journal entries
       accountingInfo: {
         isBalanced: true, // Would check journal entries in real implementation
         hasJournalEntries: true, // Would check actual journal entries
         currency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY,
-        supportedCurrencies: FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES
-      }
-    }))
-    
+        supportedCurrencies: FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES,
+      },
+    }));
+
     return c.json({
       transactions: enhancedTransactions,
       count: enhancedTransactions.length,
@@ -162,50 +173,54 @@ transactionsRouter.get('/', async (c) => {
       pagination: {
         limit: limitNum,
         offset: offsetNum,
-        hasMore: (offsetNum + limitNum) < totalCount
+        hasMore: offsetNum + limitNum < totalCount,
       },
       filters: { entityId, dateFrom, dateTo, status, currency },
       metadata: {
         supportedCurrencies: FINANCIAL_CONSTANTS.SUPPORTED_CURRENCIES,
         defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY as Currency,
-        supportedStatuses: ['PENDING', 'POSTED', 'CANCELLED', 'REVERSED']
-      }
-    })
+        supportedStatuses: ["PENDING", "POSTED", "CANCELLED", "REVERSED"],
+      },
+    });
   } catch (error: unknown) {
     // Error fetching transactions
-    
+
     const accountingError = handleAccountingError(error);
     if (accountingError) {
       return c.json(accountingError, 400);
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to fetch transactions',
-      message: errorMessage,
-      code: 'TRANSACTIONS_FETCH_ERROR'
-    }, 500)
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to fetch transactions",
+        message: errorMessage,
+        code: "TRANSACTIONS_FETCH_ERROR",
+      },
+      500
+    );
   }
-})
+});
 
 // GET /transactions/:id - Get transaction by ID with journal entries
-transactionsRouter.get('/:id', async (c) => {
+transactionsRouter.get("/:id", async (c) => {
   try {
-    const idValidation = validateTransactionId(c.req.param('id'));
+    const idValidation = validateTransactionId(c.req.param("id"));
 
     if (!idValidation.valid) {
       return c.json(
         {
-          error: 'Invalid transaction ID',
+          error: "Invalid transaction ID",
           message: idValidation.error,
-          code: 'INVALID_TRANSACTION_ID',
+          code: "INVALID_TRANSACTION_ID",
         },
         400
       );
     }
 
-    const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    const user = c.get("user");
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const dbAdapter = new DatabaseAdapter({
       database: c.env.FINANCE_MANAGER_DB,
@@ -214,38 +229,58 @@ transactionsRouter.get('/:id', async (c) => {
     });
     const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
     await accountRegistry.loadAccountsFromDatabase();
-    const journalManager = new DatabaseJournalEntryManager(dbAdapter, accountRegistry);
-    
-    const transaction = await dbAdapter.getTransaction(idValidation.id as number)
-    
+    const journalManager = new DatabaseJournalEntryManager(
+      dbAdapter,
+      accountRegistry
+    );
+
+    const transaction = await dbAdapter.getTransaction(
+      idValidation.id as number
+    );
+
     if (!transaction) {
-      return c.json({
-        error: 'Transaction not found',
-        message: `No transaction found with ID ${idValidation.id}`,
-        code: 'TRANSACTION_NOT_FOUND'
-      }, 404)
+      return c.json(
+        {
+          error: "Transaction not found",
+          message: `No transaction found with ID ${idValidation.id}`,
+          code: "TRANSACTION_NOT_FOUND",
+        },
+        404
+      );
     }
-    
+
     // Get associated journal entries
-    const journalEntries = await journalManager.getTransactionJournalEntries(parseInt(transaction.id))
-    
+    const journalEntries = await journalManager.getTransactionJournalEntries(
+      parseInt(transaction.id)
+    );
+
     // Calculate totals from journal entries
-    const debitTotal = journalEntries
-      .reduce((sum: number, entry: any) => sum + entry.debitAmount, 0)
-    
-    const creditTotal = journalEntries
-      .reduce((sum: number, entry: any) => sum + entry.creditAmount, 0)
-    
+    const debitTotal = journalEntries.reduce(
+      (sum: number, entry: any) => sum + entry.debitAmount,
+      0
+    );
+
+    const creditTotal = journalEntries.reduce(
+      (sum: number, entry: any) => sum + entry.creditAmount,
+      0
+    );
+
     // Calculate transaction amount from journal entries
-    const transactionAmount = Math.max(debitTotal, creditTotal)
-    const transactionCurrency = journalEntries.length > 0 ? journalEntries[0].currency : FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
-    
+    const transactionAmount = Math.max(debitTotal, creditTotal);
+    const transactionCurrency =
+      journalEntries.length > 0
+        ? journalEntries[0].currency
+        : FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
+
     const enhancedTransaction = {
       ...transaction,
       formattedAmount: formatCurrency(transactionAmount, transactionCurrency),
       journalEntries: journalEntries.map((entry: JournalEntry) => ({
         ...entry,
-        formattedAmount: formatCurrency(entry.debitAmount || entry.creditAmount, entry.currency)
+        formattedAmount: formatCurrency(
+          entry.debitAmount || entry.creditAmount,
+          entry.currency
+        ),
       })),
       accountingInfo: {
         isBalanced: Math.abs(debitTotal - creditTotal) < 0.01,
@@ -254,45 +289,60 @@ transactionsRouter.get('/:id', async (c) => {
         formattedDebitTotal: formatCurrency(debitTotal, transactionCurrency),
         formattedCreditTotal: formatCurrency(creditTotal, transactionCurrency),
         journalEntriesCount: journalEntries.length,
-        currency: transactionCurrency
-      }
-    }
-    
+        currency: transactionCurrency,
+      },
+    };
+
     return c.json({
-      transaction: enhancedTransaction
-    })
+      transaction: enhancedTransaction,
+    });
   } catch (error: unknown) {
     // Error fetching transaction
-    
+
     const accountingError = handleAccountingError(error);
     if (accountingError) {
       return c.json(accountingError, 400);
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to fetch transaction',
-      message: errorMessage,
-      code: 'TRANSACTION_FETCH_ERROR'
-    }, 500)
-  }
-})
 
-transactionsRouter.post('/', async (c) => {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to fetch transaction",
+        message: errorMessage,
+        code: "TRANSACTION_FETCH_ERROR",
+      },
+      500
+    );
+  }
+});
+
+transactionsRouter.post("/", async (c) => {
   try {
     const body = await c.req.json();
 
     // Enhanced validation using core logic
-    if (!body.description || typeof body.description !== 'string') {
-      return c.json({ error: 'Transaction description is required', code: 'VALIDATION_ERROR' }, 400);
+    if (!body.description || typeof body.description !== "string") {
+      return c.json(
+        {
+          error: "Transaction description is required",
+          code: "VALIDATION_ERROR",
+        },
+        400
+      );
     }
 
     // Validate entries array for double-entry bookkeeping
-    if (!body.entries || !Array.isArray(body.entries) || body.entries.length < 2) {
+    if (
+      !body.entries ||
+      !Array.isArray(body.entries) ||
+      body.entries.length < 2
+    ) {
       return c.json(
         {
-          error: 'Transaction must have at least 2 journal entries for double-entry bookkeeping',
-          code: 'VALIDATION_ERROR',
+          error:
+            "Transaction must have at least 2 journal entries for double-entry bookkeeping",
+          code: "VALIDATION_ERROR",
         },
         400
       );
@@ -301,11 +351,11 @@ transactionsRouter.post('/', async (c) => {
     const currency = body.currency || FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
     const currencyError = validateCurrency(currency);
     if (currencyError) {
-      return c.json({ error: currencyError, code: 'VALIDATION_ERROR' }, 400);
+      return c.json({ error: currencyError, code: "VALIDATION_ERROR" }, 400);
     }
 
-    const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    const user = c.get("user");
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const dbAdapter = new DatabaseAdapter({
       database: c.env.FINANCE_MANAGER_DB,
@@ -314,129 +364,175 @@ transactionsRouter.post('/', async (c) => {
     });
     const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
     await accountRegistry.loadAccountsFromDatabase();
-    const journalManager = new DatabaseJournalEntryManager(dbAdapter, accountRegistry);
-    
+    const journalManager = new DatabaseJournalEntryManager(
+      dbAdapter,
+      accountRegistry
+    );
+
     // Build transaction using the transaction builder
     const transactionBuilder = new TransactionBuilder()
       .setDescription(body.description)
-      .setReference(body.reference || '')
-      .setDate(body.transactionDate ? new Date(body.transactionDate) : new Date())
-      .setCurrency(currency as Currency)
-    
+      .setReference(body.reference || "")
+      .setDate(
+        body.transactionDate ? new Date(body.transactionDate) : new Date()
+      )
+      .setCurrency(currency as Currency);
+
     // Add entries to the transaction builder
     for (const entry of body.entries) {
-      if (!entry.accountId || typeof entry.accountId !== 'number') {
-        return c.json({
-          error: 'Each entry must have a valid accountId',
-          code: 'VALIDATION_ERROR'
-        }, 400)
+      if (!entry.accountId || typeof entry.accountId !== "number") {
+        return c.json(
+          {
+            error: "Each entry must have a valid accountId",
+            code: "VALIDATION_ERROR",
+          },
+          400
+        );
       }
-      
-      const entryAmount = entry.debitAmount || entry.creditAmount || 0
-      const amountError = validateTransactionAmount(entryAmount)
+
+      const entryAmount = entry.debitAmount || entry.creditAmount || 0;
+      const amountError = validateTransactionAmount(entryAmount);
       if (amountError) {
-        return c.json({
-          error: `Entry amount error: ${amountError}`,
-          code: 'VALIDATION_ERROR'
-        }, 400)
+        return c.json(
+          {
+            error: `Entry amount error: ${amountError}`,
+            code: "VALIDATION_ERROR",
+          },
+          400
+        );
       }
-      
+
       // Verify account exists
-      const account = await dbAdapter.getAccount(entry.accountId)
+      const account = await dbAdapter.getAccount(entry.accountId);
       if (!account) {
-        return c.json({
-          error: `Account with ID ${entry.accountId} not found`,
-          code: 'ACCOUNT_NOT_FOUND'
-        }, 400)
+        return c.json(
+          {
+            error: `Account with ID ${entry.accountId} not found`,
+            code: "ACCOUNT_NOT_FOUND",
+          },
+          400
+        );
       }
-      
+
       if (!account.allowTransactions) {
-        return c.json({
-          error: `Account '${account.name}' does not allow transactions`,
-          code: 'ACCOUNT_TRANSACTIONS_DISABLED'
-        }, 400)
+        return c.json(
+          {
+            error: `Account '${account.name}' does not allow transactions`,
+            code: "ACCOUNT_TRANSACTIONS_DISABLED",
+          },
+          400
+        );
       }
-      
+
       // Add to transaction builder based on entry amounts
       if (entry.debitAmount && entry.debitAmount > 0) {
-        transactionBuilder.debit(entry.accountId, entry.debitAmount, entry.description)
+        transactionBuilder.debit(
+          entry.accountId,
+          entry.debitAmount,
+          entry.description
+        );
       } else if (entry.creditAmount && entry.creditAmount > 0) {
-        transactionBuilder.credit(entry.accountId, entry.creditAmount, entry.description)
+        transactionBuilder.credit(
+          entry.accountId,
+          entry.creditAmount,
+          entry.description
+        );
       } else {
-        return c.json({
-          error: 'Entry must have either debitAmount or creditAmount greater than 0',
-          code: 'VALIDATION_ERROR'
-        }, 400)
+        return c.json(
+          {
+            error:
+              "Entry must have either debitAmount or creditAmount greater than 0",
+            code: "VALIDATION_ERROR",
+          },
+          400
+        );
       }
     }
-    
+
     // Validate the transaction
-    const validationErrors = transactionBuilder.validate()
+    const validationErrors = transactionBuilder.validate();
     if (validationErrors.length > 0) {
-      return c.json({
-        error: 'Transaction validation failed',
-        code: 'DOUBLE_ENTRY_VALIDATION_ERROR',
-        details: validationErrors
-      }, 400)
+      return c.json(
+        {
+          error: "Transaction validation failed",
+          code: "DOUBLE_ENTRY_VALIDATION_ERROR",
+          details: validationErrors,
+        },
+        400
+      );
     }
-    
+
     // Build the transaction data
-    const transactionData = transactionBuilder.build()
-    
+    const transactionData = transactionBuilder.build();
+
     // Create and persist the transaction with journal entries
-    const result = await journalManager.createAndPersistTransaction(transactionData)
-    
+    const result = await journalManager.createAndPersistTransaction(
+      transactionData
+    );
+
     // Calculate transaction amount and currency from journal entries
-    const transactionAmount = result.journalEntries.reduce((sum: number, entry: any) => 
-      sum + (entry.debitAmount || entry.creditAmount || 0), 0
-    ) / 2; // Each transaction is double-entry, so we divide by 2
-    const transactionCurrency = result.journalEntries.length > 0 ? 
-      result.journalEntries[0].currency : FINANCIAL_CONSTANTS.DEFAULT_CURRENCY
-    
+    const transactionAmount =
+      result.journalEntries.reduce(
+        (sum: number, entry: any) =>
+          sum + (entry.debitAmount || entry.creditAmount || 0),
+        0
+      ) / 2; // Each transaction is double-entry, so we divide by 2
+    const transactionCurrency =
+      result.journalEntries.length > 0
+        ? result.journalEntries[0].currency
+        : FINANCIAL_CONSTANTS.DEFAULT_CURRENCY;
+
     // Auto-categorize the transaction if it's an expense
-    let categorizationSuggestion: any = null
+    let categorizationSuggestion: any = null;
     try {
       // Check if this is an expense transaction (has debit entries to expense accounts)
       const expenseEntry = result.journalEntries.find((entry: any) => {
         const account = accountRegistry.getAccount(entry.accountId);
-        return account && account.type === 'EXPENSE' && entry.debitAmount > 0;
+        return account && account.type === "EXPENSE" && entry.debitAmount > 0;
       });
 
       if (expenseEntry && body.description) {
         // Initialize AI services for categorization
         const aiService = createAIService();
         const financialAI = new FinancialAIService(aiService);
-        
+
         const suggestion = await financialAI.categorizeExpense(
           body.description,
           transactionAmount
         );
-        
+
         // Find matching account for the suggested category
-        let suggestedAccountId: string | undefined
+        let suggestedAccountId: string | undefined;
         try {
-          const accounts = await dbAdapter.getAllAccounts()
-          const matchingAccount = accounts.find((account: Account) => 
-            account.category?.toLowerCase().includes(suggestion.category.toLowerCase()) ||
-            account.name.toLowerCase().includes(suggestion.category.toLowerCase())
-          )
+          const accounts = await dbAdapter.getAllAccounts();
+          const matchingAccount = accounts.find(
+            (account: Account) =>
+              account.category
+                ?.toLowerCase()
+                .includes(suggestion.category.toLowerCase()) ||
+              account.name
+                .toLowerCase()
+                .includes(suggestion.category.toLowerCase())
+          );
           if (matchingAccount) {
-            suggestedAccountId = matchingAccount.id?.toString()
+            suggestedAccountId = matchingAccount.id?.toString();
           }
         } catch (error: unknown) {
-          console.warn('Failed to find matching account:', error)
+          console.warn("Failed to find matching account:", error);
         }
-        
+
         // Generate unique suggestion ID
-        const suggestionId = `cat_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-        
+        const suggestionId = `cat_${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 11)}`;
+
         // Create suggestion object for KV storage
         const kvSuggestion = {
           id: suggestionId,
           transactionId: result.transaction.id?.toString(),
           userId: user.id,
           timestamp: Date.now(),
-          status: 'pending',
+          status: "pending",
           suggestedCategory: suggestion.category,
           suggestedSubcategory: suggestion.subcategory,
           suggestedAccountId,
@@ -444,17 +540,17 @@ transactionsRouter.post('/', async (c) => {
           confidence: suggestion.confidence,
           originalDescription: body.description,
           amount: transactionAmount,
-          currency: transactionCurrency
-        }
-        
+          currency: transactionCurrency,
+        };
+
         // Store suggestion in KV for user approval (7 days expiration)
-        const kvKey = `categorization:${user.id}:${suggestionId}`
+        const kvKey = `categorization:${user.id}:${suggestionId}`;
         await c.env.FINANCE_MANAGER_CACHE.put(
           kvKey,
           JSON.stringify(kvSuggestion),
           { expirationTtl: 7 * 24 * 60 * 60 } // 7 days
-        )
-        
+        );
+
         // Create response suggestion object
         categorizationSuggestion = {
           suggestionId,
@@ -462,71 +558,83 @@ transactionsRouter.post('/', async (c) => {
           subcategory: suggestion.subcategory,
           accountId: suggestedAccountId,
           confidence: suggestion.confidence,
-          requiresApproval: suggestion.confidence < 0.8
-        }
+          requiresApproval: suggestion.confidence < 0.8,
+        };
       }
     } catch (categorizationError) {
-      console.warn('Failed to generate categorization suggestion:', categorizationError)
+      console.warn(
+        "Failed to generate categorization suggestion:",
+        categorizationError
+      );
       // Continue with transaction creation even if categorization fails
     }
-    
+
     // Format the response
     const enhancedTransaction = {
       ...result.transaction,
       formattedAmount: formatCurrency(transactionAmount, transactionCurrency),
       journalEntries: result.journalEntries.map((entry: JournalEntry) => ({
         ...entry,
-        formattedAmount: formatCurrency(entry.debitAmount || entry.creditAmount, entry.currency)
+        formattedAmount: formatCurrency(
+          entry.debitAmount || entry.creditAmount,
+          entry.currency
+        ),
       })),
       accountingInfo: {
         isBalanced: true,
         journalEntriesCount: result.journalEntries.length,
-        currency: transactionCurrency
-      }
-    }
-    
+        currency: transactionCurrency,
+      },
+    };
+
     const response: any = {
       transaction: enhancedTransaction,
-      message: 'Transaction created successfully with balanced journal entries'
-    }
-    
+      message: "Transaction created successfully with balanced journal entries",
+    };
+
     // Include categorization suggestion if available
     if (categorizationSuggestion) {
-      response.categorization = categorizationSuggestion
-      response.message += ' with AI categorization suggestion'
+      response.categorization = categorizationSuggestion;
+      response.message += " with AI categorization suggestion";
     }
-    
-    return c.json(response, 201)
+
+    return c.json(response, 201);
   } catch (error: unknown) {
     // Error creating transaction
-    
+
     const doubleEntryError = handleDoubleEntryError(error);
     if (doubleEntryError) {
       return c.json(doubleEntryError, 400);
     }
-    
+
     const accountingError = handleAccountingError(error);
     if (accountingError) {
       return c.json(accountingError, 400);
     }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    return c.json({
-      error: 'Failed to create transaction',
-      message: errorMessage,
-      code: 'TRANSACTION_CREATE_ERROR'
-    }, 500)
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to create transaction",
+        message: errorMessage,
+        code: "TRANSACTION_CREATE_ERROR",
+      },
+      500
+    );
   }
-})
+});
 
 // GET /transactions/categorization-suggestions - Get all pending categorization suggestions
-transactionsRouter.get('/categorization-suggestions', async (c) => {
+transactionsRouter.get("/categorization-suggestions", async (c) => {
   try {
-    const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    const user = c.get("user");
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const kvStore = c.env.FINANCE_MANAGER_CACHE;
-    const suggestionKeys = await kvStore.list({ prefix: `categorization:${user.id}:` });
+    const suggestionKeys = await kvStore.list({
+      prefix: `categorization:${user.id}:`,
+    });
 
     const suggestions = await Promise.all(
       suggestionKeys.keys.map(async (key) => {
@@ -535,118 +643,160 @@ transactionsRouter.get('/categorization-suggestions', async (c) => {
       })
     );
 
-    const validSuggestions = suggestions.filter(s => s !== null);
+    const validSuggestions = suggestions.filter((s) => s !== null);
 
     return c.json({
       suggestions: validSuggestions,
       count: validSuggestions.length,
     });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return c.json({
-      error: 'Failed to fetch categorization suggestions',
-      message: errorMessage,
-      code: 'SUGGESTIONS_FETCH_ERROR',
-    }, 500);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return c.json(
+      {
+        error: "Failed to fetch categorization suggestions",
+        message: errorMessage,
+        code: "SUGGESTIONS_FETCH_ERROR",
+      },
+      500
+    );
   }
 });
 
 // POST /transactions/categorization-suggestions/:suggestionId/apply - Apply a suggestion
-transactionsRouter.post('/categorization-suggestions/:suggestionId/apply', async (c) => {
-  try {
-    const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+transactionsRouter.post(
+  "/categorization-suggestions/:suggestionId/apply",
+  async (c) => {
+    try {
+      const user = c.get("user");
+      if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-    const suggestionId = c.req.param('suggestionId');
-    const kvKey = `categorization:${user.id}:${suggestionId}`;
+      const suggestionId = c.req.param("suggestionId");
+      const kvKey = `categorization:${user.id}:${suggestionId}`;
 
-    // 1. Get suggestion
-    const suggestionJSON = await c.env.FINANCE_MANAGER_CACHE.get(kvKey);
-    if (!suggestionJSON) {
-      return c.json({ error: 'Suggestion not found or expired' }, 404);
-    }
-    const suggestion = JSON.parse(suggestionJSON);
+      // 1. Get suggestion
+      const suggestionJSON = await c.env.FINANCE_MANAGER_CACHE.get(kvKey);
+      if (!suggestionJSON) {
+        return c.json({ error: "Suggestion not found or expired" }, 404);
+      }
+      const suggestion = JSON.parse(suggestionJSON);
 
-    // 2. Validate suggestion
-    if (!suggestion.suggestedAccountId || !suggestion.originalAccountId || !suggestion.amount) {
-      return c.json({ error: 'Invalid suggestion data for application' }, 400);
-    }
+      // 2. Validate suggestion
+      if (
+        !suggestion.suggestedAccountId ||
+        !suggestion.originalAccountId ||
+        !suggestion.amount
+      ) {
+        return c.json(
+          { error: "Invalid suggestion data for application" },
+          400
+        );
+      }
 
-    // 3. Create a re-classification transaction
-    const dbAdapter = new DatabaseAdapter({
-      database: c.env.FINANCE_MANAGER_DB,
-      entityId: user.id,
-      defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY as Currency,
-    });
-    const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
-    await accountRegistry.loadAccountsFromDatabase();
-    const journalManager = new DatabaseJournalEntryManager(dbAdapter, accountRegistry);
+      // 3. Create a re-classification transaction
+      const dbAdapter = new DatabaseAdapter({
+        database: c.env.FINANCE_MANAGER_DB,
+        entityId: user.id,
+        defaultCurrency: FINANCIAL_CONSTANTS.DEFAULT_CURRENCY as Currency,
+      });
+      const accountRegistry = new DatabaseAccountRegistry(dbAdapter);
+      await accountRegistry.loadAccountsFromDatabase();
+      const journalManager = new DatabaseJournalEntryManager(
+        dbAdapter,
+        accountRegistry
+      );
 
-    const transactionBuilder = new TransactionBuilder()
-      .setDescription(`Re-classify expense from transaction ${suggestion.transactionId} based on suggestion ${suggestionId}`)
-      .setReference(`SUGGESTION_APPLY_${suggestionId}`)
-      .setDate(new Date())
-      .setCurrency(suggestion.currency as Currency);
+      const transactionBuilder = new TransactionBuilder()
+        .setDescription(
+          `Re-classify expense from transaction ${suggestion.transactionId} based on suggestion ${suggestionId}`
+        )
+        .setReference(`SUGGESTION_APPLY_${suggestionId}`)
+        .setDate(new Date())
+        .setCurrency(suggestion.currency as Currency);
 
-    // Credit the original account, debit the new one
-    transactionBuilder.credit(suggestion.originalAccountId, suggestion.amount);
-    transactionBuilder.debit(suggestion.suggestedAccountId, suggestion.amount);
+      // Credit the original account, debit the new one
+      transactionBuilder.credit(
+        suggestion.originalAccountId,
+        suggestion.amount
+      );
+      transactionBuilder.debit(
+        suggestion.suggestedAccountId,
+        suggestion.amount
+      );
 
-    // 4. Validate and persist
-    const validationErrors = transactionBuilder.validate();
-    if (validationErrors.length > 0) {
+      // 4. Validate and persist
+      const validationErrors = transactionBuilder.validate();
+      if (validationErrors.length > 0) {
+        return c.json(
+          {
+            error: "Failed to create re-classification transaction",
+            code: "DOUBLE_ENTRY_VALIDATION_ERROR",
+            details: validationErrors,
+          },
+          400
+        );
+      }
+
+      const transactionData = transactionBuilder.build();
+      const result = await journalManager.createAndPersistTransaction(
+        transactionData
+      );
+
+      // 5. Delete the suggestion from KV
+      await c.env.FINANCE_MANAGER_CACHE.delete(kvKey);
+
       return c.json({
-        error: 'Failed to create re-classification transaction',
-        code: 'DOUBLE_ENTRY_VALIDATION_ERROR',
-        details: validationErrors
-      }, 400);
+        message:
+          "Suggestion applied successfully. A new re-classification transaction has been created.",
+        transaction: result.transaction,
+      });
+    } catch (error: unknown) {
+      const doubleEntryError = handleDoubleEntryError(error);
+      if (doubleEntryError) {
+        return c.json(doubleEntryError, 400);
+      }
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return c.json(
+        {
+          error: "Failed to apply suggestion",
+          message: errorMessage,
+          code: "SUGGESTION_APPLY_ERROR",
+        },
+        500
+      );
     }
-
-    const transactionData = transactionBuilder.build();
-    const result = await journalManager.createAndPersistTransaction(transactionData);
-
-    // 5. Delete the suggestion from KV
-    await c.env.FINANCE_MANAGER_CACHE.delete(kvKey);
-
-    return c.json({
-      message: 'Suggestion applied successfully. A new re-classification transaction has been created.',
-      transaction: result.transaction,
-    });
-  } catch (error: unknown) {
-    const doubleEntryError = handleDoubleEntryError(error);
-    if (doubleEntryError) {
-      return c.json(doubleEntryError, 400);
-    }
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return c.json({
-      error: 'Failed to apply suggestion',
-      message: errorMessage,
-      code: 'SUGGESTION_APPLY_ERROR',
-    }, 500);
   }
-});
+);
 
 // DELETE /transactions/categorization-suggestions/:suggestionId - Reject a suggestion
-transactionsRouter.delete('/categorization-suggestions/:suggestionId', async (c) => {
-  try {
-    const user = c.get('user');
-    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+transactionsRouter.delete(
+  "/categorization-suggestions/:suggestionId",
+  async (c) => {
+    try {
+      const user = c.get("user");
+      if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-    const suggestionId = c.req.param('suggestionId');
-    const kvKey = `categorization:${user.id}:${suggestionId}`;
+      const suggestionId = c.req.param("suggestionId");
+      const kvKey = `categorization:${user.id}:${suggestionId}`;
 
-    await c.env.FINANCE_MANAGER_CACHE.delete(kvKey);
+      await c.env.FINANCE_MANAGER_CACHE.delete(kvKey);
 
-    return c.json({ message: 'Suggestion rejected successfully' });
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return c.json({
-      error: 'Failed to reject suggestion',
-      message: errorMessage,
-      code: 'SUGGESTION_REJECT_ERROR',
-    }, 500);
+      return c.json({ message: "Suggestion rejected successfully" });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return c.json(
+        {
+          error: "Failed to reject suggestion",
+          message: errorMessage,
+          code: "SUGGESTION_REJECT_ERROR",
+        },
+        500
+      );
+    }
   }
-});
+);
 
-export default transactionsRouter
+export default transactionsRouter;

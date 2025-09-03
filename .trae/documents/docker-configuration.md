@@ -12,30 +12,30 @@ graph TB
         subgraph "Nginx Container"
             N[Nginx Reverse Proxy]
         end
-        
+
         subgraph "Frontend Container"
             F[React SPA]
         end
-        
+
         subgraph "Backend Container"
             B[Go API Server]
         end
-        
+
         subgraph "Database Container"
             P[PostgreSQL]
         end
-        
+
         subgraph "Cache Container"
             R[Redis]
         end
-        
+
         subgraph "Volumes"
             V1[postgres_data]
             V2[redis_data]
             V3[nginx_logs]
         end
     end
-    
+
     N --> F
     N --> B
     B --> P
@@ -51,7 +51,7 @@ graph TB
 
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   # Nginx Reverse Proxy
@@ -152,11 +152,15 @@ services:
       - ./backend/migrations:/docker-entrypoint-initdb.d:ro
       - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
     ports:
-      - "5432:5432"  # Remove in production
+      - "5432:5432" # Remove in production
     networks:
       - finance-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-finance_user} -d ${DB_NAME:-finance_manager}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-finance_user} -d ${DB_NAME:-finance_manager}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -183,7 +187,7 @@ services:
       - redis_data:/data
       - ./redis/redis.conf:/etc/redis/redis.conf:ro
     ports:
-      - "6379:6379"  # Remove in production
+      - "6379:6379" # Remove in production
     networks:
       - finance-network
     healthcheck:
@@ -234,7 +238,7 @@ networks:
 
 ```yaml
 # docker-compose.override.yml (for development)
-version: '3.8'
+version: "3.8"
 
 services:
   frontend:
@@ -359,15 +363,15 @@ events {
 http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
-    
+
     # Logging
     log_format main '$remote_addr - $remote_user [$time_local] "$request" '
                     '$status $body_bytes_sent "$http_referer" '
                     '"$http_user_agent" "$http_x_forwarded_for"';
-    
+
     access_log /var/log/nginx/access.log main;
     error_log /var/log/nginx/error.log warn;
-    
+
     # Basic settings
     sendfile on;
     tcp_nopush on;
@@ -375,38 +379,38 @@ http {
     keepalive_timeout 65;
     types_hash_max_size 2048;
     client_max_body_size 10M;
-    
+
     # Gzip compression
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
-    
+
     # Rate limiting
     limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
     limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
-    
+
     # Upstream servers
     upstream frontend {
         server frontend:80;
     }
-    
+
     upstream backend {
         server backend:8080;
     }
-    
+
     # HTTP to HTTPS redirect
     server {
         listen 80;
         server_name _;
         return 301 https://$host$request_uri;
     }
-    
+
     # Main server block
     server {
         listen 443 ssl http2;
         server_name your-domain.com;
-        
+
         # SSL configuration
         ssl_certificate /etc/nginx/ssl/cert.pem;
         ssl_certificate_key /etc/nginx/ssl/key.pem;
@@ -415,40 +419,40 @@ http {
         ssl_prefer_server_ciphers off;
         ssl_session_cache shared:SSL:10m;
         ssl_session_timeout 10m;
-        
+
         # Security headers
         add_header X-Frame-Options DENY;
         add_header X-Content-Type-Options nosniff;
         add_header X-XSS-Protection "1; mode=block";
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-        
+
         # API routes
         location /api/ {
             limit_req zone=api burst=20 nodelay;
-            
+
             proxy_pass http://backend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # Timeouts
             proxy_connect_timeout 30s;
             proxy_send_timeout 30s;
             proxy_read_timeout 30s;
         }
-        
+
         # Auth endpoints with stricter rate limiting
         location /api/auth/ {
             limit_req zone=login burst=5 nodelay;
-            
+
             proxy_pass http://backend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
         }
-        
+
         # Frontend routes
         location / {
             proxy_pass http://frontend;
@@ -456,18 +460,18 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # Handle SPA routing
             try_files $uri $uri/ /index.html;
         }
-        
+
         # Static assets caching
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
             expires 1y;
             add_header Cache-Control "public, immutable";
             proxy_pass http://frontend;
         }
-        
+
         # Health check endpoint
         location /health {
             access_log off;
@@ -733,7 +737,7 @@ echo "🔴 Redis: localhost:6379"
 
 ```yaml
 # docker-compose.monitoring.yml
-version: '3.8'
+version: "3.8"
 
 services:
   # Prometheus for metrics

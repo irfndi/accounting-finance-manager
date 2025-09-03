@@ -72,7 +72,7 @@ export class DatabaseService {
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
-    
+
     return result[0] || null;
   }
 
@@ -85,7 +85,7 @@ export class DatabaseService {
       .from(users)
       .where(eq(users.id, id))
       .limit(1);
-    
+
     return result[0] || null;
   }
 
@@ -104,11 +104,8 @@ export class DatabaseService {
       lastLoginAt: null,
     };
 
-    const result = await this.db
-      .insert(users)
-      .values(newUser)
-      .returning();
-    
+    const result = await this.db.insert(users).values(newUser).returning();
+
     return result[0];
   }
 
@@ -126,7 +123,7 @@ export class DatabaseService {
       .set(updateData)
       .where(eq(users.id, id))
       .returning();
-    
+
     return result[0];
   }
 
@@ -138,7 +135,7 @@ export class DatabaseService {
       .delete(users)
       .where(eq(users.id, id))
       .returning();
-    
+
     return result[0] || null;
   }
 }

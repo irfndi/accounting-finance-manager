@@ -1,5 +1,5 @@
 # docker-compose.override.yml (for development)
-version: '3.8'
+version: "3.8"
 
 services:
   frontend:

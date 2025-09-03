@@ -1,10 +1,10 @@
 /**
  * E2E Authentication Helper
- * 
+ *
  * Provides utilities for handling authentication in Playwright tests
  */
 
-import type { Page, BrowserContext } from '@playwright/test';
+import type { Page, BrowserContext } from "@playwright/test";
 
 export interface TestUser {
   id: string;
@@ -12,25 +12,25 @@ export interface TestUser {
   password: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
 }
 
 export const TEST_USERS = {
   admin: {
-    id: 'test-admin-id',
-    email: 'admin@test.com',
-    password: 'AdminTest123!',
-    firstName: 'Admin',
-    lastName: 'User',
-    role: 'admin' as const,
+    id: "test-admin-id",
+    email: "admin@test.com",
+    password: "AdminTest123!",
+    firstName: "Admin",
+    lastName: "User",
+    role: "admin" as const,
   },
   user: {
-    id: 'test-user-id',
-    email: 'user@test.com',
-    password: 'UserTest123!',
-    firstName: 'Test',
-    lastName: 'User',
-    role: 'user' as const,
+    id: "test-user-id",
+    email: "user@test.com",
+    password: "UserTest123!",
+    firstName: "Test",
+    lastName: "User",
+    role: "user" as const,
   },
 } as const;
 
@@ -42,80 +42,94 @@ export class E2EAuthHelper {
    */
   async loginViaUI(email: string, password: string): Promise<void> {
     // Set up console logging
-    this.page.on('console', msg => {
+    this.page.on("console", (msg) => {
       console.log(`PAGE LOG [${msg.type()}]: ${msg.text()}`);
     });
-    
-    this.page.on('pageerror', error => {
-      console.error('PAGE ERROR:', error.message);
+
+    this.page.on("pageerror", (error) => {
+      console.error("PAGE ERROR:", error.message);
     });
-    
+
     // Navigate to the login page
-    await this.page.goto('/login');
+    await this.page.goto("/login");
 
     // Wait for login inputs to appear (after hydration)
-    await this.page.waitForSelector('[data-testid="email-input"]', { timeout: 20000 });
-    await this.page.waitForSelector('[data-testid="password-input"]', { timeout: 20000 });
+    await this.page.waitForSelector('[data-testid="email-input"]', {
+      timeout: 20000,
+    });
+    await this.page.waitForSelector('[data-testid="password-input"]', {
+      timeout: 20000,
+    });
 
     console.log(`E2E: Filling login form with email: ${email}`);
-    
+
     // Fill in credentials
     await this.page.fill('[data-testid="email-input"]', email);
     await this.page.fill('[data-testid="password-input"]', password);
 
-    console.log('E2E: Clicking login button');
-    
+    console.log("E2E: Clicking login button");
+
     // Click login button
     await this.page.click('[data-testid="login-button"]');
-    
-    console.log('E2E: Waiting for login response...');
-    
+
+    console.log("E2E: Waiting for login response...");
+
     // Wait a bit for the login process to complete
     await this.page.waitForTimeout(2000);
-    
+
     // Wait for navigation to complete - either to dashboard or stay on login with error
     try {
-      console.log('E2E: Checking for user menu or error message...');
-      
+      console.log("E2E: Checking for user menu or error message...");
+
       // Wait for either success (user menu appears) or error (error message appears)
       await Promise.race([
-        this.page.waitForSelector('[data-testid="user-menu"]', { timeout: 10000 }),
-        this.page.waitForSelector('[data-testid="error-message"]', { timeout: 10000 })
+        this.page.waitForSelector('[data-testid="user-menu"]', {
+          timeout: 10000,
+        }),
+        this.page.waitForSelector('[data-testid="error-message"]', {
+          timeout: 10000,
+        }),
       ]);
-      
+
       // Check if we're on the dashboard (user menu should be visible)
-      const userMenu = await this.page.locator('[data-testid="user-menu"]').isVisible();
+      const userMenu = await this.page
+        .locator('[data-testid="user-menu"]')
+        .isVisible();
       console.log(`E2E: User menu visible: ${userMenu}`);
-      
+
       if (!userMenu) {
-        throw new Error('Login failed - user menu not found after login attempt');
+        throw new Error(
+          "Login failed - user menu not found after login attempt"
+        );
       }
-      
-      console.log('E2E: Login successful!');
+
+      console.log("E2E: Login successful!");
     } catch (error) {
       // If waiting fails, check current URL and page state
       const currentUrl = this.page.url();
       console.error(`Login failed. Current URL: ${currentUrl}`);
-      
+
       // Try to get any error messages on the page
       try {
-        const errorElement = await this.page.locator('[data-testid="error-message"]').textContent();
+        const errorElement = await this.page
+          .locator('[data-testid="error-message"]')
+          .textContent();
         if (errorElement) {
           console.error(`Login error message: ${errorElement}`);
         }
       } catch {
         // Ignore if no error message found
       }
-      
+
       // Check localStorage state
       const authState = await this.page.evaluate(() => {
         return {
-          token: localStorage.getItem('finance_manager_token'),
-          user: localStorage.getItem('finance_manager_user')
+          token: localStorage.getItem("finance_manager_token"),
+          user: localStorage.getItem("finance_manager_user"),
         };
       });
-      console.error('Auth state in localStorage:', authState);
-      
+      console.error("Auth state in localStorage:", authState);
+
       throw new Error(`Login via UI failed: ${error}`);
     }
   }
@@ -126,18 +140,24 @@ export class E2EAuthHelper {
   async loginViaAPI(user: TestUser): Promise<string> {
     // Mock the API response since we don't have a real database in E2E tests
     const mockToken = `mock-jwt-token-${Date.now()}`;
-    
+
     // Set the token in localStorage
-    await this.page.addInitScript(({ token, userData }) => {
-      localStorage.setItem('finance_manager_token', token);
-      localStorage.setItem('finance_manager_user', JSON.stringify(userData));
-    }, { token: mockToken, userData: {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-    }});
+    await this.page.addInitScript(
+      ({ token, userData }) => {
+        localStorage.setItem("finance_manager_token", token);
+        localStorage.setItem("finance_manager_user", JSON.stringify(userData));
+      },
+      {
+        token: mockToken,
+        userData: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        },
+      }
+    );
 
     return mockToken;
   }
@@ -150,14 +170,14 @@ export class E2EAuthHelper {
     try {
       await this.page.click('[data-testid="user-menu"]');
       await this.page.click('[data-testid="logout-button"]');
-      await this.page.waitForURL('/login', { timeout: 5000 });
+      await this.page.waitForURL("/login", { timeout: 5000 });
     } catch {
       // If UI logout fails, clear localStorage and navigate to login
       await this.page.evaluate(() => {
-        localStorage.removeItem('finance_manager_token');
-        localStorage.removeItem('finance_manager_user');
+        localStorage.removeItem("finance_manager_token");
+        localStorage.removeItem("finance_manager_user");
       });
-      await this.page.goto('/login');
+      await this.page.goto("/login");
     }
   }
 
@@ -166,7 +186,9 @@ export class E2EAuthHelper {
    */
   async isLoggedIn(): Promise<boolean> {
     try {
-      const token = await this.page.evaluate(() => localStorage.getItem('finance_manager_token'));
+      const token = await this.page.evaluate(() =>
+        localStorage.getItem("finance_manager_token")
+      );
       return !!token;
     } catch {
       return false;
@@ -178,7 +200,9 @@ export class E2EAuthHelper {
    */
   async getAuthToken(): Promise<string | null> {
     try {
-      return await this.page.evaluate(() => localStorage.getItem('finance_manager_token'));
+      return await this.page.evaluate(() =>
+        localStorage.getItem("finance_manager_token")
+      );
     } catch {
       return null;
     }
@@ -189,7 +213,7 @@ export class E2EAuthHelper {
    */
   async setAuthToken(token: string): Promise<void> {
     await this.page.addInitScript((token) => {
-      localStorage.setItem('finance_manager_token', token);
+      localStorage.setItem("finance_manager_token", token);
     }, token);
   }
 
@@ -202,10 +226,10 @@ export class E2EAuthHelper {
     const testUser: TestUser = {
       id: `test-user-${timestamp}`,
       email: userData?.email || `test${timestamp}@example.com`,
-      password: userData?.password || 'TestPassword123!',
-      firstName: userData?.firstName || 'Test',
-      lastName: userData?.lastName || 'User',
-      role: userData?.role || 'user',
+      password: userData?.password || "TestPassword123!",
+      firstName: userData?.firstName || "Test",
+      lastName: userData?.lastName || "User",
+      role: userData?.role || "user",
     };
 
     // In E2E tests, we just return the mock user without hitting the API
@@ -215,10 +239,13 @@ export class E2EAuthHelper {
   /**
    * Setup authentication state for a context
    */
-  static async setupAuthState(context: BrowserContext, user: TestUser): Promise<void> {
+  static async setupAuthState(
+    context: BrowserContext,
+    user: TestUser
+  ): Promise<void> {
     const page = await context.newPage();
     const authHelper = new E2EAuthHelper(page);
-    
+
     try {
       // Create test user if needed
       const testUser = await authHelper.createTestUser({
@@ -226,23 +253,32 @@ export class E2EAuthHelper {
         password: user.password,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
+        role: user.role,
       });
-      
+
       // Login via API to get token
       const token = await authHelper.loginViaAPI(testUser);
-      
+
       // Set auth state in context
-      await context.addInitScript(({ token, userData }) => {
-        localStorage.setItem('finance_manager_token', token);
-        localStorage.setItem('finance_manager_user', JSON.stringify(userData));
-      }, { token, userData: {
-        id: testUser.id,
-        email: testUser.email,
-        firstName: testUser.firstName,
-        lastName: testUser.lastName,
-        role: testUser.role,
-      }});
+      await context.addInitScript(
+        ({ token, userData }) => {
+          localStorage.setItem("finance_manager_token", token);
+          localStorage.setItem(
+            "finance_manager_user",
+            JSON.stringify(userData)
+          );
+        },
+        {
+          token,
+          userData: {
+            id: testUser.id,
+            email: testUser.email,
+            firstName: testUser.firstName,
+            lastName: testUser.lastName,
+            role: testUser.role,
+          },
+        }
+      );
     } finally {
       await page.close();
     }
@@ -254,16 +290,16 @@ export class E2EAuthHelper {
  */
 export async function setupGlobalAuth(page: Page): Promise<void> {
   const authHelper = new E2EAuthHelper(page);
-  
+
   // Create test users
   const regularUser = await authHelper.createTestUser({
     email: TEST_USERS.user.email,
     password: TEST_USERS.user.password,
     firstName: TEST_USERS.user.firstName,
     lastName: TEST_USERS.user.lastName,
-    role: 'user'
+    role: "user",
   });
-  
+
   // Login default user
   await authHelper.loginViaAPI(regularUser);
 }
@@ -274,20 +310,20 @@ export async function setupGlobalAuth(page: Page): Promise<void> {
 export async function cleanupAuth(page: Page): Promise<void> {
   try {
     // Ensure page is ready and accessible
-    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-    
+    await page.waitForLoadState("domcontentloaded", { timeout: 5000 });
+
     // Clear localStorage safely
     await page.evaluate(() => {
       try {
-        localStorage.removeItem('finance_manager_token');
-        localStorage.removeItem('finance_manager_user');
+        localStorage.removeItem("finance_manager_token");
+        localStorage.removeItem("finance_manager_user");
       } catch (error) {
         // Ignore localStorage access errors
-        console.warn('Could not clear localStorage:', error);
+        console.warn("Could not clear localStorage:", error);
       }
     });
   } catch (error) {
     // Ignore cleanup errors - they shouldn't fail tests
-    console.warn('Auth cleanup failed:', error);
+    console.warn("Auth cleanup failed:", error);
   }
 }

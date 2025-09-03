@@ -20,6 +20,7 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 ## ✨ Features
 
 ### 🧮 Core Accounting Engine
+
 - **Double-Entry Bookkeeping**: ACID-compliant transactions with automatic balance validation
 - **Multi-Currency Support**: IDR primary with extensible currency framework
 - **Real-Time Financial Statements**: Balance Sheet, P&L, Cash Flow with live calculations
@@ -29,6 +30,7 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 - **Period Management**: Flexible accounting periods with proper closing procedures
 
 ### 🤖 AI-Powered Features
+
 - **Document OCR**: Cloudflare AI for receipt and invoice text extraction
 - **Smart Categorization**: OpenRouter LLM for intelligent expense classification
 - **Financial Analysis**: AI-driven insights and recommendations
@@ -36,6 +38,7 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 - **Automated Data Entry**: AI-assisted transaction creation from documents
 
 ### 🔐 Security & Authentication
+
 - **Magic Link Authentication**: Passwordless login via AWS SES
 - **JWT Session Management**: HS256 signed tokens with KV storage
 - **Argon2id Password Hashing**: Edge-optimized security with WebAssembly
@@ -44,6 +47,7 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 - **Role-Based Access Control**: Granular permissions for different user types
 
 ### 📊 Financial Reporting
+
 - **Multi-Format Export**: CSV, PDF, Excel with professional formatting
 - **Real-Time Calculations**: Live balance updates and statement generation
 - **Performance Optimization**: Intelligent caching and query optimization
@@ -54,6 +58,7 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 ## 🚀 Technology Stack
 
 ### Runtime & Infrastructure
+
 - **Cloudflare Workers**: Edge computing platform with global distribution
 - **Hono**: Fast, lightweight web framework with TypeScript support
 - **TypeScript**: Type-safe development with strict configuration
@@ -61,6 +66,7 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 - **Alchemy**: Infrastructure as Code for Cloudflare resources
 
 ### Data & Storage
+
 - **Cloudflare D1**: SQLite-compatible serverless database with ACID compliance
 - **Drizzle ORM**: Type-safe SQL query builder with schema validation
 - **Cloudflare R2**: Object storage for files, receipts, and report exports
@@ -68,11 +74,13 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 - **Cloudflare Vectorize**: Vector database for AI embeddings and semantic search
 
 ### AI & Machine Learning
+
 - **OpenRouter**: Primary LLM provider with multiple model support
 - **Moonshot AI**: Fallback provider for redundancy
 - **Cloudflare AI**: OCR, document processing, and text analysis
 
 ### Development & Testing
+
 - **Vitest**: Fast unit testing framework with Workers support
 - **Playwright**: End-to-end testing with browser automation
 - **ESLint (OxLint)**: Fast code linting and quality checks
@@ -82,6 +90,7 @@ A modern, AI-powered corporate accounting platform built on Cloudflare Workers w
 ## 🛠️ Development
 
 ### Prerequisites
+
 - Node.js 22+
 - pnpm 9+
 - Cloudflare account with Workers, D1, R2, KV, and Vectorize enabled
@@ -241,6 +250,7 @@ finance-manager/
 The project maintains comprehensive test coverage with multiple testing strategies:
 
 ### Test Types
+
 - **Unit Tests**: Core business logic, utilities, and service functions
 - **Integration Tests**: Database operations and API endpoint testing
 - **End-to-End Tests**: Complete user workflows with Playwright
@@ -287,12 +297,14 @@ playwright test e2e/auth.spec.ts
 ### Test Structure
 
 #### Unit Tests (`tests/unit/`)
+
 - **Business Logic**: Accounting engine, financial calculations
 - **Services**: AI services, authentication, database operations
 - **Utilities**: Helper functions, validation, formatting
 - **API Routes**: Worker route handlers and middleware
 
 #### E2E Tests (`e2e/`)
+
 - **Authentication Flow**: Login, logout, session management
 - **Dashboard**: Main application interface and navigation
 - **Accounts Management**: Chart of accounts CRUD operations
@@ -300,6 +312,7 @@ playwright test e2e/auth.spec.ts
 - **Reporting**: Financial report generation and export
 
 #### Test Environment
+
 - **Miniflare**: Simulates Cloudflare Workers runtime locally
 - **Happy DOM**: Fast DOM implementation for unit tests
 - **Testing Library**: React component testing utilities
@@ -311,21 +324,23 @@ playwright test e2e/auth.spec.ts
 ### Production Deployment
 
 1. **Configure Cloudflare Resources**:
+
    ```bash
    # Create D1 database
    wrangler d1 create finance-manager-prod
-   
+
    # Create KV namespace
    wrangler kv:namespace create "SESSIONS" --env production
-   
+
    # Create R2 bucket
    wrangler r2 bucket create finance-manager-uploads
-   
+
    # Create Vectorize index
    wrangler vectorize create finance-documents --dimensions=1536
    ```
 
 2. **Set Environment Variables**:
+
    ```bash
    # Set secrets
    wrangler secret put JWT_SECRET --env production
@@ -335,6 +350,7 @@ playwright test e2e/auth.spec.ts
    ```
 
 3. **Deploy Database Migrations**:
+
    ```bash
    pnpm db:migrate:prod
    ```
@@ -398,17 +414,20 @@ APP_URL=https://your-domain.com
 The project uses multiple configuration files for different aspects:
 
 #### Infrastructure Configuration
+
 - `wrangler.jsonc`: Primary Cloudflare Workers configuration
 - `wrangler.test.jsonc`: Test environment configuration
 - `alchemy.*.ts`: Infrastructure-as-Code definitions
 
 #### Build and Development
+
 - `astro.config.mjs`: Astro framework configuration
 - `tsconfig.json`: TypeScript compiler configuration
 - `drizzle.config.ts`: Database ORM configuration
 - `tailwindcss.config.js`: CSS framework configuration
 
 #### Testing Configuration
+
 - `vitest.config.ts`: Main testing framework configuration
 - `vitest.coverage.config.ts`: Coverage reporting configuration
 - `vitest.react.config.ts`: React component testing
@@ -416,6 +435,7 @@ The project uses multiple configuration files for different aspects:
 - `playwright.minimal.config.ts`: Minimal E2E configuration
 
 #### Code Quality
+
 - `.oxlintrc.json`: OxLint configuration for fast linting
 - `prettier.config.js`: Code formatting configuration
 - `.github/workflows/`: CI/CD pipeline definitions
