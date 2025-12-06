@@ -44,3 +44,4 @@ worker/dist/
 # tasks/ 
 
 dist
+*.tsbuildinfo
