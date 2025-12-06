@@ -162,10 +162,10 @@ export class DataValidationService {
    */
   async updateWarningStatus(
     warningId: string,
-    status: ValidationWarning['status']
+    status: 'active' | 'dismissed' | 'resolved'
   ): Promise<void> {
     const updates = ['status = ?'];
-    const params: string[] = [status];
+    const params: (string | number)[] = [status];
 
     if (status === 'resolved' || status === 'dismissed') {
       updates.push('resolved_at = ?');
@@ -443,6 +443,7 @@ export class DataValidationService {
    */
   private calculateSimilarity(str1: string, str2: string): number {
     const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
 
     if (longer.length === 0) return 1.0;
 
