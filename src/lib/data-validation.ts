@@ -162,10 +162,10 @@ export class DataValidationService {
    */
   async updateWarningStatus(
     warningId: string,
-    status: ValidationWarning['status']
+    status: 'active' | 'dismissed' | 'resolved'
   ): Promise<void> {
     const updates = ['status = ?'];
-    const params = [status];
+    const params: (string | number)[] = [status];
 
     if (status === 'resolved' || status === 'dismissed') {
       updates.push('resolved_at = ?');

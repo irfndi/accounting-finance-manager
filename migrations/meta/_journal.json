@@ -29,6 +29,13 @@
       "when": 1750752212286,
       "tag": "0003_rare_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1764998337363,
+      "tag": "0004_sad_the_hand",
+      "breakpoints": true
     }
   ]
 }
