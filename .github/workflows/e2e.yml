@@ -16,6 +16,7 @@ concurrency:
 env:
   NODE_VERSION: '22'
   PNPM_VERSION: 'latest'
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '0'
 
 jobs:
   # ============================================================================
@@ -61,8 +62,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            .astro
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Build application
         run: |
@@ -169,7 +190,6 @@ jobs:
         run: |
           STORE_PATH=$(pnpm store path --silent)
           echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-          echo "Store path: $STORE_PATH"
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
@@ -179,8 +199,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       # Browsers are pre-installed in the Docker container
       # No need to install browsers separately
@@ -238,7 +268,6 @@ jobs:
         run: |
           STORE_PATH=$(pnpm store path --silent)
           echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-          echo "Store path: $STORE_PATH"
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
@@ -248,8 +277,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Install Lighthouse CI
         run: |
@@ -326,7 +365,6 @@ jobs:
         run: |
           STORE_PATH=$(pnpm store path --silent)
           echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-          echo "Store path: $STORE_PATH"
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
@@ -336,8 +374,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       # Browsers are pre-installed in the Docker container
       # No need to install browsers separately
