@@ -393,7 +393,6 @@ jobs:
       # Server will be started automatically by Playwright webServer configuration
 
       - name: Run accessibility tests
-        working-directory: apps/web
         run: |
           echo "Running accessibility tests..."
           pnpm exec playwright test --project=accessibility --grep="@a11y"
@@ -419,8 +418,8 @@ jobs:
         with:
           name: accessibility-reports
           path: |
-            apps/web/accessibility-reports/
-            apps/web/test-results/
+            accessibility-reports/
+            test-results/
           retention-days: 7
 
   # ============================================================================
