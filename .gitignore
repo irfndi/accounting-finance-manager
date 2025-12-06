@@ -29,7 +29,6 @@ node_modules/
 coverage/
 .wrangler
 .astro
-.alchemy
 
 test-result
 playwright-report
@@ -40,10 +39,9 @@ worker/src/**/*.js
 worker/src/**/*.js.map
 worker/dist/
 
-dist/
-
 # Task files
 # tasks.json
 # tasks/ 
 
-test-results
+dist
+*.tsbuildinfo
