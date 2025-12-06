@@ -124,7 +124,6 @@ jobs:
         run: |
           STORE_PATH=$(pnpm store path --silent)
           echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-          echo "Store path: $STORE_PATH"
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
@@ -134,13 +133,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: |
-          # Try frozen lockfile first, fallback to updating if overrides mismatch
-          pnpm install --frozen-lockfile || {
-            echo "Lockfile config mismatch detected, updating lockfile..."
-            pnpm install --no-frozen-lockfile
-          }
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Build application
         run: |
@@ -193,7 +197,6 @@ jobs:
         run: |
           STORE_PATH=$(pnpm store path --silent)
           echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-          echo "Store path: $STORE_PATH"
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
@@ -203,13 +206,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: |
-          # Try frozen lockfile first, fallback to updating if overrides mismatch
-          pnpm install --frozen-lockfile || {
-            echo "Lockfile config mismatch detected, updating lockfile..."
-            pnpm install --no-frozen-lockfile
-          }
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Deploy to Cloudflare Workers (Staging)
         run: |
@@ -264,7 +272,6 @@ jobs:
         run: |
           STORE_PATH=$(pnpm store path --silent)
           echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-          echo "Store path: $STORE_PATH"
 
       - name: Setup pnpm cache
         uses: actions/cache@v4
@@ -274,13 +281,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Setup node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install dependencies
-        run: |
-          # Try frozen lockfile first, fallback to updating if overrides mismatch
-          pnpm install --frozen-lockfile || {
-            echo "Lockfile config mismatch detected, updating lockfile..."
-            pnpm install --no-frozen-lockfile
-          }
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Create deployment backup
         run: |
@@ -344,12 +356,7 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: |
-          # Try frozen lockfile first, fallback to updating if overrides mismatch
-          pnpm install --frozen-lockfile || {
-            echo "Lockfile config mismatch detected, updating lockfile..."
-            pnpm install --no-frozen-lockfile
-          }
+        run: pnpm install --frozen-lockfile
 
       - name: Get previous deployment
         id: previous
