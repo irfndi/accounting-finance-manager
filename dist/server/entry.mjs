@@ -1,6 +1,6 @@
 import { renderers } from './renderers.mjs';
-import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_B8uYS7ZH.mjs';
-import { manifest } from './manifest_BBG83j8g.mjs';
+import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_BZaRF7fG.mjs';
+import { manifest } from './manifest_Cv6ZwXaH.mjs';
 
 const serverIslandMap = new Map();;
 
@@ -16,7 +16,7 @@ const _page8 = () => import('./pages/reports.astro.mjs');
 const _page9 = () => import('./pages/search.astro.mjs');
 const _page10 = () => import('./pages/index.astro.mjs');
 const pageMap = new Map([
-    ["node_modules/.pnpm/astro@5.10.1_@types+node@24.0.4_aws4fetch@1.0.20_jiti@2.4.2_lightningcss@1.30.1_rollup@_2f8d7c323dcfb30734ead8638f44c77f/node_modules/astro/dist/assets/endpoint/node.js", _page0],
+    ["node_modules/.pnpm/astro@5.10.1_@types+node@24.0.10_aws4fetch@1.0.20_jiti@2.4.2_lightningcss@1.30.1_rollup_eae958d8ebf12254965c89702a357141/node_modules/astro/dist/assets/endpoint/node.js", _page0],
     ["src/web/pages/api/ai-analysis.js", _page1],
     ["src/web/pages/api/ai-analysis.ts", _page2],
     ["src/web/pages/api/ai-insights.js", _page3],
@@ -38,8 +38,8 @@ const _manifest = Object.assign(manifest, {
 });
 const _args = {
     "mode": "standalone",
-    "client": "file:///Users/irfandi/Coding/2025/finance-manager/dist/client/",
-    "server": "file:///Users/irfandi/Coding/2025/finance-manager/dist/server/",
+    "client": "file:///home/runner/work/fin-in-flow/fin-in-flow/dist/client/",
+    "server": "file:///home/runner/work/fin-in-flow/fin-in-flow/dist/server/",
     "host": true,
     "port": 3000,
     "assets": "_astro"
