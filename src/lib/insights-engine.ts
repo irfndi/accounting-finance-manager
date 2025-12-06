@@ -476,9 +476,9 @@ export class InsightsEngine {
    * Generate forecast
    */
   private async generateForecast(
-    entityId: string,
+    _entityId: string,
     metric: string,
-    days: number
+    _days: number
   ): Promise<Forecast> {
     // Simple linear regression forecast
     // In production, use more sophisticated forecasting methods
