@@ -126,7 +126,7 @@ export class VectorizeService {
       // Insert vectors into Vectorize
       await this.vectorize.insert(vectors);
       
-      console.log(`✅ Generated embeddings for document ${fileId} (${chunks.length} chunks)`);
+      // console.log(`✅ Generated embeddings for document ${fileId} (${chunks.length} chunks)`);
       return { success: true, chunksCreated: chunks.length };
     } catch (error) {
       console.error('Failed to generate embeddings:', error);
@@ -294,7 +294,7 @@ export class VectorizeService {
         // Ignore errors for non-existent chunk IDs
       }
       
-      console.log(`✅ Deleted embeddings for document ${fileId}`);
+      // console.log(`✅ Deleted embeddings for document ${fileId}`);
       return { success: true };
     } catch (error) {
       console.error('Failed to delete embeddings:', error);

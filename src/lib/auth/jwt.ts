@@ -367,3 +367,21 @@ export async function refreshToken(token: string): Promise<string> {
     throw new Error('Cannot refresh expired or invalid token');
   }
 }
+
+/**
+ * Validate a JWT token and return validation result
+ * Used by API endpoints for authentication
+ */
+export async function validateToken(token: string): Promise<{ valid: boolean; error?: string; payload?: any }> {
+  try {
+    if (!token) {
+      return { valid: false, error: 'Token is required' };
+    }
+
+    const payload = await verifyToken(token);
+    return { valid: true, payload };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Invalid token';
+    return { valid: false, error: errorMessage };
+  }
+}

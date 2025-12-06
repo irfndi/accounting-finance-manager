@@ -4,7 +4,7 @@
   "fqn": "finance-manager/irfandi/finance-manager-docs-v2",
   "seq": 1,
   "data": {},
-  "status": "created",
+  "status": "updated",
   "output": {
     "Symbol(alchemy::ResourceKind)": "cloudflare::R2Bucket",
     "Symbol(alchemy::ResourceID)": "finance-manager-docs-v2",
@@ -16,13 +16,14 @@
     "name": "finance-manager-docs-v2",
     "location": "default",
     "creationDate": {
-      "@date": "2025-06-27T08:46:34.956Z"
+      "@date": "2025-06-30T05:00:00.408Z"
     },
     "jurisdiction": "default",
     "type": "r2_bucket",
     "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
   },
   "props": {
-    "name": "finance-manager-docs-v2"
+    "name": "finance-manager-docs-v2",
+    "adopt": true
   }
 }

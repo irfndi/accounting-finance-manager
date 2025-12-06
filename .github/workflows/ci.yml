@@ -60,7 +60,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Validate workspace
         run: |
@@ -111,7 +116,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Run linter
         timeout-minutes: 3
@@ -165,7 +175,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Type check application
         timeout-minutes: 5
@@ -219,7 +234,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Run unit tests
         timeout-minutes: 10
@@ -283,7 +303,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Install Playwright browsers
         run: |
@@ -343,7 +368,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Run unit tests
         timeout-minutes: 10

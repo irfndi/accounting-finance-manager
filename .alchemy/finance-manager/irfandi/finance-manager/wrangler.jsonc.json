@@ -1,0 +1,233 @@
+{
+  "kind": "cloudflare::WranglerJson",
+  "id": "wrangler.jsonc",
+  "fqn": "finance-manager/irfandi/finance-manager/wrangler.jsonc",
+  "seq": 0,
+  "data": {},
+  "status": "created",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "cloudflare::WranglerJson",
+    "Symbol(alchemy::ResourceID)": "wrangler.jsonc",
+    "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager/wrangler.jsonc",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 0,
+    "path": "/Users/irfandi/Coding/2025/finance-manager/wrangler.jsonc",
+    "worker": {
+      "command": "pnpm run build",
+      "bindings": {
+        "FINANCE_MANAGER_DB": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
+          "Symbol(alchemy::ResourceID)": "finance-manager-db-v2",
+          "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-db-v2",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 2,
+          "type": "d1",
+          "id": "ed6f24bb-ddf5-4e5d-8c51-154b819a82fd",
+          "name": "finance-manager-db-v2",
+          "fileSize": 12288,
+          "numTables": 0,
+          "version": "production",
+          "readReplication": {
+            "mode": "disabled"
+          },
+          "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+        },
+        "FINANCE_MANAGER_CACHE": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+          "Symbol(alchemy::ResourceID)": "finance-manager-cache-v2",
+          "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-cache-v2",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 0,
+          "type": "kv_namespace",
+          "namespaceId": "08b151862b2a44f5bc352376eb0b9b85",
+          "title": "finance-manager-cache-v2",
+          "createdAt": 1751013987736,
+          "modifiedAt": 1751259595158
+        },
+        "FINANCE_MANAGER_DOCUMENTS": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::R2Bucket",
+          "Symbol(alchemy::ResourceID)": "finance-manager-docs-v2",
+          "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-docs-v2",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 1,
+          "name": "finance-manager-docs-v2",
+          "location": "default",
+          "creationDate": {
+            "@date": "2025-06-30T05:00:00.408Z"
+          },
+          "jurisdiction": "default",
+          "type": "r2_bucket",
+          "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+        },
+        "AI": {
+          "type": "ai"
+        }
+      },
+      "vars": {
+        "ALCHEMY_MANAGED": "true",
+        "CONTAINER_VERSION": "1.0.0",
+        "DEPLOYMENT_STRATEGY": "alchemy",
+        "STAGE": "dev",
+        "ENVIRONMENT": "development",
+        "AUTH_SESSION_DURATION": "7d",
+        "AWS_REGION": "us-east-1",
+        "SES_FROM_EMAIL": "noreply@finance-manager.com",
+        "SES_FROM_NAME": "Finance Manager"
+      },
+      "noBundle": true,
+      "main": "dist/_worker.js/index.js",
+      "assets": {
+        "html_handling": "auto-trailing-slash",
+        "not_found_handling": "none",
+        "run_worker_first": false,
+        "dist": "dist"
+      },
+      "wrangler": true,
+      "compatibilityDate": "2025-06-27",
+      "name": "finance-manager",
+      "entrypoint": "dist/_worker.js/index.js",
+      "url": true,
+      "adopt": true
+    },
+    "main": "dist/_worker.js/index.js",
+    "assets": {
+      "binding": "ASSETS",
+      "directory": "dist"
+    },
+    "spec": {
+      "name": "finance-manager",
+      "main": "dist/_worker.js/index.js",
+      "compatibility_date": "2025-06-27",
+      "assets": {
+        "binding": "ASSETS",
+        "directory": "dist"
+      },
+      "ai": {
+        "binding": "AI"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "FINANCE_MANAGER_CACHE",
+          "id": "08b151862b2a44f5bc352376eb0b9b85",
+          "preview_id": "08b151862b2a44f5bc352376eb0b9b85"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FINANCE_MANAGER_DOCUMENTS",
+          "bucket_name": "finance-manager-docs-v2",
+          "preview_bucket_name": "finance-manager-docs-v2"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "FINANCE_MANAGER_DB",
+          "database_id": "ed6f24bb-ddf5-4e5d-8c51-154b819a82fd",
+          "database_name": "finance-manager-db-v2",
+          "preview_database_id": "ed6f24bb-ddf5-4e5d-8c51-154b819a82fd"
+        }
+      ]
+    },
+    "createdAt": 1751259846019,
+    "updatedAt": 1751259846019
+  },
+  "props": {
+    "path": "/Users/irfandi/Coding/2025/finance-manager/wrangler.jsonc",
+    "worker": {
+      "command": "pnpm run build",
+      "bindings": {
+        "FINANCE_MANAGER_DB": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
+          "Symbol(alchemy::ResourceID)": "finance-manager-db-v2",
+          "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-db-v2",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 2,
+          "type": "d1",
+          "id": "ed6f24bb-ddf5-4e5d-8c51-154b819a82fd",
+          "name": "finance-manager-db-v2",
+          "fileSize": 12288,
+          "numTables": 0,
+          "version": "production",
+          "readReplication": {
+            "mode": "disabled"
+          },
+          "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+        },
+        "FINANCE_MANAGER_CACHE": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+          "Symbol(alchemy::ResourceID)": "finance-manager-cache-v2",
+          "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-cache-v2",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 0,
+          "type": "kv_namespace",
+          "namespaceId": "08b151862b2a44f5bc352376eb0b9b85",
+          "title": "finance-manager-cache-v2",
+          "createdAt": 1751013987736,
+          "modifiedAt": 1751259595158
+        },
+        "FINANCE_MANAGER_DOCUMENTS": {
+          "Symbol(alchemy::ResourceKind)": "cloudflare::R2Bucket",
+          "Symbol(alchemy::ResourceID)": "finance-manager-docs-v2",
+          "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-docs-v2",
+          "Symbol(alchemy::ResourceScope)": {
+            "@scope": null
+          },
+          "Symbol(alchemy::ResourceSeq)": 1,
+          "name": "finance-manager-docs-v2",
+          "location": "default",
+          "creationDate": {
+            "@date": "2025-06-30T05:00:00.408Z"
+          },
+          "jurisdiction": "default",
+          "type": "r2_bucket",
+          "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+        },
+        "AI": {
+          "type": "ai"
+        }
+      },
+      "vars": {
+        "ALCHEMY_MANAGED": "true",
+        "CONTAINER_VERSION": "1.0.0",
+        "DEPLOYMENT_STRATEGY": "alchemy",
+        "STAGE": "dev",
+        "ENVIRONMENT": "development",
+        "AUTH_SESSION_DURATION": "7d",
+        "AWS_REGION": "us-east-1",
+        "SES_FROM_EMAIL": "noreply@finance-manager.com",
+        "SES_FROM_NAME": "Finance Manager"
+      },
+      "noBundle": true,
+      "main": "dist/_worker.js/index.js",
+      "assets": {
+        "html_handling": "auto-trailing-slash",
+        "not_found_handling": "none",
+        "run_worker_first": false,
+        "dist": "dist"
+      },
+      "wrangler": true,
+      "compatibilityDate": "2025-06-27",
+      "name": "finance-manager",
+      "entrypoint": "dist/_worker.js/index.js",
+      "url": true,
+      "adopt": true
+    },
+    "main": "dist/_worker.js/index.js",
+    "assets": {
+      "binding": "ASSETS",
+      "directory": "dist"
+    }
+  }
+}

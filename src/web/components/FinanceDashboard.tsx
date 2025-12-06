@@ -148,7 +148,7 @@ export default function FinanceDashboard() {
     switch (priority) {
       case 'high': return 'text-red-600 bg-red-100';
       case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
+      case 'low': return 'text-green-700 bg-green-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -168,7 +168,7 @@ export default function FinanceDashboard() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Corporate Finance Dashboard</h1>
+          <h1 data-testid="dashboard-title" className="text-3xl font-bold text-slate-800">Corporate Finance Dashboard</h1>
           <p className="text-slate-600">AI-powered financial intelligence & corporate accounting</p>
         </div>
         <div className="flex gap-2">
@@ -199,12 +199,12 @@ export default function FinanceDashboard() {
           {financialAlerts.map((alert) => (
             <div key={alert.id} className={`p-3 rounded-lg border-l-4 ${
               alert.type === 'error' ? 'bg-red-50 border-red-400 text-red-700' :
-              alert.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-700' :
-              'bg-blue-50 border-blue-400 text-blue-700'
+              alert.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-800' :
+          'bg-blue-50 border-blue-400 text-blue-800'
             }`}>
               <div className="flex items-center justify-between">
                 <span className="text-sm">{alert.message}</span>
-                <span className="text-xs opacity-75">
+                <span className="text-xs text-gray-600">
                   {alert.timestamp.toLocaleTimeString()}
                 </span>
               </div>
@@ -245,7 +245,7 @@ export default function FinanceDashboard() {
                   <p className="text-2xl font-bold text-slate-900">{metric.value}</p>
                 </div>
                 <div className={`text-sm font-medium ${
-                  metric.trend === 'up' ? 'text-green-600' : 
+                  metric.trend === 'up' ? 'text-green-700' : 
                   metric.trend === 'down' ? 'text-red-600' : 'text-slate-600'
                 }`}>
                   {metric.change}
@@ -300,8 +300,8 @@ export default function FinanceDashboard() {
                   <h4 className="font-semibold text-blue-900 flex items-center gap-2">
                     📊 Recent Activity
                   </h4>
-                  <p className="text-sm text-blue-700">5 journal entries pending approval</p>
-                  <p className="text-sm text-blue-700">3 AI-flagged transactions for review</p>
+                  <p className="text-sm text-blue-800">5 journal entries pending approval</p>
+              <p className="text-sm text-blue-800">3 AI-flagged transactions for review</p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
                   <h4 className="font-semibold text-green-900 flex items-center gap-2">
@@ -346,9 +346,9 @@ export default function FinanceDashboard() {
                 </div>
               </div>
               <CategorizationManager 
-                onSuggestionApproved={(suggestion) => {
+                onSuggestionApproved={(_suggestion) => {
                   // Handle approved suggestion - could refresh transaction list or show notification
-                  console.log('Suggestion approved:', suggestion);
+                  // console.log('Suggestion approved:', suggestion);
                 }}
                 className="bg-white rounded-lg shadow-sm"
               />
@@ -458,7 +458,7 @@ export default function FinanceDashboard() {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Revenue</span>
-                        <span className="text-sm font-medium text-green-600">+8% vs budget</span>
+                        <span className="text-sm font-medium text-green-700">+8% vs budget</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Expenses</span>
@@ -466,7 +466,7 @@ export default function FinanceDashboard() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Net Income</span>
-                        <span className="text-sm font-medium text-green-600">+12% vs budget</span>
+                        <span className="text-sm font-medium text-green-700">+12% vs budget</span>
                       </div>
                     </div>
                   </CardContent>
@@ -478,10 +478,10 @@ export default function FinanceDashboard() {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="p-3 bg-blue-50 rounded-md">
-                        <p className="text-sm text-blue-700">📈 Revenue projected to grow 15% next quarter</p>
+                        <p className="text-sm text-blue-800">📈 Revenue projected to grow 15% next quarter</p>
                       </div>
                       <div className="p-3 bg-yellow-50 rounded-md">
-                        <p className="text-sm text-yellow-700">⚠️ Monitor office expenses - trending 8% above forecast</p>
+                        <p className="text-sm text-yellow-800">⚠️ Monitor office expenses - trending 8% above forecast</p>
                       </div>
                     </div>
                   </CardContent>

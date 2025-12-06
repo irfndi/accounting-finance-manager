@@ -1,0 +1,30 @@
+{
+  "kind": "os::Exec",
+  "id": "build",
+  "fqn": "finance-manager/irfandi/finance-manager/build",
+  "seq": 1,
+  "data": {},
+  "status": "created",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "os::Exec",
+    "Symbol(alchemy::ResourceID)": "build",
+    "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager/build",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 1,
+    "id": "build",
+    "command": "pnpm run build",
+    "cwd": "/Users/irfandi/Coding/2025/finance-manager",
+    "inheritStdio": true,
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "executedAt": 1751259858899,
+    "completed": true
+  },
+  "props": {
+    "cwd": "/Users/irfandi/Coding/2025/finance-manager",
+    "command": "pnpm run build"
+  }
+}

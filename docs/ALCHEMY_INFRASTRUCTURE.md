@@ -15,25 +15,26 @@ Alchemy provides a TypeScript-first approach to managing Cloudflare infrastructu
 ## Resources Managed
 
 ### Cloudflare Worker
-- **Name**: finance-manager (production) / finance-manager-dev (development)
+- **Name**: finance-manager
 - **Entry Point**: `./src/worker/index.ts`
-- **Compatibility Date**: 2024-12-01
+- **Compatibility Date**: 2025-06-17
 - **Compatibility Flags**: nodejs_compat
+- **Note**: Currently using a single worker for all environments (dev, prod, etc.)
 
 ### D1 Database
-- **Development**: finance-manager-db-dev
-- **Production**: prod-finance-manager-db
+- **All Environments**: finance-manager-db-v2
 - **Binding**: FINANCE_MANAGER_DB
+- **Note**: Currently using a single database for all environments (dev, prod, etc.)
 
 ### KV Namespace
-- **Development**: finance-manager-cache-dev
-- **Production**: finance-manager-cache-prod
+- **All Environments**: finance-manager-cache (ID: 08b151862b2a44f5bc352376eb0b9b85)
 - **Binding**: FINANCE_MANAGER_CACHE
+- **Note**: Currently using a single KV namespace for all environments (dev, prod, etc.)
 
 ### R2 Bucket
-- **Development**: finance-manager-documents-dev
-- **Production**: prod-finance-manager-documents
+- **All Environments**: finance-manager-docs-v2
 - **Binding**: FINANCE_MANAGER_DOCUMENTS
+- **Note**: Currently using a single R2 bucket for all environments (dev, prod, etc.)
 
 ### AI Binding
 - **Binding**: AI

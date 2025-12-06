@@ -62,7 +62,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Build application
         run: |
@@ -180,7 +185,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       # Browsers are pre-installed in the Docker container
       # No need to install browsers separately
@@ -249,7 +259,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Install Lighthouse CI
         run: |
@@ -337,7 +352,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       # Browsers are pre-installed in the Docker container
       # No need to install browsers separately

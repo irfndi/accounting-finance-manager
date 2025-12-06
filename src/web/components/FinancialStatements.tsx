@@ -71,7 +71,9 @@ interface CashFlowData {
   netCashFlow: number;
 }
 
-const API_BASE_URL = (import.meta as any).env?.PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
+  : 'http://localhost:3000';
 
 export default function FinancialStatements() {
   const [loading, setLoading] = useState(false);
@@ -282,7 +284,7 @@ export default function FinancialStatements() {
                               {renderFinancialDataRows(balanceSheet.assets.nonCurrentAssets, 1)}
                             </>
                           )}
-                          <TableRow className="border-t-2 border-gray-300 font-bold">
+                          <TableRow className="border-t-2 border-gray-300 font-bold" data-testid="total-assets-row">
                             <TableCell>Total Assets</TableCell>
                             <TableCell className="text-right font-mono">
                               {formatCurrency(balanceSheet.assets.totalAssets)}
@@ -412,7 +414,7 @@ export default function FinancialStatements() {
                         <TableRow className="border-t-2 border-gray-300 font-bold">
                           <TableCell>Net Income</TableCell>
                           <TableCell className={`text-right font-mono ${
-                            incomeStatement.netIncome >= 0 ? 'text-green-600' : 'text-red-600'
+                            incomeStatement.netIncome >= 0 ? 'text-green-700' : 'text-red-600'
                           }`}>
                             {formatCurrency(incomeStatement.netIncome)}
                           </TableCell>
@@ -473,7 +475,7 @@ export default function FinancialStatements() {
                         <TableRow className="border-t-2 border-gray-300 font-bold">
                           <TableCell>Net Cash Flow</TableCell>
                           <TableCell className={`text-right font-mono ${
-                            cashFlow.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'
+                            cashFlow.netCashFlow >= 0 ? 'text-green-700' : 'text-red-600'
                           }`}>
                             {formatCurrency(cashFlow.netCashFlow)}
                           </TableCell>

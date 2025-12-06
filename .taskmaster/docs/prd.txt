@@ -48,6 +48,18 @@ Browser (Astro Islands, HTMX/Alpine)
 - Vectorize embeddings for semantic document search
 - Automated categorization and account suggestion
 
+### E2E Testing Requirements
+- Comprehensive Playwright test suite for web application
+- Visual regression testing to ensure design consistency
+- Cross-browser testing (Chrome, Firefox, Safari)
+- Environment-specific testing (dev vs production)
+- Accessibility testing with WCAG compliance
+- Page Object Model (POM) implementation
+- CI/CD integration with GitHub Actions
+- Performance and load testing
+- API endpoint validation across environments
+- Mobile responsive design testing
+
 ### Authentication & Security
 - Cloudflare Access JWT or DIY email magic-link flow
 - KV-based session management
@@ -283,4 +295,4 @@ Browser (Astro Islands, HTMX/Alpine)
 - Bank account connectivity
 - Payment processor integration
 - Tax preparation software links
-- ERP system connections 
+- ERP system connections

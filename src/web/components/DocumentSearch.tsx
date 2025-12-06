@@ -177,7 +177,7 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-green-600">
+                        <div className="text-sm font-medium text-green-700">
                           {formatScore(result.similarity)}% match
                         </div>
                         {result.uploadedAt && (

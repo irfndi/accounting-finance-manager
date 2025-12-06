@@ -7,7 +7,7 @@ import { Hono } from 'hono'
 import type { AppContext } from '../../types'
 import { authMiddleware } from '../../middleware/auth'
 import { FinancialAIService, AIService, createProvider } from '../../../ai/index.js'
-import { DatabaseAdapter } from '../../../lib/index.worker.js'
+import { DatabaseAdapter } from '../../../lib/index.ts'
 import type { Account } from '../../../types/index.js'
 import { z } from 'zod'
 
@@ -265,7 +265,7 @@ categorization.post('/approve', async (c) => {
       try {
         // Note: This would require implementing transaction update in core
         // For now, we'll just store the approval
-        console.log(`Transaction ${suggestion.transactionId} categorized as ${suggestion.suggestedCategory}`)
+        // console.log(`Transaction ${suggestion.transactionId} categorized as ${suggestion.suggestedCategory}`)
       } catch (error) {
         console.warn('Failed to update transaction with approved category:', error instanceof Error ? error.message : String(error))
       }
