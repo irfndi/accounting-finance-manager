@@ -38,6 +38,8 @@ coverage/
 worker/src/**/*.js
 worker/src/**/*.js.map
 worker/dist/
+src/web/pages/api/**/*.js
+src/web/pages/api/**/*.js.map
 
 # Task files
 # tasks.json
