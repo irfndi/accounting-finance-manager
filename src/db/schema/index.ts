@@ -10,6 +10,7 @@ export * from "./auth";
 export * from "./documents";
 export * from "./categories";
 export * from "./budgets";
+export * from "./data-assistant";
 
 // Re-export all tables for Drizzle relations
 import { accounts } from "./accounts";
@@ -18,6 +19,7 @@ import { users, sessions, magicLinks, auditLog } from "./auth";
 import { rawDocs } from "./documents";
 import { categories, categoryStats } from "./categories";
 import { budgets, budgetPeriods, budgetRevisions, budgetAllocations } from "./budgets";
+import { dataImports, columnMappings, validationWarnings, insightsCache, integrations, userSubscriptions } from "./data-assistant";
 
 export const schema = {
   accounts,
@@ -34,6 +36,12 @@ export const schema = {
   budgetPeriods,
   budgetRevisions,
   budgetAllocations,
+  dataImports,
+  columnMappings,
+  validationWarnings,
+  insightsCache,
+  integrations,
+  userSubscriptions,
 };
 
 // Database relations
