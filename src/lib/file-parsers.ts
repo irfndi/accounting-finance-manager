@@ -113,11 +113,11 @@ export async function parseExcel(
   options: ParserOptions = {}
 ): Promise<ParsedFileData> {
   const {
-    maxRows = 1000,
-    skipEmptyRows = true,
-    trimValues = true,
-    headerRow = 0,
-    sheet = 0
+    maxRows: _maxRows = 1000,
+    skipEmptyRows: _skipEmptyRows = true,
+    trimValues: _trimValues = true,
+    headerRow: _headerRow = 0,
+    sheet: _sheet = 0
   } = options;
 
   try {

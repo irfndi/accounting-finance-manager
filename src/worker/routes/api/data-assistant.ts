@@ -110,7 +110,7 @@ router.post('/import/:uploadId', async (c) => {
   try {
     const uploadId = c.req.param('uploadId');
     const body = await c.req.json();
-    const { columnMappings, validateBeforeImport = true } = body;
+    const { columnMappings: _columnMappings, validateBeforeImport: _validateBeforeImport = true } = body;
 
     const ingestionService = new DataIngestionService(c.env.FINANCE_MANAGER_DB);
     const upload = await ingestionService.getUpload(uploadId);
