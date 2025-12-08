@@ -10,6 +10,7 @@ import reportsRouter from './reports'
 import transactionsRouter from './transactions'
 import uploadsRouter from './uploads'
 import vectorizeRouter from './vectorize'
+import aiRouter from './ai'
 import type { AppContext } from '../../types'
 
 // Create main API router
@@ -71,6 +72,7 @@ api.route('/transactions', transactionsRouter)
 api.route('/reports', reportsRouter)
 api.route('/uploads', uploadsRouter)
 api.route('/vectorize', vectorizeRouter)
+api.route('/', aiRouter)
 
 // API health check specific to API routes
 api.get('/health', (c) => {

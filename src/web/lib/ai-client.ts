@@ -2,6 +2,7 @@
  * AI Client for Web App
  * Provides a clean interface for AI features in the frontend
  */
+import { apiUrl } from './api';
 
 export interface AIAnalysisRequest {
   type: 'transaction-analysis' | 'categorize-expense' | 'generate-insights' | 'analyze-document' | 'fraud-detection';
@@ -36,7 +37,7 @@ export interface AIAnalysisResponse {
 export class AIClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = '/api') {
+  constructor(baseUrl: string = apiUrl('/api')) {
     this.baseUrl = baseUrl;
   }
 
@@ -65,7 +66,7 @@ export class AIClient {
    */
   async suggestCategorization(description: string, amount: number, transactionId?: string): Promise<CategorizationResponse> {
     try {
-      const response = await fetch('/api/categorization/suggest', {
+      const response = await fetch(apiUrl('/api/categorization/suggest'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ export class AIClient {
    */
   async getPendingSuggestions(): Promise<{ success: boolean; suggestions?: CategorizationSuggestion[]; error?: string }> {
     try {
-      const response = await fetch('/api/categorization/pending');
+      const response = await fetch(apiUrl('/api/categorization/pending'));
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -113,7 +114,7 @@ export class AIClient {
    */
   async approveSuggestion(suggestionId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch('/api/categorization/approve', {
+      const response = await fetch(apiUrl('/api/categorization/approve'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ export class AIClient {
    */
   async rejectSuggestion(suggestionId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch('/api/categorization/approve', {
+      const response = await fetch(apiUrl('/api/categorization/approve'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,7 +168,7 @@ export class AIClient {
    */
   async getCategorizationHistory(): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      const response = await fetch('/api/categorization/history');
+      const response = await fetch(apiUrl('/api/categorization/history'));
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
