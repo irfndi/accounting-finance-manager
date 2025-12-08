@@ -261,6 +261,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
+      - name: Create required directories
+        run: |
+          echo "Creating dist/client directory for Wrangler/Vitest..."
+          mkdir -p dist/client
+
       - name: Run unit tests
         timeout-minutes: 10
         run: |
