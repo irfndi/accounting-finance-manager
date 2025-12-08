@@ -97,6 +97,7 @@
     "vitest-environment-miniflare": "^2.14.4",
     "wrangler": "^4.22.0"
   },
+  "packageManager": "pnpm@10.11.1",
   "engines": {
     "node": ">=22.0.0",
     "pnpm": ">=9.0.0"
