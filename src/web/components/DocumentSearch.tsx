@@ -6,6 +6,7 @@
 import React, { useState, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { apiUrl } from '../lib/api';
 
 interface SearchResult {
   id: string;
@@ -60,7 +61,7 @@ export function DocumentSearch({ className = '' }: DocumentSearchProps) {
     setSearchStats(null);
 
     try {
-      const response = await fetch('/api/vectorize/search', {
+      const response = await fetch(apiUrl('/api/vectorize/search'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -243,6 +243,8 @@ async function sendSESEmail(request: any, env: Env): Promise<{ MessageId: string
 }
 
 // Helper functions for AWS signature
+type ByteArray = Uint8Array<ArrayBuffer>;
+
 async function sha256(message: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(message);
@@ -251,7 +253,7 @@ async function sha256(message: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function hmacSha256(key: Uint8Array, message: string): Promise<Uint8Array> {
+async function hmacSha256(key: ByteArray, message: string): Promise<ByteArray> {
   const encoder = new TextEncoder();
   const keyObject = await crypto.subtle.importKey(
     'raw',
@@ -273,7 +275,7 @@ async function calculateSignature(
 ): Promise<string> {
   const encoder = new TextEncoder();
   
-  let key = encoder.encode(`AWS4${secretKey}`);
+  let key = encoder.encode(`AWS4${secretKey}`) as ByteArray;
   key = await hmacSha256(key, dateStamp);
   key = await hmacSha256(key, region);
   key = await hmacSha256(key, service);

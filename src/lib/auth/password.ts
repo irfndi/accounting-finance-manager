@@ -3,8 +3,8 @@
  * Using @noble/hashes argon2id for secure password hashing
  */
 
-import { argon2id } from '@noble/hashes/argon2';
-import { randomBytes } from '@noble/hashes/utils';
+import { argon2id } from '@noble/hashes/argon2.js';
+import { randomBytes } from '@noble/hashes/utils.js';
 
 /**
  * Argon2id configuration for password hashing
