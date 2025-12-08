@@ -320,7 +320,7 @@ export class InsightsEngine {
    * Generate insights from data
    */
   private async generateInsights(
-    entityId: string,
+    _entityId: string,
     currentData: any,
     previousData: any
   ): Promise<Insight[]> {
@@ -430,7 +430,7 @@ export class InsightsEngine {
   /**
    * Find opportunities
    */
-  private findOpportunities(currentData: any, insights: Insight[]): Opportunity[] {
+  private findOpportunities(_currentData: any, insights: Insight[]): Opportunity[] {
     const opportunities: Opportunity[] = [];
 
     // Extract opportunity insights
@@ -452,7 +452,7 @@ export class InsightsEngine {
   /**
    * Assess risks
    */
-  private assessRisks(currentData: any, insights: Insight[]): Risk[] {
+  private assessRisks(_currentData: any, insights: Insight[]): Risk[] {
     const risks: Risk[] = [];
 
     // Extract warning and critical insights as risks
