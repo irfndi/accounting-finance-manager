@@ -398,7 +398,7 @@ jobs:
           pnpm exec playwright test --project=accessibility --grep="@a11y"
           echo "✓ Accessibility tests completed"
         env:
-          BASE_URL: http://localhost:3000
+          BASE_URL: http://localhost:4321
           CI: true
           HOME: /root
 
