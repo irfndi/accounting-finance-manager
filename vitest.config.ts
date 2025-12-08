@@ -1,19 +1,23 @@
 import { resolve } from 'path';
 import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
 
+const useCloudflarePool = process.env.VITEST_USE_CF_POOL === 'true';
+
 export default defineWorkersConfig({
   plugins: [],
   test: {
-    pool: '@cloudflare/vitest-pool-workers',
-    poolOptions: {
-      workers: {
-        wrangler: { configPath: './wrangler.jsonc' },
-      },
-    },
+    pool: useCloudflarePool ? '@cloudflare/vitest-pool-workers' : 'threads',
+    poolOptions: useCloudflarePool
+      ? {
+          workers: {
+            wrangler: { configPath: './wrangler.jsonc' },
+          },
+        }
+      : undefined,
     globals: true,
     testTimeout: 10000,
     setupFiles: ['./tests/setup.ts'],
-    include: ['./src/**/*.test.ts'],
+    include: ['./src/**/*.test.ts', './tests/**/*.test.ts'],
     silent: false,
     reporters: ['verbose'],
     coverage: {
@@ -43,6 +47,6 @@ export default defineWorkersConfig({
     alias: {
       '@': resolve(__dirname, './src')
     },
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.tsx', '.js', '.jsx']
   }
 });

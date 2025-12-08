@@ -30,6 +30,7 @@ import {
   TabsList,
   TabsTrigger,
 } from './ui/tabs';
+import { apiUrl } from '../lib/api';
 
 interface FinancialData {
   id: string;
@@ -71,8 +72,6 @@ interface CashFlowData {
   netCashFlow: number;
 }
 
-const API_BASE_URL = (import.meta as any).env?.PUBLIC_API_URL || 'http://localhost:8787';
-
 export default function FinancialStatements() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +93,7 @@ export default function FinancialStatements() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE_URL}/api/reports/balance-sheet?year=${selectedYear}&period=${selectedPeriod}`);
+      const response = await fetch(apiUrl(`/api/reports/balance-sheet?year=${selectedYear}&period=${selectedPeriod}`));
       if (!response.ok) {
         throw new Error(`Failed to fetch balance sheet: ${response.statusText}`);
       }
@@ -113,7 +112,7 @@ export default function FinancialStatements() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE_URL}/api/reports/income-statement?year=${selectedYear}&period=${selectedPeriod}`);
+      const response = await fetch(apiUrl(`/api/reports/income-statement?year=${selectedYear}&period=${selectedPeriod}`));
       if (!response.ok) {
         throw new Error(`Failed to fetch income statement: ${response.statusText}`);
       }
@@ -132,7 +131,7 @@ export default function FinancialStatements() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE_URL}/api/reports/cash-flow?year=${selectedYear}&period=${selectedPeriod}`);
+      const response = await fetch(apiUrl(`/api/reports/cash-flow?year=${selectedYear}&period=${selectedPeriod}`));
       if (!response.ok) {
         throw new Error(`Failed to fetch cash flow: ${response.statusText}`);
       }

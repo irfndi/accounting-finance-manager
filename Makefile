@@ -48,14 +48,14 @@ clean: ## Clean all build artifacts and node_modules
 
 dev: ## Start development server with hot reload
 	@echo "$(CYAN)Starting development server...$(RESET)"
-	@echo "  - Astro dev server"
+	@echo "  - Vite + TanStack dev server"
 	@echo "  - Worker dev server (miniflare)"
 	@echo "  - TypeScript compilation in watch mode"
 	@echo ""
 	pnpm dev:all
 
 dev/web: ## Start only the web development server
-	@echo "$(CYAN)Starting Astro development server...$(RESET)"
+	@echo "$(CYAN)Starting Vite development server...$(RESET)"
 	pnpm dev
 
 dev/worker: ## Start only the worker development server
@@ -140,7 +140,7 @@ build: ## Build the application
 
 build/web: ## Build only the web application
 	@echo "$(CYAN)Building web application...$(RESET)"
-	astro build
+	pnpm build:web
 	@echo "$(GREEN)✓ Web build complete$(RESET)"
 
 build/worker: ## Build only the worker
@@ -266,8 +266,6 @@ ci/typecheck: ## Run TypeScript type checking
 	@echo "$(CYAN)Running TypeScript type checking...$(RESET)"
 	@echo "$(YELLOW)Checking application...$(RESET)"
 	pnpm typecheck || (echo "$(RED)Typecheck failed$(RESET)" && exit 1)
-	@echo "$(YELLOW)Checking Astro...$(RESET)"
-	pnpm dlx @astrojs/check || (echo "$(RED)Astro check failed$(RESET)" && exit 1)
 	@echo "$(GREEN)✓ Type checking completed$(RESET)"
 
 ci/test: ## Run comprehensive test suite with coverage

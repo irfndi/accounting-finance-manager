@@ -1,6 +1,11 @@
-import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types';
-
-import type { Ai, Vectorize } from '@cloudflare/workers-types';
+import type {
+  Ai,
+  D1Database,
+  Fetcher,
+  KVNamespace,
+  R2Bucket,
+  Vectorize,
+} from '@cloudflare/workers-types';
 
 // Environment bindings interface
 export type Env = {
@@ -9,6 +14,7 @@ export type Env = {
   FINANCE_MANAGER_DOCUMENTS: R2Bucket;
   AI: Ai;
   DOCUMENT_EMBEDDINGS: Vectorize;
+  ASSETS?: Fetcher;
   ENVIRONMENT?: string;
   JWT_SECRET: string;
   AUTH_SESSION_DURATION?: string;
@@ -51,6 +57,8 @@ export type AuthVariables = {
   user: AppContext['Variables']['user'];
   jwtPayload: AppContext['Variables']['jwtPayload'];
 };
+
+export type EnvWithAssets = Env & Required<Pick<Env, 'ASSETS'>>;
 
 // Define the variables that the middleware will add to the context
 export type SearchResultDocument = RawDocument & {

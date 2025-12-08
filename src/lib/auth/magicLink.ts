@@ -5,7 +5,7 @@
 
 import type { MagicLinkData } from './types'
 import { MagicLinkPurpose } from './types';
-import { randomBytes } from '@noble/hashes/utils';
+import { randomBytes } from '@noble/hashes/utils.js';
 import type { KVNamespace } from '@cloudflare/workers-types';
 
 /**
