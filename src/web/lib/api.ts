@@ -4,7 +4,7 @@ const normalizeBaseUrl = (value?: string) => {
 };
 
 export const API_BASE_URL = normalizeBaseUrl(
-  (import.meta as any)?.env?.VITE_API_URL ?? (typeof process !== 'undefined' ? (process.env as any)?.VITE_API_URL : undefined),
+  import.meta.env?.VITE_API_URL ?? (typeof process !== 'undefined' ? (process.env as any)?.VITE_API_URL : undefined),
 );
 
 export const apiUrl = (path: string) => {
