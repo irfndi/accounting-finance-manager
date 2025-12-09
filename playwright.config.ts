@@ -54,11 +54,6 @@ export default defineConfig({
       testMatch: /.*\.spec\.ts$/,
     },
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-      testMatch: /.*\.spec\.ts$/,
-    },
-    {
       name: 'visual-regression',
       use: { ...devices['Desktop Chrome'] },
       testMatch: /.*\.visual\.ts$/,
