@@ -29,8 +29,8 @@
       "d1_databases": [
         {
           "binding": "FINANCE_MANAGER_DB",
-          "database_name": "prod-finance-manager-db",
-          "database_id": "5320fcf4-f13e-441f-8952-e94f8b9cfb1d",
+          "database_name": "fininflow-db-prod",
+          "database_id": "11bc7825-db1f-4ab4-8009-15254c808ba5",
           "migrations_dir": "migrations"
         }
       ],
@@ -48,13 +48,7 @@
       ],
       "ai": {
         "binding": "AI"
-      },
-      "vectorize": [
-        {
-          "binding": "DOCUMENT_EMBEDDINGS",
-          "index_name": "prod-finance-manager-documents"
-        }
-      ]
+      }
     },
     "development": {
       "name": "finance-manager-dev",
@@ -124,8 +118,8 @@
   "d1_databases": [
     {
       "binding": "FINANCE_MANAGER_DB",
-      "database_name": "prod-finance-manager-db",
-      "database_id": "5320fcf4-f13e-441f-8952-e94f8b9cfb1d",
+      "database_name": "fininflow-db-prod",
+      "database_id": "11bc7825-db1f-4ab4-8009-15254c808ba5",
       "migrations_dir": "migrations"
     }
   ],
@@ -147,13 +141,6 @@
   "ai": {
     "binding": "AI"
   },
-  // Vectorize binding
-  "vectorize": [
-    {
-      "binding": "DOCUMENT_EMBEDDINGS",
-      "index_name": "prod-finance-manager-documents"
-    }
-  ],
   // Module rules for WASM support
   "rules": [
     {
