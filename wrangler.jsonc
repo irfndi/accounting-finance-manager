@@ -37,7 +37,7 @@
       "kv_namespaces": [
         {
           "binding": "FINANCE_MANAGER_CACHE",
-          "id": "138dfa25adf345539677e7ef493eb335"
+          "id": "c76d938bc571430e8940547be8f2c689"
         }
       ],
       "r2_buckets": [
@@ -133,7 +133,7 @@
   "kv_namespaces": [
     {
       "binding": "FINANCE_MANAGER_CACHE",
-      "id": "138dfa25adf345539677e7ef493eb335"
+      "id": "c76d938bc571430e8940547be8f2c689"
     }
   ],
   // R2 Storage bindings - Using production
