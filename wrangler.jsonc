@@ -1,5 +1,7 @@
 {
   // Cloudflare Workers configuration in JSONC format
+  // NOTE: Top-level name is required for Cloudflare GitHub integration which deploys without --env flag
+  "name": "fin-in-flow-prod",
   "main": "src/index.ts",
   "compatibility_date": "2024-12-01",
   "compatibility_flags": [
@@ -105,39 +107,51 @@
       ]
     }
   },
-  // Default variables for development
+  // Default variables - Using production values since GitHub integration deploys without --env
   "vars": {
     "ALCHEMY_MANAGED": "true",
     "CONTAINER_VERSION": "1.0.0",
     "DEPLOYMENT_STRATEGY": "alchemy",
-    "STAGE": "dev",
-    "ENVIRONMENT": "development",
+    "STAGE": "prod",
+    "ENVIRONMENT": "production",
+    "JWT_SECRET": "dev-jwt-secret-please-change-in-production-use-strong-random-key",
     "AUTH_SESSION_DURATION": "7d",
     "AWS_REGION": "us-east-1",
     "SES_FROM_EMAIL": "noreply@finance-manager.com",
     "SES_FROM_NAME": "Finance Manager"
   },
-  // D1 Database bindings (default/development)
+  // D1 Database bindings - Using production
   "d1_databases": [
     {
       "binding": "FINANCE_MANAGER_DB",
-      "database_name": "finance-manager-db",
-      "database_id": "886fa63b-1b70-42bc-8acd-62c21d68e42b",
+      "database_name": "prod-finance-manager-db",
+      "database_id": "5320fcf4-f13e-441f-8952-e94f8b9cfb1d",
       "migrations_dir": "migrations"
     }
   ],
-  // KV Storage bindings (default/development)
+  // KV Storage bindings - Using production
   "kv_namespaces": [
     {
       "binding": "FINANCE_MANAGER_CACHE",
-      "id": "0e0af82b22224048a122082d1f3f6d42"
+      "id": "138dfa25adf345539677e7ef493eb335"
     }
   ],
-  // R2 Storage bindings (default/development)
+  // R2 Storage bindings - Using production
   "r2_buckets": [
     {
       "binding": "FINANCE_MANAGER_DOCUMENTS",
-      "bucket_name": "finance-manager-documents"
+      "bucket_name": "prod-finance-manager-documents"
+    }
+  ],
+  // AI binding
+  "ai": {
+    "binding": "AI"
+  },
+  // Vectorize binding
+  "vectorize": [
+    {
+      "binding": "DOCUMENT_EMBEDDINGS",
+      "index_name": "prod-finance-manager-documents"
     }
   ],
   // Module rules for WASM support
