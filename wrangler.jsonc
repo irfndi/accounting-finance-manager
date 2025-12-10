@@ -43,7 +43,7 @@
       "r2_buckets": [
         {
           "binding": "FINANCE_MANAGER_DOCUMENTS",
-          "bucket_name": "prod-finance-manager-documents"
+          "bucket_name": "fininflow-documents-prod"
         }
       ],
       "ai": {
@@ -140,7 +140,7 @@
   "r2_buckets": [
     {
       "binding": "FINANCE_MANAGER_DOCUMENTS",
-      "bucket_name": "prod-finance-manager-documents"
+      "bucket_name": "fininflow-documents-prod"
     }
   ],
   // AI binding
