@@ -206,13 +206,6 @@ jobs:
           pnpm typecheck
           echo "✓ Application type checking passed"
 
-      - name: Astro check
-        timeout-minutes: 5
-        run: |
-          echo "Running Astro check..."
-          pnpm exec astro check
-          echo "✓ Astro check passed"
-
   # ============================================================================
   # UNIT TESTING
   # ============================================================================

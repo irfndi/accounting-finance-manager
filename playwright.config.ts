@@ -46,27 +46,29 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.spec\.ts$/,
+      testMatch: /.*\.(spec|test)\.ts$/,
     },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      testMatch: /.*\.spec\.ts$/,
+      testMatch: /.*\.(spec|test)\.ts$/,
     },
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      testMatch: /.*\.spec\.ts$/,
+      testMatch: /.*\.(spec|test)\.ts$/,
     },
     {
       name: 'visual-regression',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.visual\.ts$/,
+      testMatch: /.*\.(visual|spec|test)\.ts$/,
+      grep: /@visual/,
     },
     {
       name: 'accessibility',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.a11y\.ts$/,
+      testMatch: /.*\.(a11y|spec|test)\.ts$/,
+      grep: /@a11y/,
     },
   ],
 
