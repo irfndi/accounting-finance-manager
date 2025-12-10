@@ -33,10 +33,10 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    
+
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
-    
+
     /* Record video on failure */
     video: 'retain-on-failure',
   },
@@ -61,12 +61,14 @@ export default defineConfig({
     {
       name: 'visual-regression',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.visual\.ts$/,
+      testMatch: /.*\.(visual|spec)\.ts$/,
+      grep: /@visual/,
     },
     {
       name: 'accessibility',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: /.*\.a11y\.ts$/,
+      testMatch: /.*\.(a11y|spec)\.ts$/,
+      grep: /@a11y/,
     },
   ],
 

@@ -4,11 +4,13 @@ import authRouter from './auth'
 import categoriesRouter from './categories'
 import budgetsRouter from './budgets'
 import categorizationRouter from './categorization'
+import dataAssistantRouter from './data-assistant'
 import notificationsRouter from './notifications'
 import reportsRouter from './reports'
 import transactionsRouter from './transactions'
 import uploadsRouter from './uploads'
 import vectorizeRouter from './vectorize'
+import aiRouter from './ai'
 import type { AppContext } from '../../types'
 
 // Create main API router
@@ -26,6 +28,7 @@ api.get('/', (c) => {
       categories: '/api/categories - Category management',
       budgets: '/api/budgets - Budget management',
       categorization: '/api/categorization - AI-powered transaction categorization',
+      dataAssistant: '/api/data-assistant - Multi-format data ingestion, validation & insights',
       notifications: '/api/notifications - Email notifications and alerts',
       transactions: '/api/transactions - Financial transactions',
       reports: '/api/reports - Financial reporting',
@@ -63,11 +66,13 @@ api.route('/accounts', accountsRouter)
 api.route('/categories', categoriesRouter)
 api.route('/budgets', budgetsRouter)
 api.route('/categorization', categorizationRouter)
+api.route('/data-assistant', dataAssistantRouter)
 api.route('/notifications', notificationsRouter)
 api.route('/transactions', transactionsRouter)
 api.route('/reports', reportsRouter)
 api.route('/uploads', uploadsRouter)
 api.route('/vectorize', vectorizeRouter)
+api.route('/', aiRouter)
 
 // API health check specific to API routes
 api.get('/health', (c) => {
@@ -80,6 +85,7 @@ api.get('/health', (c) => {
         auth: 'operational',
         accounts: 'operational',
         categorization: 'operational',
+        dataAssistant: 'operational',
         notifications: 'operational',
         transactions: 'operational',
         reports: 'operational',

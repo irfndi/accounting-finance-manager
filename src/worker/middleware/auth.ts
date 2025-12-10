@@ -105,3 +105,8 @@ export const requireRole = (allowedRoles: string[]) => {
     await next();
   });
 };
+
+/**
+ * Helper to require authentication (alias for authMiddleware)
+ */
+export const requireAuth = () => authMiddleware;

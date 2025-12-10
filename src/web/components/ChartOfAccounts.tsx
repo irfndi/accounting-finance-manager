@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { apiUrl } from '../lib/api';
 
 interface Account {
   id: string;
@@ -86,11 +87,6 @@ const ACCOUNT_TYPES = [
   { value: 'EXPENSE', label: 'Expense' },
 ];
 
-// Use environment variables in a way that's compatible with Astro
-const API_BASE_URL = typeof (import.meta as any).env !== 'undefined' && (import.meta as any).env.PUBLIC_API_URL
-  ? (import.meta as any).env.PUBLIC_API_URL
-  : 'http://localhost:8787';
-
 export default function ChartOfAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,7 +116,7 @@ export default function ChartOfAccounts() {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/accounts`);
+      const response = await fetch(apiUrl('/api/accounts'));
       if (!response.ok) {
         throw new Error(`Failed to fetch accounts: ${response.statusText}`);
       }
@@ -138,8 +134,8 @@ export default function ChartOfAccounts() {
   const saveAccount = async () => {
     try {
       const url = editingAccount
-        ? `${API_BASE_URL}/api/accounts/${editingAccount.id}`
-        : `${API_BASE_URL}/api/accounts`;
+        ? apiUrl(`/api/accounts/${editingAccount.id}`)
+        : apiUrl('/api/accounts');
       
       const method = editingAccount ? 'PUT' : 'POST';
       
@@ -174,7 +170,7 @@ export default function ChartOfAccounts() {
     if (!accountToDelete) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/accounts/${accountToDelete.id}`, {
+      const response = await fetch(apiUrl(`/api/accounts/${accountToDelete.id}`), {
         method: 'DELETE',
       });
 
