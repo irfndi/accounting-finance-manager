@@ -2,16 +2,16 @@
   // Cloudflare Workers configuration in JSONC format
   "main": "src/index.ts",
   "compatibility_date": "2024-12-01",
-  "compatibility_flags": ["nodejs_compat"],
-  
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "assets": {
     "directory": "dist/client"
   },
-  
   // Worker configuration
   "env": {
     "production": {
-      "name": "finance-manager",
+      "name": "fin-in-flow-prod",
       "vars": {
         "ALCHEMY_MANAGED": "true",
         "CONTAINER_VERSION": "1.0.0",
@@ -105,7 +105,6 @@
       ]
     }
   },
-  
   // Default variables for development
   "vars": {
     "ALCHEMY_MANAGED": "true",
@@ -118,7 +117,6 @@
     "SES_FROM_EMAIL": "noreply@finance-manager.com",
     "SES_FROM_NAME": "Finance Manager"
   },
-  
   // D1 Database bindings (default/development)
   "d1_databases": [
     {
@@ -128,7 +126,6 @@
       "migrations_dir": "migrations"
     }
   ],
-  
   // KV Storage bindings (default/development)
   "kv_namespaces": [
     {
@@ -136,7 +133,6 @@
       "id": "0e0af82b22224048a122082d1f3f6d42"
     }
   ],
-  
   // R2 Storage bindings (default/development)
   "r2_buckets": [
     {
@@ -144,16 +140,16 @@
       "bucket_name": "finance-manager-documents"
     }
   ],
-  
   // Module rules for WASM support
   "rules": [
     {
       "type": "CompiledWasm",
-      "globs": ["**/*.wasm"],
+      "globs": [
+        "**/*.wasm"
+      ],
       "fallthrough": true
     }
   ],
-  
   // Observability
   "observability": {
     "enabled": true,
