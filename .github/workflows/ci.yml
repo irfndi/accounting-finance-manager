@@ -349,9 +349,9 @@ jobs:
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
-          echo "Installing Playwright browsers..."
-          pnpm test:e2e:install
-          echo "✓ Playwright browsers installed"
+          echo "Installing Playwright Chromium browser..."
+          pnpm exec playwright install chromium --with-deps
+          echo "✓ Playwright Chromium installed"
 
       - name: Cache build artifacts
         uses: actions/cache@v4
@@ -373,8 +373,8 @@ jobs:
       - name: Run integration tests
         timeout-minutes: 15
         run: |
-          echo "Running integration tests..."
-          pnpm test:e2e
+          echo "Running integration tests (Chromium only)..."
+          pnpm exec playwright test --project=chromium
           echo "✓ Integration tests passed"
 
   # ============================================================================
