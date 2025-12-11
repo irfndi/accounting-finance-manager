@@ -126,18 +126,18 @@ const fillAccountForm = async (user: any, code: string, name: string, type: stri
   const inputs = screen.getAllByTestId('input');
   const codeInput = inputs[0];
   const nameInput = inputs[1];
-  
+
   await user.clear(codeInput);
   await user.type(codeInput, code);
   await user.clear(nameInput);
   await user.type(nameInput, name);
-  
+
   // Handle type selection with multiple fallback strategies
   await waitFor(async () => {
     try {
       const selectTrigger = screen.getByTestId('account-type-select');
       await user.click(selectTrigger);
-      
+
       const option = screen.getByRole('option', { name: new RegExp(type, 'i') });
       await user.click(option);
     } catch {
@@ -145,7 +145,7 @@ const fillAccountForm = async (user: any, code: string, name: string, type: stri
       try {
         const selectTrigger = screen.getByRole('combobox');
         await user.click(selectTrigger);
-        
+
         const option = screen.getByText(new RegExp(type, 'i'));
         await user.click(option);
       } catch {
@@ -158,18 +158,18 @@ const fillAccountForm = async (user: any, code: string, name: string, type: stri
 // Helper function to setup mock fetch
 const setupMockFetch = (responses: { [key: string]: any }, accounts: any[] = []) => {
   const mockFetch = vi.fn();
-  
+
   mockFetch.mockImplementation((url: string, options?: RequestInit) => {
     const method = options?.method || 'GET';
     const key = `${method}:${url}`;
-    
+
     if (responses[key]) {
       return Promise.resolve({
         ok: true,
         json: async () => responses[key],
       } as Response);
     }
-    
+
     // Default response for GET requests
     if (method === 'GET') {
       return Promise.resolve({
@@ -177,11 +177,11 @@ const setupMockFetch = (responses: { [key: string]: any }, accounts: any[] = [])
         json: async () => ({ accounts }),
       } as Response);
     }
-    
+
     // Default error for unhandled requests
     return Promise.reject(new Error(`Unhandled request: ${method} ${url}`));
   });
-  
+
   global.fetch = mockFetch;
   return mockFetch;
 };
@@ -235,25 +235,25 @@ describe('ChartOfAccounts Component', () => {
 
   it('should render chart of accounts with data', async () => {
     const { container } = render(<ChartOfAccounts />);
-    
+
     // First check if component renders without crashing
     expect(container).toBeInTheDocument();
-    
+
     // Wait for component to finish loading
     await waitFor(() => {
       // Check if any content is rendered
       expect(container.firstChild).not.toBeNull();
     }, { timeout: 3000 });
-    
+
     // Now check for specific text
     await waitFor(() => {
       expect(screen.getByText('Chart of Accounts')).toBeInTheDocument();
     }, { timeout: 3000 });
-    
+
     await waitFor(() => {
       expect(screen.getByText('Add Account')).toBeInTheDocument();
     }, { timeout: 3000 });
-    
+
     // Wait for accounts to load
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
@@ -263,15 +263,15 @@ describe('ChartOfAccounts Component', () => {
 
   it('should open add account dialog when button is clicked', async () => {
     render(<ChartOfAccounts />);
-    
+
     // Wait for component to load and show the Add Account button
     await waitFor(() => {
       expect(screen.getByText('Add Account')).toBeInTheDocument();
     }, { timeout: 3000 });
-    
+
     const addButton = screen.getByText('Add Account');
     fireEvent.click(addButton);
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
       expect(screen.getByText('Create New Account')).toBeInTheDocument();
@@ -280,35 +280,35 @@ describe('ChartOfAccounts Component', () => {
 
   it('should validate required fields before submission', async () => {
     const user = userEvent.setup();
-    
+
     render(<ChartOfAccounts />);
-    
+
     // Wait for component to load and show the Add Account button
     await waitFor(() => {
       expect(screen.getByText('Add Account')).toBeInTheDocument();
     }, { timeout: 3000 });
-    
+
     // Open dialog
     fireEvent.click(screen.getByText('Add Account'));
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
     });
-    
+
     // Try to save without filling fields
     const saveButton = screen.getByRole('button', { name: /create/i });
     await user.click(saveButton);
-    
+
     // Verify form validation prevents submission (dialog should remain open)
     await waitFor(() => {
       // Check that dialog is still open, indicating validation prevented submission
       const dialog = screen.getByTestId('dialog');
       expect(dialog).toBeInTheDocument();
-      
+
       // Check for any validation messages or required field indicators
       const validationMessages = screen.queryAllByText(/required/i);
       const formStillPresent = screen.queryByRole('button', { name: /create/i });
-      
+
       // Either validation messages should be present or form should still be there
       expect(validationMessages.length > 0 || formStillPresent).toBeTruthy();
     }, { timeout: 2000 });
@@ -316,7 +316,7 @@ describe('ChartOfAccounts Component', () => {
 
   it('should create a new account successfully', async () => {
     const user = userEvent.setup();
-    
+
     // Setup mock with successful POST response
     mockFetch = setupMockFetch({
       'POST:http://localhost:3000/api/accounts': {
@@ -336,18 +336,18 @@ describe('ChartOfAccounts Component', () => {
 
     // Open dialog
     fireEvent.click(screen.getByText('Add Account'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Create New Account')).toBeInTheDocument();
     });
 
     // Fill form using helper
     await fillAccountForm(user, '1000', 'Test Account', 'ASSET');
-    
+
     // Submit form
     const saveButton = screen.getByRole('button', { name: /create/i });
     await user.click(saveButton);
-    
+
     // Verify form was submitted (button should be present and clickable)
     await waitFor(() => {
       const saveButton = screen.getByRole('button', { name: /create/i });
@@ -357,7 +357,7 @@ describe('ChartOfAccounts Component', () => {
 
   it('should handle API errors gracefully', async () => {
     const user = userEvent.setup();
-    
+
     // Setup mock with error response
     mockFetch = vi.fn().mockImplementation((url: string, options?: RequestInit) => {
       if (options?.method === 'POST') {
@@ -372,35 +372,35 @@ describe('ChartOfAccounts Component', () => {
         json: async () => ({ accounts: mockAccounts }),
       } as Response);
     });
-    global.fetch = mockFetch;
-    
+    global.fetch = mockFetch as typeof fetch;
+
     render(<ChartOfAccounts />);
-    
+
     // Wait for component to load
     await waitFor(() => {
       expect(screen.getByText('Add Account')).toBeInTheDocument();
     }, { timeout: 3000 });
-    
+
     // Open dialog
     fireEvent.click(screen.getByText('Add Account'));
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
     });
-    
+
     // Fill form using helper
     await fillAccountForm(user, '1000', 'Duplicate Account', 'ASSET');
-    
+
     // Submit form
     const saveButton = screen.getByRole('button', { name: /create/i });
     await user.click(saveButton);
-    
+
     // Wait for error message or dialog to remain open
     await waitFor(() => {
       // Check if error message is displayed or dialog remains open indicating an error
-      const errorMessage = screen.queryByText('Account code already exists') || 
-                          screen.queryByText(/error/i) || 
-                          screen.queryByText(/already exists/i);
+      const errorMessage = screen.queryByText('Account code already exists') ||
+        screen.queryByText(/error/i) ||
+        screen.queryByText(/already exists/i);
       const dialogStillOpen = screen.queryByTestId('dialog');
       expect(errorMessage || dialogStillOpen).toBeInTheDocument();
     }, { timeout: 5000 });
@@ -408,28 +408,28 @@ describe('ChartOfAccounts Component', () => {
 
   it('should filter accounts by type', async () => {
     render(<ChartOfAccounts />);
-    
+
     // Wait for accounts to load
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
       expect(screen.getByText('Accounts Payable')).toBeInTheDocument();
     });
-    
+
     // Find the type filter select
     const typeFilter = screen.getByRole('combobox') || screen.getByDisplayValue('All Types');
-    
+
     // Filter by ASSET type
     fireEvent.change(typeFilter, { target: { value: 'ASSET' } });
-    
+
     // Verify only ASSET accounts are visible
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
       expect(screen.queryByText('Accounts Payable')).not.toBeInTheDocument();
     });
-    
+
     // Filter by LIABILITY type
     fireEvent.change(typeFilter, { target: { value: 'LIABILITY' } });
-    
+
     // Verify only LIABILITY accounts are visible
     await waitFor(() => {
       expect(screen.queryByText('Cash Account')).not.toBeInTheDocument();
@@ -439,39 +439,39 @@ describe('ChartOfAccounts Component', () => {
 
   it('should search accounts by name and code', async () => {
     render(<ChartOfAccounts />);
-    
+
     // Wait for accounts to load
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
       expect(screen.getByText('Accounts Payable')).toBeInTheDocument();
     });
-    
+
     // Find search input
     const searchInput = screen.getByPlaceholderText('Search accounts...');
-    
+
     // Search for 'Cash'
     fireEvent.change(searchInput, { target: { value: 'Cash' } });
-    
+
     // Verify search input value
     expect((searchInput as HTMLInputElement).value).toBe('Cash');
-    
+
     // Verify filtered results
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
       expect(screen.queryByText('Accounts Payable')).not.toBeInTheDocument();
     });
-    
+
     // Search by account code
     fireEvent.change(searchInput, { target: { value: '2000' } });
-    
+
     await waitFor(() => {
       expect(screen.queryByText('Cash Account')).not.toBeInTheDocument();
       expect(screen.getByText('Accounts Payable')).toBeInTheDocument();
     });
-    
+
     // Clear search
     fireEvent.change(searchInput, { target: { value: '' } });
-    
+
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
       expect(screen.getByText('Accounts Payable')).toBeInTheDocument();
@@ -480,10 +480,10 @@ describe('ChartOfAccounts Component', () => {
 
   it('should handle loading state', () => {
     // Mock pending fetch
-    mockFetch.mockImplementation(() => new Promise(() => {}));
-    
+    mockFetch.mockImplementation(() => new Promise(() => { }));
+
     render(<ChartOfAccounts />);
-    
+
     // Should show loading state
     expect(screen.getByText('Loading accounts...')).toBeInTheDocument();
   });
@@ -493,9 +493,9 @@ describe('ChartOfAccounts Component', () => {
     mockFetch = setupMockFetch({
       'GET:http://localhost:3000/api/accounts': { accounts: [] }
     }, []);
-    
+
     render(<ChartOfAccounts />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('No accounts found')).toBeInTheDocument();
     });
@@ -503,44 +503,44 @@ describe('ChartOfAccounts Component', () => {
 
   it('should reset form when dialog is closed', async () => {
     const user = userEvent.setup();
-    
+
     render(<ChartOfAccounts />);
-    
+
     // Wait for component to load and show the Add Account button
     await waitFor(() => {
       expect(screen.getByText('Add Account')).toBeInTheDocument();
     }, { timeout: 3000 });
-    
+
     // Open dialog
     await user.click(screen.getByText('Add Account'));
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
     });
-    
+
     // Fill some data using helper
     await fillAccountForm(user, '1000', 'Test Account', 'ASSET');
-    
+
     // Verify form has data
     const inputs = screen.getAllByTestId('input');
     expect((inputs[0] as HTMLInputElement).value).toBe('1000');
     expect((inputs[1] as HTMLInputElement).value).toBe('Test Account');
-    
+
     // Close dialog by clicking outside or cancel button
     const cancelButton = screen.getByText('Cancel');
     await user.click(cancelButton);
-    
+
     // Reopen dialog
     await waitFor(() => {
       expect(screen.queryByTestId('dialog')).not.toBeInTheDocument();
     });
-    
+
     await user.click(screen.getByText('Add Account'));
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
     });
-    
+
     // Verify form is reset (or has default values)
     const newInputs = screen.getAllByTestId('input');
     // Form may have default values, just verify it's accessible
@@ -550,7 +550,7 @@ describe('ChartOfAccounts Component', () => {
 
   it('should accept valid account code format', async () => {
     const user = userEvent.setup();
-    
+
     // Setup mock with successful POST response
     mockFetch = setupMockFetch({
       'POST:http://localhost:3000/api/accounts': {
@@ -560,28 +560,28 @@ describe('ChartOfAccounts Component', () => {
         type: 'ASSET'
       }
     }, mockAccounts);
-    
+
     render(<ChartOfAccounts />);
-    
+
     // Wait for component to load
     await waitFor(() => {
       expect(screen.getByText('Add Account')).toBeInTheDocument();
     }, { timeout: 3000 });
-    
+
     // Open dialog
     fireEvent.click(screen.getByText('Add Account'));
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('dialog')).toBeInTheDocument();
     });
-    
+
     // Fill form using helper
     await fillAccountForm(user, 'AB', 'Test Account', 'ASSET');
-    
+
     // Submit form
     const saveButton = screen.getByRole('button', { name: /create/i });
     await user.click(saveButton);
-    
+
     // Verify form submission was attempted
     expect(screen.getByDisplayValue('AB')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test Account')).toBeInTheDocument();
@@ -589,33 +589,33 @@ describe('ChartOfAccounts Component', () => {
 
   it('should handle account deletion', async () => {
     const user = userEvent.setup();
-    
+
     // Setup mock for DELETE request
     mockFetch = setupMockFetch({
       'GET:http://localhost:3000/api/accounts': { accounts: mockAccounts },
       'DELETE:http://localhost:3000/api/accounts/1': { success: true }
     }, mockAccounts);
-    
+
     render(<ChartOfAccounts />);
-    
+
     // Wait for accounts to load
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
     });
-    
+
     // Find and click delete button for first account
     const deleteButtons = screen.getAllByText('Delete');
     await user.click(deleteButtons[0]);
-    
+
     // Confirm deletion in confirmation dialog
     await waitFor(() => {
       expect(screen.getByText('Are you sure?')).toBeInTheDocument();
     });
-    
+
     const confirmDeleteButtons = screen.getAllByRole('button', { name: /delete/i });
     const confirmButton = confirmDeleteButtons[confirmDeleteButtons.length - 1]; // Get the last delete button (confirmation)
     await user.click(confirmButton);
-    
+
     // Verify account is removed from the list
     await waitFor(() => {
       expect(screen.queryByText('Cash')).not.toBeInTheDocument();
@@ -624,7 +624,7 @@ describe('ChartOfAccounts Component', () => {
 
   it('should handle account editing', async () => {
     const user = userEvent.setup();
-    
+
     // Setup mock for PUT request
     mockFetch = setupMockFetch({
       'GET:http://localhost:3000/api/accounts': { accounts: mockAccounts },
@@ -632,32 +632,32 @@ describe('ChartOfAccounts Component', () => {
         account: { ...mockAccounts[0], name: 'Updated Cash Account' }
       }
     }, mockAccounts);
-    
+
     render(<ChartOfAccounts />);
-    
+
     // Wait for accounts to load
     await waitFor(() => {
       expect(screen.getByText('Cash Account')).toBeInTheDocument();
     });
-    
+
     // Find and click edit button for first account
     const editButtons = screen.getAllByText('Edit');
     await user.click(editButtons[0]);
-    
+
     // Edit form should appear
     await waitFor(() => {
       expect(screen.getByDisplayValue('Cash Account')).toBeInTheDocument();
     });
-    
+
     // Update account name
     const nameInput = screen.getByDisplayValue('Cash Account');
     await user.clear(nameInput);
     await user.type(nameInput, 'Updated Cash Account');
-    
+
     // Submit the form
     const saveButton = screen.getByText('Update');
     await user.click(saveButton);
-    
+
     // Verify PUT API call was made
     await waitFor(() => {
       const putCall = mockFetch.mock.calls.find(call => call[1]?.method === 'PUT');
@@ -666,34 +666,34 @@ describe('ChartOfAccounts Component', () => {
         expect.objectContaining({ name: 'Updated Cash Account' })
       );
     });
-   });
+  });
 
 
 
-   it('should handle API errors gracefully', async () => {
-     // Setup mock to return error
-     mockFetch = vi.fn().mockRejectedValue(new Error('API Error'));
-     global.fetch = mockFetch;
-     
-     render(<ChartOfAccounts />);
-     
-     // Should show error message
-     await waitFor(() => {
-       expect(screen.getByText(/error/i)).toBeInTheDocument();
-     });
-   });
+  it('should handle API errors gracefully', async () => {
+    // Setup mock to return error
+    mockFetch = vi.fn().mockRejectedValue(new Error('API Error'));
+    global.fetch = mockFetch as typeof fetch;
 
-   it('should handle empty account list', async () => {
-     // Setup mock with empty accounts
-     mockFetch = setupMockFetch({
-       'GET:http://localhost:3000/api/accounts': { accounts: [] }
-     }, []);
-     
-     render(<ChartOfAccounts />);
-     
-     // Should show empty state message
-     await waitFor(() => {
-       expect(screen.getByText(/no accounts found/i)).toBeInTheDocument();
-     });
-   });
- });
+    render(<ChartOfAccounts />);
+
+    // Should show error message
+    await waitFor(() => {
+      expect(screen.getByText(/error/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle empty account list', async () => {
+    // Setup mock with empty accounts
+    mockFetch = setupMockFetch({
+      'GET:http://localhost:3000/api/accounts': { accounts: [] }
+    }, []);
+
+    render(<ChartOfAccounts />);
+
+    // Should show empty state message
+    await waitFor(() => {
+      expect(screen.getByText(/no accounts found/i)).toBeInTheDocument();
+    });
+  });
+});
