@@ -9,9 +9,6 @@
     "binding": "ASSETS",
     "directory": "dist/client"
   },
-  "build": {
-    "command": "npm install && npm run build"
-  },
   "ai": {
     "binding": "AI"
   },
