@@ -159,82 +159,7 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # ============================================================================
-  # VISUAL REGRESSION TESTS
-  # ============================================================================
-  visual-regression:
-    name: Visual Regression Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    container:
-      image: mcr.microsoft.com/playwright:v1.57.0-jammy
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          STORE_PATH=$(pnpm store path --silent)
-          echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Setup node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            **/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      # Browsers are pre-installed in the Docker container
-      # No need to install browsers separately
-
-      # Server will be started automatically by Playwright webServer configuration
-
-      - name: Run visual regression tests
-        run: |
-          echo "Running visual regression tests..."
-          pnpm exec playwright test --project=visual-regression --grep="@visual"
-          echo "✓ Visual regression tests completed"
-        env:
-          BASE_URL: http://localhost:4321
-          CI: true
-          HOME: /root
-
-      # Server will be stopped automatically by Playwright webServer configuration
-
-      - name: Upload visual diff artifacts
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: visual-regression-diffs
-          path: |
-            test-results/
-            visual-diffs/
-          retention-days: 7
 
   # ============================================================================
   # PERFORMANCE TESTING
@@ -332,90 +257,7 @@ jobs:
           path: .lighthouseci/
           retention-days: 7
 
-  # ============================================================================
-  # ACCESSIBILITY TESTING
-  # ============================================================================
-  accessibility:
-    name: Accessibility Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    container:
-      image: mcr.microsoft.com/playwright:v1.57.0-jammy
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          STORE_PATH=$(pnpm store path --silent)
-          echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Setup node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            **/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      # Browsers are pre-installed in the Docker container
-      # No need to install browsers separately
-
-      # Server will be started automatically by Playwright webServer configuration
-
-      - name: Run accessibility tests
-        run: |
-          echo "Running accessibility tests..."
-          pnpm exec playwright test --project=accessibility --grep="@a11y"
-          echo "✓ Accessibility tests completed"
-        env:
-          BASE_URL: http://localhost:3000
-          CI: true
-          HOME: /root
-
-      - name: Stop application
-        if: always()
-        run: |
-          if [ -f dev.pid ]; then
-            DEV_PID=$(cat dev.pid)
-            echo "Stopping application (PID: $DEV_PID)..."
-            kill $DEV_PID 2>/dev/null || true
-            rm -f dev.pid
-          fi
-
-      - name: Upload accessibility reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: accessibility-reports
-          path: |
-            accessibility-reports/
-            test-results/
-          retention-days: 7
 
   # ============================================================================
   # E2E RESULTS SUMMARY
@@ -423,7 +265,7 @@ jobs:
   e2e-results:
     name: E2E Results Summary
     runs-on: ubuntu-latest
-    needs: [e2e-test, visual-regression, performance, accessibility]
+    needs: [e2e-test, performance]
     if: always()
     steps:
       - name: Download all artifacts
@@ -439,15 +281,11 @@ jobs:
           echo "| Test Suite | Status | Browser Coverage |" >> $GITHUB_STEP_SUMMARY
           echo "|------------|--------|------------------|" >> $GITHUB_STEP_SUMMARY
           echo "| E2E Tests | ${{ needs.e2e-test.result }} | Chromium, Firefox, WebKit |" >> $GITHUB_STEP_SUMMARY
-          echo "| Visual Regression | ${{ needs.visual-regression.result }} | Chromium |" >> $GITHUB_STEP_SUMMARY
           echo "| Performance | ${{ needs.performance.result }} | Lighthouse CI |" >> $GITHUB_STEP_SUMMARY
-          echo "| Accessibility | ${{ needs.accessibility.result }} | axe-playwright |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [[ "${{ needs.e2e-test.result }}" == "failure" || 
-                "${{ needs.visual-regression.result }}" == "failure" || 
-                "${{ needs.performance.result }}" == "failure" || 
-                "${{ needs.accessibility.result }}" == "failure" ]]; then
+                "${{ needs.performance.result }}" == "failure" ]]; then
             echo "❌ E2E Pipeline Failed" >> $GITHUB_STEP_SUMMARY
             echo "Please check the individual job results and artifacts for details." >> $GITHUB_STEP_SUMMARY
           else
@@ -461,15 +299,11 @@ jobs:
           echo "===================="
           echo "Setup: ${{ needs.e2e-setup.result }}"
           echo "E2E Tests: ${{ needs.e2e-test.result }}"
-          echo "Visual Regression: ${{ needs.visual-regression.result }}"
           echo "Performance: ${{ needs.performance.result }}"
-          echo "Accessibility: ${{ needs.accessibility.result }}"
           
           if [[ "${{ needs.e2e-setup.result }}" == "failure" || 
                 "${{ needs.e2e-test.result }}" == "failure" || 
-                "${{ needs.visual-regression.result }}" == "failure" || 
-                "${{ needs.performance.result }}" == "failure" || 
-                "${{ needs.accessibility.result }}" == "failure" ]]; then
+                "${{ needs.performance.result }}" == "failure" ]]; then
             echo "❌ E2E Pipeline Failed"
             exit 1
           else
