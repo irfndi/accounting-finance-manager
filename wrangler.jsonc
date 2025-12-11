@@ -10,7 +10,7 @@
     "directory": "dist/client"
   },
   "build": {
-    "command": "pnpm install && pnpm build"
+    "command": "npm install && npm run build"
   },
   "ai": {
     "binding": "AI"
