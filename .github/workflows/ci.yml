@@ -269,8 +269,8 @@ jobs:
       - name: Run unit tests
         timeout-minutes: 10
         run: |
-          echo "Running unit tests..."
-          pnpm test
+          echo "Running unit tests (frontend only - workers tests require Cloudflare auth)..."
+          pnpm vitest run --project=frontend
           echo "✓ Unit tests passed"
 
       - name: Generate coverage
@@ -445,8 +445,8 @@ jobs:
       - name: Run unit tests
         timeout-minutes: 10
         run: |
-          echo "Running unit tests..."
-          pnpm test
+          echo "Running unit tests (frontend only - workers tests require Cloudflare auth)..."
+          pnpm vitest run --project=frontend
           echo "✓ Unit tests passed"
 
       - name: Build application
