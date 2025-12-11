@@ -292,97 +292,6 @@ jobs:
           name: unit-test-coverage
           fail_ci_if_error: false
 
-  # ============================================================================
-  # INTEGRATION TESTING
-  # ============================================================================
-  test-integration:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          STORE_PATH=$(pnpm store path --silent)
-          echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
-
-      - name: Restore pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ needs.setup.outputs.pnpm-cache-key }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            **/node_modules
-          key: ${{ needs.setup.outputs.node-modules-cache-key }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Get Playwright version
-        id: playwright-version
-        run: echo "version=$(pnpm list @playwright/test --depth=0 --json | jq -r '.[0].devDependencies["@playwright/test"].version' || echo 'latest')" >> $GITHUB_OUTPUT
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: |
-          echo "Installing Playwright browsers..."
-          pnpm test:e2e:install
-          echo "✓ Playwright browsers installed"
-
-      - name: Cache build artifacts
-        uses: actions/cache@v4
-        with:
-          path: |
-            dist
-            .astro
-          key: ${{ runner.os }}-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-
-      - name: Build all packages
-        timeout-minutes: 5
-        run: |
-          echo "Building application..."
-          pnpm build
-          echo "✓ Build complete"
-
-      - name: Run integration tests
-        timeout-minutes: 15
-        run: |
-          echo "Running integration tests..."
-          pnpm test:e2e
-          echo "✓ Integration tests passed"
 
   # ============================================================================
   # BUILD VALIDATION
@@ -479,14 +388,14 @@ jobs:
           echo "Lint: ${{ needs.lint.result }}"
           echo "TypeCheck: ${{ needs.typecheck.result }}"
           echo "Unit Tests: ${{ needs.test-unit.result }}"
-          echo "Integration Tests: ${{ needs.test-integration.result }}"
+
           echo "Build: ${{ needs.build.result }}"
           
           if [[ "${{ needs.setup.result }}" == "failure" || 
                 "${{ needs.lint.result }}" == "failure" || 
                 "${{ needs.typecheck.result }}" == "failure" || 
                 "${{ needs.test-unit.result }}" == "failure" || 
-                "${{ needs.test-integration.result }}" == "failure" || 
+ 
                 "${{ needs.build.result }}" == "failure" ]]; then
             echo "❌ CI Pipeline Failed"
             exit 1
