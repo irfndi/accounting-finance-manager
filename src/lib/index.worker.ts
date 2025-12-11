@@ -16,3 +16,19 @@ export {
 
 // Export all financial reporting functionality
 export * from './financial-reports';
+
+// Re-export types needed by worker routes
+export type {
+    Account,
+    AccountType,
+    JournalEntry,
+    Transaction,
+    Currency,
+    AccountingError,
+    AccountBalance,
+    TrialBalance,
+    BalanceSheet,
+    FinancialReportsBalanceSheet,
+    IncomeStatement,
+    NormalBalance,
+} from '../types/index';

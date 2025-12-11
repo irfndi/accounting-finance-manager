@@ -27,10 +27,10 @@ async function calculateFinancialMetrics(dbAdapter: DatabaseAdapter, entityId: s
   const cash = await getAccountBalancesByCategory(dbAdapter, entityId, 'Cash', asOfDate);
   const inventory = await getAccountBalancesByCategory(dbAdapter, entityId, 'Inventory', asOfDate);
   const receivables = await getAccountBalancesByCategory(dbAdapter, entityId, 'Accounts Receivable', asOfDate);
-  
+
   // Calculate quick assets (current assets - inventory)
   const quickAssets = currentAssets - inventory;
-  
+
   return {
     liquidity: {
       currentRatio: currentLiabilities > 0 ? currentAssets / currentLiabilities : 0,
@@ -131,11 +131,11 @@ async function calculateCashRatio(dbAdapter: DatabaseAdapter, _entityId: string,
     const totalCash = await Promise.all(
       cashAccounts.map((account: any) => Promise.resolve(account.currentBalance || 0))
     ).then((balances: number[]) => balances.reduce((sum: number, balance: number) => sum + balance, 0));
-    
+
     // Get current liabilities
     const liabilityAccounts = await dbAdapter.getAccountsByType('LIABILITY');
     const currentLiabilities = liabilityAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
-    
+
     return currentLiabilities > 0 ? totalCash / currentLiabilities : 0;
   } catch (error: unknown) {
     console.error('Error calculating cash ratio:', error instanceof Error ? error.message : String(error));
@@ -150,17 +150,17 @@ async function calculateTimesInterestEarned(dbAdapter: DatabaseAdapter, _entityI
     // Calculate net income, interest expense, and tax expense from account balances
     const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
     const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
-    
+
     const totalRevenue = revenueAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const totalExpenses = expenseAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const netIncome = totalRevenue - totalExpenses;
-    
+
     // Estimate interest and tax expenses (would need specific account filtering in production)
     const interestExpense = totalExpenses * 0.1; // Placeholder calculation
     const taxExpense = totalExpenses * 0.15; // Placeholder calculation
-    
+
     const ebit = netIncome + interestExpense + taxExpense;
-    
+
     return interestExpense > 0 ? ebit / interestExpense : 0;
   } catch (error: unknown) {
     console.error('Error calculating times interest earned:', error instanceof Error ? error.message : String(error));
@@ -174,12 +174,12 @@ async function calculateReturnOnAssets(dbAdapter: DatabaseAdapter, _entityId: st
     const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
     const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
     const assetAccounts = await dbAdapter.getAccountsByType('ASSET');
-    
+
     const totalRevenue = revenueAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const totalExpenses = expenseAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const netIncome = totalRevenue - totalExpenses;
     const totalAssets = assetAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
-    
+
     return totalAssets > 0 ? netIncome / totalAssets : 0;
   } catch (error: unknown) {
     console.error('Error calculating return on assets:', error instanceof Error ? error.message : String(error));
@@ -193,12 +193,12 @@ async function calculateReturnOnEquity(dbAdapter: DatabaseAdapter, _entityId: st
     const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
     const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
     const equityAccounts = await dbAdapter.getAccountsByType('EQUITY');
-    
+
     const totalRevenue = revenueAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const totalExpenses = expenseAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const netIncome = totalRevenue - totalExpenses;
     const totalEquity = equityAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
-    
+
     return totalEquity > 0 ? netIncome / totalEquity : 0;
   } catch (error: unknown) {
     console.error('Error calculating return on equity:', error instanceof Error ? error.message : String(error));
@@ -212,12 +212,12 @@ async function calculateGrossProfitMargin(dbAdapter: DatabaseAdapter, _entityId:
     // Calculate revenue and cost of goods sold from account balances
     const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
     const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
-    
+
     const revenue = revenueAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     // Estimate COGS as a portion of total expenses (would need specific account filtering in production)
     const costOfGoodsSold = expenseAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0) * 0.6;
     const grossProfit = revenue - costOfGoodsSold;
-    
+
     return revenue > 0 ? grossProfit / revenue : 0;
   } catch (error: unknown) {
     console.error('Error calculating gross profit margin:', error instanceof Error ? error.message : String(error));
@@ -231,11 +231,11 @@ async function calculateNetProfitMargin(dbAdapter: DatabaseAdapter, _entityId: s
     // Calculate revenue and net income from account balances
     const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
     const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
-    
+
     const revenue = revenueAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const totalExpenses = expenseAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const netIncome = revenue - totalExpenses;
-    
+
     return revenue > 0 ? netIncome / revenue : 0;
   } catch (error: unknown) {
     console.error('Error calculating net profit margin:', error instanceof Error ? error.message : String(error));
@@ -249,10 +249,10 @@ async function calculateAssetTurnover(dbAdapter: DatabaseAdapter, _entityId: str
     // Calculate revenue and total assets from account balances
     const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
     const assetAccounts = await dbAdapter.getAccountsByType('ASSET');
-    
+
     const revenue = revenueAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const totalAssets = assetAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
-    
+
     return totalAssets > 0 ? revenue / totalAssets : 0;
   } catch (error: unknown) {
     console.error('Error calculating asset turnover:', error instanceof Error ? error.message : String(error));
@@ -267,13 +267,13 @@ async function calculateInventoryTurnover(dbAdapter: DatabaseAdapter, _entityId:
     const expenseAccounts = await dbAdapter.getAccountsByType('EXPENSE');
     const costOfGoodsSold = expenseAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0) * 0.6;
     const inventoryAccounts = await dbAdapter.getAccountsByType('ASSET');
-    
+
     if (inventoryAccounts.length === 0) return 0;
-    
+
     const averageInventory = await Promise.all(
       inventoryAccounts.map((account: any) => Promise.resolve(account.currentBalance || 0))
     ).then((balances: number[]) => balances.reduce((sum: number, balance: number) => sum + balance, 0));
-    
+
     return averageInventory > 0 ? costOfGoodsSold / averageInventory : 0;
   } catch (error: unknown) {
     console.error('Error calculating inventory turnover:', error instanceof Error ? error.message : String(error));
@@ -288,13 +288,13 @@ async function calculateReceivablesTurnover(dbAdapter: DatabaseAdapter, _entityI
     const revenueAccounts = await dbAdapter.getAccountsByType('REVENUE');
     const revenue = revenueAccounts.reduce((sum: number, account: any) => sum + (account.currentBalance || 0), 0);
     const receivablesAccounts = await dbAdapter.getAccountsByType('ASSET');
-    
+
     if (receivablesAccounts.length === 0) return 0;
-    
+
     const averageReceivables = await Promise.all(
       receivablesAccounts.map((account: any) => Promise.resolve(account.currentBalance || 0))
     ).then((balances: number[]) => balances.reduce((sum: number, balance: number) => sum + balance, 0));
-    
+
     return averageReceivables > 0 ? revenue / averageReceivables : 0;
   } catch (error: unknown) {
     console.error('Error calculating receivables turnover:', error instanceof Error ? error.message : String(error));
@@ -309,11 +309,11 @@ async function calculateReceivablesTurnover(dbAdapter: DatabaseAdapter, _entityI
 reportsRouter.get('/trial-balance', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { dbAdapter: _dbAdapter, entityId } = c.var;
-    
+
     // Parse query parameters
     const asOfDateStr = c.req.query('asOfDate');
     const asOfDate = parseDate(asOfDateStr, new Date());
-    
+
     // Generate trial balance
     // Note: Using direct database calls instead of FinancialReportsEngine
     const trialBalance = {
@@ -326,7 +326,7 @@ reportsRouter.get('/trial-balance', async (c: Context<AppContext & ReportsContex
         isBalanced: true
       }
     };
-    
+
     return c.json({
       success: true,
       data: {
@@ -358,36 +358,36 @@ reportsRouter.get('/trial-balance', async (c: Context<AppContext & ReportsContex
 reportsRouter.get('/balance-sheet', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { dbAdapter, entityId } = c.var;
-    
+
     // Parse query parameters
     const asOfDateStr = c.req.query('asOfDate');
     const format = c.req.query('format'); // 'detailed', 'summary', 'comparative'
     const asOfDate = parseDate(asOfDateStr, new Date());
-    
+
     // Generate balance sheet
     // Note: Using direct database calls instead of FinancialReportsEngine
     const balanceSheet: FinancialReportsBalanceSheet = {
       asOfDate: asOfDate.toISOString(),
       entityId,
-      assets: { 
-        total: 0, 
+      assets: {
+        total: 0,
         current: [],
         nonCurrent: []
       },
-      liabilities: { 
-        total: 0, 
+      liabilities: {
+        total: 0,
         current: [],
         nonCurrent: []
       },
-      equity: { 
-        total: 0, 
-        accounts: [] 
+      equity: {
+        total: 0,
+        accounts: []
       }
     };
-    
+
     // Calculate additional metrics using database queries
     const metrics = await calculateFinancialMetrics(dbAdapter, entityId, asOfDate);
-    
+
     return c.json({
       success: true,
       data: {
@@ -399,7 +399,7 @@ reportsRouter.get('/balance-sheet', async (c: Context<AppContext & ReportsContex
           totalAssets: balanceSheet.assets.total,
           totalLiabilitiesAndEquity: balanceSheet.liabilities.total + balanceSheet.equity.total,
           workingCapital: balanceSheet.assets.current.reduce((sum: number, acc: any) => sum + acc.currentBalance, 0) -
-                         balanceSheet.liabilities.current.reduce((sum: number, acc: any) => sum + acc.currentBalance, 0)
+            balanceSheet.liabilities.current.reduce((sum: number, acc: any) => sum + acc.currentBalance, 0)
         },
         metadata: {
           generatedAt: new Date().toISOString(),
@@ -429,28 +429,28 @@ reportsRouter.get('/balance-sheet', async (c: Context<AppContext & ReportsContex
 reportsRouter.get('/income-statement', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { reportsEngine: _reportsEngine, entityId } = c.var;
-    
+
     // Parse query parameters
     const startDateStr = c.req.query('startDate');
     const endDateStr = c.req.query('endDate');
     const period = c.req.query('period'); // 'monthly', 'quarterly', 'yearly'
-    
+
     // Default to current month if no dates provided
     const now = new Date()
     const defaultStartDate = new Date(now.getFullYear(), now.getMonth(), 1)
     const defaultEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    
+
     const startDate = parseDate(startDateStr, defaultStartDate)
     const endDate = parseDate(endDateStr, defaultEndDate)
-    
+
     // Generate income statement
     const incomeStatement = await _reportsEngine.generateIncomeStatement(startDate, endDate, entityId)
-    
+
     // Calculate additional metrics
     const grossRevenue = incomeStatement.revenue.total
     const totalExpenses = incomeStatement.expenses.total
     const netIncomeMargin = grossRevenue > 0 ? (incomeStatement.netIncome / grossRevenue) * 100 : 0
-    
+
     return c.json({
       success: true,
       data: {
@@ -493,23 +493,23 @@ reportsRouter.get('/income-statement', async (c: Context<AppContext & ReportsCon
 reportsRouter.get('/cash-flow', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { reportsEngine: _reportsEngine, entityId } = c.var;
-    
+
     // Parse query parameters
     const startDateStr = c.req.query('startDate');
     const endDateStr = c.req.query('endDate');
     const method = c.req.query('method'); // 'direct', 'indirect'
-    
+
     // Default to current month if no dates provided
     const now = new Date()
     const defaultStartDate = new Date(now.getFullYear(), now.getMonth(), 1)
     const defaultEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    
+
     const startDate = parseDate(startDateStr, defaultStartDate)
     const endDate = parseDate(endDateStr, defaultEndDate)
-    
+
     // Generate cash flow statement
     const cashFlow = await _reportsEngine.generateCashFlowStatement(startDate, endDate, entityId)
-    
+
     return c.json({
       success: true,
       data: {
@@ -545,22 +545,22 @@ reportsRouter.get('/cash-flow', async (c: Context<AppContext & ReportsContext>) 
 reportsRouter.get('/financial-metrics', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { reportsEngine: _reportsEngine, entityId } = c.var;
-    
+
     // Parse query parameters
     const asOfDateStr = c.req.query('asOfDate');
     const asOfDate = parseDate(asOfDateStr, new Date());
-    
+
     // Generate comprehensive metrics
     const metrics = await _reportsEngine.getFinancialMetrics(asOfDate)
     const balanceSheet = await _reportsEngine.generateBalanceSheet(asOfDate, entityId)
-    
+
     // Calculate additional derived metrics
     const totalAssets = balanceSheet.assets.total
     const totalLiabilities = balanceSheet.liabilities.total
     const totalEquity = balanceSheet.equity.total
     const currentAssets = balanceSheet.assets.current.reduce((sum: number, acc: any) => sum + acc.currentBalance, 0)
     const currentLiabilities = balanceSheet.liabilities.current.reduce((sum: number, acc: any) => sum + acc.currentBalance, 0)
-    
+
     return c.json({
       success: true,
       data: {
@@ -619,18 +619,18 @@ reportsRouter.get('/financial-metrics', async (c: Context<AppContext & ReportsCo
 reportsRouter.get('/account-balance/:accountId', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { entityId } = c.var;
-    
+
     const accountId = parseInt(c.req.param('accountId'), 10);
     const asOfDateStr = c.req.query('asOfDate');
     const asOfDate = parseDate(asOfDateStr, new Date());
-    
+
     if (isNaN(accountId)) {
       return c.json({
         success: false,
         error: 'Invalid account ID provided'
       }, 400)
     }
-    
+
     // Get account balance
     const dbAdapter = c.get('dbAdapter');
     // Get account and calculate balance as of date
@@ -638,7 +638,7 @@ reportsRouter.get('/account-balance/:accountId', async (c: Context<AppContext & 
     if (!account) {
       return c.json({ error: 'Account not found' }, 404);
     }
-    
+
     // For now, use current balance - in production, this should calculate balance as of specific date
     const balance = {
       accountId: account.id,
@@ -647,7 +647,7 @@ reportsRouter.get('/account-balance/:accountId', async (c: Context<AppContext & 
       balance: account.currentBalance || 0,
       asOfDate: asOfDate.toISOString()
     };
-    
+
     return c.json({
       success: true,
       data: {
@@ -681,17 +681,17 @@ reportsRouter.get('/account-balance/:accountId', async (c: Context<AppContext & 
 reportsRouter.get('/summary', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { reportsEngine: _reportsEngine, entityId } = c.var;
-    
+
     const today = new Date();
-    
+
     // Get current month data
     const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1)
     const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-    
+
     // Get previous month data for comparison
     const previousMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1)
     const previousMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0)
-    
+
     // Generate reports in parallel
     const [balanceSheet, currentIncome, previousIncome, metrics] = await Promise.all([
       _reportsEngine.generateBalanceSheet(today, entityId),
@@ -699,12 +699,12 @@ reportsRouter.get('/summary', async (c: Context<AppContext & ReportsContext>) =>
       _reportsEngine.generateIncomeStatement(previousMonthStart, previousMonthEnd, entityId),
       _reportsEngine.getFinancialMetrics(today)
     ])
-    
+
     // Calculate month-over-month changes
     const revenueChange = currentIncome.revenue.total - previousIncome.revenue.total
     const expenseChange = currentIncome.expenses.total - previousIncome.expenses.total
     const netIncomeChange = currentIncome.netIncome - previousIncome.netIncome
-    
+
     return c.json({
       success: true,
       data: {
@@ -766,19 +766,19 @@ reportsRouter.get('/summary', async (c: Context<AppContext & ReportsContext>) =>
 reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { reportsEngine: _reportsEngine, entityId } = c.var;
-    
+
     // Parse query parameters
     const asOfDateStr = c.req.query('asOfDate');
     const format = c.req.query('format') || 'csv'; // csv, pdf, excel
     const asOfDate = parseDate(asOfDateStr, new Date());
-    
+
     // Generate balance sheet data
     const balanceSheet = await _reportsEngine.generateBalanceSheet(asOfDate, entityId)
     const metrics = await _reportsEngine.getFinancialMetrics(asOfDate)
-    
+
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
     const user = c.get('user');
-    
+
     switch (format.toLowerCase()) {
       case 'csv': {
         // Generate CSV content
@@ -812,9 +812,9 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
           `Debt-to-Equity Ratio,${metrics.debtToEquityRatio.toFixed(2)}`,
           `Working Capital,${(balanceSheet.assets.current.reduce((sum: number, acc: any) => sum + acc.currentBalance, 0) - balanceSheet.liabilities.current.reduce((sum: number, acc: any) => sum + acc.currentBalance, 0)).toFixed(2)}`
         ]
-        
+
         const csvContent = csvLines.join('\n')
-        
+
         return new Response(csvContent, {
           headers: {
             'Content-Type': 'text/csv',
@@ -822,7 +822,7 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
           }
         })
       }
-      
+
       case 'pdf': {
         // For PDF generation, we'd typically use a library like Puppeteer or PDFKit
         // For now, return HTML that can be printed to PDF
@@ -855,12 +855,12 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
         <h3>ASSETS</h3>
         <table>
             <tr><th>Account Code</th><th>Account Name</th><th>Balance</th></tr>
-            ${balanceSheet.assets.current.map((acc: any) => 
-              `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
-            ).join('')}
-            ${balanceSheet.assets.nonCurrent.map((acc: any) => 
-               `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
-             ).join('')}
+            ${balanceSheet.assets.current.map((acc: any) =>
+          `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
+        ).join('')}
+            ${balanceSheet.assets.nonCurrent.map((acc: any) =>
+          `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
+        ).join('')}
             <tr class="total"><td colspan="2">TOTAL ASSETS</td><td class="amount">${formatCurrency(balanceSheet.assets.total)}</td></tr>
         </table>
     </div>
@@ -869,12 +869,12 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
         <h3>LIABILITIES</h3>
         <table>
             <tr><th>Account Code</th><th>Account Name</th><th>Balance</th></tr>
-            ${balanceSheet.liabilities.current.map((acc: any) => 
-              `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
-            ).join('')}
-            ${balanceSheet.liabilities.nonCurrent.map((acc: any) => 
-               `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
-             ).join('')}
+            ${balanceSheet.liabilities.current.map((acc: any) =>
+          `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
+        ).join('')}
+            ${balanceSheet.liabilities.nonCurrent.map((acc: any) =>
+          `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
+        ).join('')}
             <tr class="total"><td colspan="2">TOTAL LIABILITIES</td><td class="amount">${formatCurrency(balanceSheet.liabilities.total)}</td></tr>
         </table>
     </div>
@@ -883,9 +883,9 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
         <h3>EQUITY</h3>
         <table>
             <tr><th>Account Code</th><th>Account Name</th><th>Balance</th></tr>
-            ${balanceSheet.equity.accounts.map((acc: any) => 
-              `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
-            ).join('')}
+            ${balanceSheet.equity.accounts.map((acc: any) =>
+          `<tr><td>${acc.accountCode}</td><td>${acc.accountName}</td><td class="amount">${formatCurrency(acc.currentBalance)}</td></tr>`
+        ).join('')}
             <tr class="total"><td colspan="2">TOTAL EQUITY</td><td class="amount">${formatCurrency(balanceSheet.equity.total)}</td></tr>
         </table>
     </div>
@@ -901,7 +901,7 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
     </div>
 </body>
 </html>`
-        
+
         return new Response(htmlContent, {
           headers: {
             'Content-Type': 'text/html',
@@ -909,7 +909,7 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
           }
         })
       }
-      
+
       case 'excel':
       case 'xlsx': {
         // For Excel generation, we'd typically use a library like ExcelJS
@@ -943,9 +943,9 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
           `Quick Ratio\t${metrics.quickRatio.toFixed(2)}`,
           `Debt-to-Equity Ratio\t${metrics.debtToEquityRatio.toFixed(2)}`
         ]
-        
+
         const tsvContent = tsvLines.join('\n')
-        
+
         return new Response(tsvContent, {
           headers: {
             'Content-Type': 'application/vnd.ms-excel',
@@ -953,7 +953,7 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
           }
         })
       }
-      
+
       default:
         return c.json({
           success: false,
@@ -979,26 +979,26 @@ reportsRouter.get('/export/balance-sheet', async (c: Context<AppContext & Report
 reportsRouter.get('/export/income-statement', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { reportsEngine: _reportsEngine, entityId } = c.var;
-    
+
     // Parse query parameters
     const startDateStr = c.req.query('startDate')
     const endDateStr = c.req.query('endDate')
     const format = c.req.query('format') || 'csv'
-    
+
     // Default to current month if no dates provided
     const now = new Date()
     const defaultStartDate = new Date(now.getFullYear(), now.getMonth(), 1)
     const defaultEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    
+
     const startDate = parseDate(startDateStr, defaultStartDate)
     const endDate = parseDate(endDateStr, defaultEndDate)
-    
+
     // Generate income statement
     const incomeStatement = await _reportsEngine.generateIncomeStatement(startDate, endDate, entityId)
-    
+
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
     const user = c.get('user')
-    
+
     switch (format.toLowerCase()) {
       case 'csv': {
         const csvLines = [
@@ -1025,9 +1025,9 @@ reportsRouter.get('/export/income-statement', async (c: Context<AppContext & Rep
           `Expense Total,${incomeStatement.expenses.total}`,
           `Net Income Margin,${incomeStatement.revenue.total > 0 ? ((incomeStatement.netIncome / incomeStatement.revenue.total) * 100).toFixed(2) : 0}%`
         ]
-        
+
         const csvContent = csvLines.join('\n')
-        
+
         return new Response(csvContent, {
           headers: {
             'Content-Type': 'text/csv',
@@ -1035,7 +1035,7 @@ reportsRouter.get('/export/income-statement', async (c: Context<AppContext & Rep
           }
         })
       }
-      
+
       case 'json':
         return c.json({
           success: true,
@@ -1048,17 +1048,17 @@ reportsRouter.get('/export/income-statement', async (c: Context<AppContext & Rep
             format: 'json'
           }
         });
-      
+
       case 'pdf':
         // Generate PDF format
-        const pdfBuffer = generateIncomeStatementPDF(incomeStatement, { entityId, fromDate: startDate, toDate: endDate });
+        const pdfBuffer = await generateIncomeStatementPDF(incomeStatement, { entityId, fromDate: startDate, toDate: endDate });
         return new Response(pdfBuffer, {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="income-statement-${startDate.toISOString().split('T')[0]}-to-${endDate.toISOString().split('T')[0]}.pdf"`
           }
         });
-      
+
       case 'xlsx':
         // Excel generation is not available in Cloudflare Workers
         return c.json({
@@ -1071,7 +1071,7 @@ reportsRouter.get('/export/income-statement', async (c: Context<AppContext & Rep
             pdf: `/api/reports/export/income-statement?format=pdf&startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`
           }
         }, 400);
-      
+
       default:
         return c.json({
           success: false,
@@ -1098,18 +1098,18 @@ reportsRouter.get('/export/income-statement', async (c: Context<AppContext & Rep
 reportsRouter.get('/export/trial-balance', async (c: Context<AppContext & ReportsContext>) => {
   try {
     const { reportsEngine: _reportsEngine, entityId } = c.var;
-    
+
     // Parse query parameters
     const asOfDateStr = c.req.query('asOfDate')
     const format = c.req.query('format') || 'csv'
     const asOfDate = parseDate(asOfDateStr, new Date())
-    
+
     // Generate trial balance
     const trialBalance = await _reportsEngine.generateTrialBalance(asOfDate, entityId)
-    
+
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
     const user = c.get('user')
-    
+
     switch (format.toLowerCase()) {
       case 'csv': {
         const csvLines = [
@@ -1128,9 +1128,9 @@ reportsRouter.get('/export/trial-balance', async (c: Context<AppContext & Report
           `TOTALS,,,,${trialBalance.totals.totalDebits},${trialBalance.totals.totalCredits}`,
           `BALANCED,,,,,${trialBalance.totals.isBalanced ? 'YES' : 'NO'}`
         ]
-        
+
         const csvContent = csvLines.join('\n')
-        
+
         return new Response(csvContent, {
           headers: {
             'Content-Type': 'text/csv',
@@ -1138,7 +1138,7 @@ reportsRouter.get('/export/trial-balance', async (c: Context<AppContext & Report
           }
         })
       }
-      
+
       case 'json':
         return c.json({
           success: true,
@@ -1151,17 +1151,17 @@ reportsRouter.get('/export/trial-balance', async (c: Context<AppContext & Report
             format: 'json'
           }
         });
-      
+
       case 'pdf':
         // Generate PDF format
-        const pdfBuffer = generateTrialBalancePDF(trialBalance, { entityId, asOfDate });
+        const pdfBuffer = await generateTrialBalancePDF(trialBalance, { entityId, asOfDate });
         return new Response(pdfBuffer, {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="trial-balance-${asOfDate.toISOString().split('T')[0]}.pdf"`
           }
         });
-      
+
       case 'xlsx':
         // Excel generation is not available in Cloudflare Workers
         return c.json({
@@ -1174,7 +1174,7 @@ reportsRouter.get('/export/trial-balance', async (c: Context<AppContext & Report
             pdf: `/api/reports/export/trial-balance?format=pdf&asOfDate=${formatDate(asOfDate)}`
           }
         }, 400);
-      
+
       default:
         return c.json({
           success: false,

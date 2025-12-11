@@ -9,6 +9,9 @@
     "binding": "ASSETS",
     "directory": "dist/client"
   },
+  "build": {
+    "command": "pnpm install && pnpm build"
+  },
   "ai": {
     "binding": "AI"
   },
