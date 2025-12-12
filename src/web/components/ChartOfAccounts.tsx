@@ -118,12 +118,16 @@ export default function ChartOfAccounts() {
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(apiUrl("/api/accounts"));
+      const response = await fetch(apiUrl("/api/accounts"), {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+        },
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch accounts: ${response.statusText}`);
       }
       const data = (await response.json()) as { accounts: Account[] };
-      setAccounts(data.accounts || []);
+      setAccounts(data?.accounts || []);
       setError(null);
     } catch (err) {
       console.error("Error fetching accounts:", err);

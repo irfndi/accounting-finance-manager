@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import React, { useState, useEffect } from "react";
+import { Card } from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from './ui/table';
+} from "./ui/table";
 
 import {
   Dialog,
@@ -20,14 +20,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from './ui/dialog';
+} from "./ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select';
+} from "./ui/select";
 
 interface Account {
   id: number;
@@ -42,7 +42,7 @@ interface Account {
   path: string;
   isActive: boolean;
   balance?: number;
-  normalBalance: 'debit' | 'credit';
+  normalBalance: "debit" | "credit";
   createdAt: string;
   updatedAt: string;
 }
@@ -55,7 +55,7 @@ interface CreateAccountData {
   category?: string;
   description?: string;
   parentId?: string;
-  normalBalance: 'debit' | 'credit';
+  normalBalance: "debit" | "credit";
 }
 
 interface GeneralLedgerStats {
@@ -66,16 +66,17 @@ interface GeneralLedgerStats {
 }
 
 const ACCOUNT_TYPES = [
-  { value: 'ASSET', label: 'Asset' },
-  { value: 'LIABILITY', label: 'Liability' },
-  { value: 'EQUITY', label: 'Equity' },
-  { value: 'REVENUE', label: 'Revenue' },
-  { value: 'EXPENSE', label: 'Expense' },
+  { value: "ASSET", label: "Asset" },
+  { value: "LIABILITY", label: "Liability" },
+  { value: "EQUITY", label: "Equity" },
+  { value: "REVENUE", label: "Revenue" },
+  { value: "EXPENSE", label: "Expense" },
 ];
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? ((import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin)
-  : 'http://localhost:3000';
+const API_BASE_URL =
+  typeof window !== "undefined"
+    ? (import.meta as any).env?.PUBLIC_API_BASE_URL || window.location.origin
+    : "http://localhost:3000";
 
 export default function GeneralLedger() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -83,26 +84,26 @@ export default function GeneralLedger() {
     totalAccounts: 0,
     activeAccounts: 0,
     monthlyTransactions: 0,
-    unbalancedEntries: 0
+    unbalancedEntries: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  
+
   // Form state for adding new account
   const [formData, setFormData] = useState<CreateAccountData>({
-    code: '',
-    name: '',
-    type: 'ASSET',
-    subtype: '',
-    category: '',
-    description: '',
-    parentId: '',
-    normalBalance: 'debit'
+    code: "",
+    name: "",
+    type: "ASSET",
+    subtype: "",
+    category: "",
+    description: "",
+    parentId: "",
+    normalBalance: "debit",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,38 +113,39 @@ export default function GeneralLedger() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const params = new URLSearchParams();
-      if (typeFilter !== 'all') {
-        params.append('type', typeFilter);
+      if (typeFilter !== "all") {
+        params.append("type", typeFilter);
       }
-      
+
       const url = `${API_BASE_URL}/api/accounts?${params}`;
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
         },
       });
       if (!response.ok) {
         throw new Error(`Failed to fetch accounts: ${response.statusText}`);
       }
-      
-      const data = await response.json() as { accounts: Account[] };
+
+      const data = (await response.json()) as { accounts: Account[] };
       setAccounts(data.accounts || []);
-      
+
       // Calculate stats
       const totalAccounts = data.accounts?.length || 0;
-      const activeAccounts = data.accounts?.filter((acc: Account) => acc.isActive).length || 0;
-      
+      const activeAccounts =
+        data.accounts?.filter((acc: Account) => acc.isActive).length || 0;
+
       setStats({
         totalAccounts,
         activeAccounts,
         monthlyTransactions: 0, // TODO: Implement transaction counting
-        unbalancedEntries: 0    // TODO: Implement unbalanced entry detection
+        unbalancedEntries: 0, // TODO: Implement unbalanced entry detection
       });
     } catch (err) {
-      console.error('Error fetching accounts:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch accounts');
+      console.error("Error fetching accounts:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch accounts");
     } finally {
       setLoading(false);
     }
@@ -154,73 +156,80 @@ export default function GeneralLedger() {
     try {
       setIsSubmitting(true);
       setFormErrors({});
-      
+
       // Frontend validation
       if (!formData.code.trim()) {
-        setFormErrors({ code: 'Account code is required' });
+        setFormErrors({ code: "Account code is required" });
         return;
       }
       if (!formData.name.trim()) {
-        setFormErrors({ name: 'Account name is required' });
+        setFormErrors({ name: "Account name is required" });
         return;
       }
       if (!formData.type.trim()) {
-        setFormErrors({ type: 'Account type is required' });
+        setFormErrors({ type: "Account type is required" });
         return;
       }
-      
+
       const response = await fetch(`${API_BASE_URL}/api/accounts`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
         },
         body: JSON.stringify(formData),
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json() as { errors?: any; error?: string };
+        const errorData = (await response.json()) as {
+          errors?: any;
+          error?: string;
+        };
         if (errorData.errors) {
           setFormErrors(errorData.errors);
           return;
         }
-        throw new Error(errorData.error || 'Failed to save account');
+        throw new Error(errorData.error || "Failed to save account");
       }
-      
+
       // Reset form and close dialog
       setFormData({
-      code: '',
-      name: '',
-      type: 'ASSET',
-        subtype: '',
-        category: '',
-        description: '',
-        parentId: '',
-        normalBalance: 'debit'
+        code: "",
+        name: "",
+        type: "ASSET",
+        subtype: "",
+        category: "",
+        description: "",
+        parentId: "",
+        normalBalance: "debit",
       });
       setIsAddDialogOpen(false);
-      
+
       // Refresh accounts list
       await fetchAccounts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save account');
+      setError(err instanceof Error ? err.message : "Failed to save account");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Filter accounts based on search and type
-  const filteredAccounts = accounts.filter(account => {
-    const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || account.type === typeFilter;
+  const filteredAccounts = accounts.filter((account) => {
+    const matchesSearch =
+      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      account.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === "all" || account.type === typeFilter;
     return matchesSearch && matchesType;
   });
 
   // Paginate accounts
   const totalPages = Math.ceil(filteredAccounts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedAccounts = filteredAccounts.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedAccounts = filteredAccounts.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
 
   // Load accounts on component mount
   useEffect(() => {
@@ -234,20 +243,26 @@ export default function GeneralLedger() {
 
   const getTypeColor = (type: string) => {
     switch (type.toUpperCase()) {
-      case 'ASSET': return 'bg-blue-100 text-blue-800';
-      case 'LIABILITY': return 'bg-red-100 text-red-800';
-      case 'EQUITY': return 'bg-purple-100 text-purple-800';
-      case 'REVENUE': return 'bg-green-100 text-green-800';
-      case 'EXPENSE': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "ASSET":
+        return "bg-blue-100 text-blue-800";
+      case "LIABILITY":
+        return "bg-red-100 text-red-800";
+      case "EQUITY":
+        return "bg-purple-100 text-purple-800";
+      case "REVENUE":
+        return "bg-green-100 text-green-800";
+      case "EXPENSE":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const formatCurrency = (amount: number | undefined) => {
-    if (amount === undefined || amount === null) return '$0.00';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    if (amount === undefined || amount === null) return "$0.00";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -272,15 +287,13 @@ export default function GeneralLedger() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            General Ledger
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900">General Ledger</h1>
           <p className="text-slate-600 mt-1">
             Manage your chart of accounts and view transaction details
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger>
             <Button className="bg-blue-600 text-white hover:bg-blue-700">
               Add Account
             </Button>
@@ -300,12 +313,16 @@ export default function GeneralLedger() {
                 <Input
                   id="code"
                   value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, code: e.target.value })
+                  }
                   className="col-span-3"
                   placeholder="e.g., 1000"
                 />
                 {formErrors.code && (
-                  <p className="col-span-4 text-sm text-red-600">{formErrors.code}</p>
+                  <p className="col-span-4 text-sm text-red-600">
+                    {formErrors.code}
+                  </p>
                 )}
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -315,12 +332,16 @@ export default function GeneralLedger() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="col-span-3"
                   placeholder="e.g., Cash - Operating Account"
                 />
                 {formErrors.name && (
-                  <p className="col-span-4 text-sm text-red-600">{formErrors.name}</p>
+                  <p className="col-span-4 text-sm text-red-600">
+                    {formErrors.name}
+                  </p>
                 )}
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -329,7 +350,9 @@ export default function GeneralLedger() {
                 </Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value) => setFormData({ ...formData, type: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, type: value })
+                  }
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select account type" />
@@ -343,7 +366,9 @@ export default function GeneralLedger() {
                   </SelectContent>
                 </Select>
                 {formErrors.type && (
-                  <p className="col-span-4 text-sm text-red-600">{formErrors.type}</p>
+                  <p className="col-span-4 text-sm text-red-600">
+                    {formErrors.type}
+                  </p>
                 )}
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -352,7 +377,9 @@ export default function GeneralLedger() {
                 </Label>
                 <Select
                   value={formData.normalBalance}
-                  onValueChange={(value: 'debit' | 'credit') => setFormData({ ...formData, normalBalance: value })}
+                  onValueChange={(value: "debit" | "credit") =>
+                    setFormData({ ...formData, normalBalance: value })
+                  }
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select normal balance" />
@@ -369,16 +396,16 @@ export default function GeneralLedger() {
                 </Label>
                 <Input
                   id="description"
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  value={formData.description || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   className="col-span-3"
                   placeholder="Optional description"
                 />
               </div>
             </div>
-            {error && (
-              <div className="text-sm text-red-600 mb-4">{error}</div>
-            )}
+            {error && <div className="text-sm text-red-600 mb-4">{error}</div>}
             <DialogFooter>
               <Button
                 type="button"
@@ -395,7 +422,7 @@ export default function GeneralLedger() {
                 className="bg-blue-600 text-white hover:bg-blue-700"
                 data-testid="account-submit"
               >
-                {isSubmitting ? 'Creating...' : 'Create Account'}
+                {isSubmitting ? "Creating..." : "Create Account"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -410,11 +437,23 @@ export default function GeneralLedger() {
               <p className="text-sm font-medium text-slate-600">
                 Total Accounts
               </p>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalAccounts}</p>
+              <p className="text-2xl font-bold text-slate-900">
+                {stats.totalAccounts}
+              </p>
             </div>
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              <svg
+                className="w-4 h-4 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
               </svg>
             </div>
           </div>
@@ -426,11 +465,23 @@ export default function GeneralLedger() {
               <p className="text-sm font-medium text-slate-600">
                 Active Accounts
               </p>
-              <p className="text-2xl font-bold text-slate-900">{stats.activeAccounts}</p>
+              <p className="text-2xl font-bold text-slate-900">
+                {stats.activeAccounts}
+              </p>
             </div>
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-4 h-4 text-green-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </div>
@@ -442,11 +493,23 @@ export default function GeneralLedger() {
               <p className="text-sm font-medium text-slate-600">
                 This Month Transactions
               </p>
-              <p className="text-2xl font-bold text-slate-900">{stats.monthlyTransactions}</p>
+              <p className="text-2xl font-bold text-slate-900">
+                {stats.monthlyTransactions}
+              </p>
             </div>
             <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg
+                className="w-4 h-4 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
           </div>
@@ -458,11 +521,23 @@ export default function GeneralLedger() {
               <p className="text-sm font-medium text-slate-600">
                 Unbalanced Entries
               </p>
-              <p className="text-2xl font-bold text-red-600">{stats.unbalancedEntries}</p>
+              <p className="text-2xl font-bold text-red-600">
+                {stats.unbalancedEntries}
+              </p>
             </div>
             <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              <svg
+                className="w-4 h-4 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
               </svg>
             </div>
           </div>
@@ -502,9 +577,9 @@ export default function GeneralLedger() {
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-600">{error}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={fetchAccounts}
               className="mt-2"
             >
@@ -528,34 +603,50 @@ export default function GeneralLedger() {
             <TableBody>
               {paginatedAccounts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-slate-500"
+                  >
                     {filteredAccounts.length === 0 && accounts.length > 0
-                      ? 'No accounts match your search criteria.'
-                      : 'No accounts found. Create your first account to get started.'}
+                      ? "No accounts match your search criteria."
+                      : "No accounts found. Create your first account to get started."}
                   </TableCell>
                 </TableRow>
               ) : (
                 paginatedAccounts.map((account) => (
                   <TableRow key={account.id}>
-                    <TableCell className="font-mono text-sm">{account.code}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {account.code}
+                    </TableCell>
                     <TableCell>{account.name}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(account.type)}`}>
-                        {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(account.type)}`}
+                      >
+                        {account.type.charAt(0).toUpperCase() +
+                          account.type.slice(1)}
                       </span>
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {formatCurrency(account.balance)}
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        account.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {account.isActive ? 'Active' : 'Inactive'}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          account.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {account.isActive ? "Active" : "Inactive"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-600 hover:text-blue-800"
+                      >
                         View
                       </Button>
                     </TableCell>
@@ -570,13 +661,15 @@ export default function GeneralLedger() {
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-slate-600">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredAccounts.length)} of {filteredAccounts.length} accounts
+              Showing {startIndex + 1} to{" "}
+              {Math.min(startIndex + itemsPerPage, filteredAccounts.length)} of{" "}
+              {filteredAccounts.length} accounts
             </p>
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               >
                 Previous
@@ -587,7 +680,9 @@ export default function GeneralLedger() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
               >
                 Next
