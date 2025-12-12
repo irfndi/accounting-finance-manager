@@ -10,7 +10,7 @@ const ChartOfAccounts = lazy(() => import('./components/ChartOfAccounts'));
 const FinancialStatements = lazy(() => import('./components/FinancialStatements'));
 const DocumentSearch = lazy(() => import('./components/DocumentSearch'));
 const ReportsPage = lazy(() => import('./routes/pages/ReportsPage'));
-const GeneralLedgerPage = lazy(() => import('./routes/pages/GeneralLedgerPage'));
+const GeneralLedger = lazy(() => import('./components/GeneralLedger'));
 const PlaceholderPage = lazy(() => import('./routes/pages/PlaceholderPage'));
 const BudgetPage = lazy(() => import('./routes/pages/BudgetPage'));
 
@@ -47,7 +47,7 @@ const generalLedgerRoute = createRoute({
   path: '/general-ledger',
   component: () => (
     <PageLayout title="General Ledger" description="Chart of accounts and transaction management">
-      <GeneralLedgerPage />
+      <GeneralLedger />
     </PageLayout>
   ),
 });

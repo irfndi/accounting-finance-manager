@@ -655,7 +655,7 @@ export default function ChartOfAccounts() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={saveAccount}>
+            <Button onClick={saveAccount} data-testid="account-submit">
               {editingAccount ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>

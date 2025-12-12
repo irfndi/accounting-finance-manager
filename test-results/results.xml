@@ -1,0 +1,106 @@
+<testsuites id="" name="" tests="48" failures="0" skipped="0" errors="0" time="47.370233999999996">
+<testsuite name="accounts.spec.ts" timestamp="2025-12-12T06:46:55.319Z" hostname="chromium" tests="23" failures="0" skipped="0" time="58.248" errors="0">
+<testcase name="Account Management › should display Chart of Accounts page" classname="accounts.spec.ts" time="1.309">
+</testcase>
+<testcase name="Account Management › should display General Ledger page" classname="accounts.spec.ts" time="1.333">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should validate required fields when creating account" classname="accounts.spec.ts" time="1.464">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should successfully create new account" classname="accounts.spec.ts" time="3.504">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should handle API errors gracefully" classname="accounts.spec.ts" time="1.276">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should filter accounts by type" classname="accounts.spec.ts" time="3.228">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should search accounts" classname="accounts.spec.ts" time="3.936">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate required fields when creating account" classname="accounts.spec.ts" time="0.784">
+</testcase>
+<testcase name="Account Management › General Ledger › should successfully create new account" classname="accounts.spec.ts" time="3.046">
+</testcase>
+<testcase name="Account Management › General Ledger › should display account statistics" classname="accounts.spec.ts" time="2.895">
+</testcase>
+<testcase name="Account Management › General Ledger › should search accounts in general ledger" classname="accounts.spec.ts" time="3.9">
+</testcase>
+<testcase name="Account Management › General Ledger › should handle network errors gracefully" classname="accounts.spec.ts" time="3.206">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate account type selection" classname="accounts.spec.ts" time="0.895">
+</testcase>
+<testcase name="Account Management › General Ledger › should handle API errors when creating accounts" classname="accounts.spec.ts" time="1.068">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle 500 server errors" classname="accounts.spec.ts" time="2.911">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle network timeouts" classname="accounts.spec.ts" time="3.852">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle malformed JSON responses" classname="accounts.spec.ts" time="2.918">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle authentication errors" classname="accounts.spec.ts" time="3.953">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle retry functionality" classname="accounts.spec.ts" time="2.933">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle special characters in account names" classname="accounts.spec.ts" time="3.073">
+</testcase>
+<testcase name="Account Management › Edge Cases › should validate account code format" classname="accounts.spec.ts" time="1.007">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle very long account names" classname="accounts.spec.ts" time="2.865">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle concurrent account creation attempts" classname="accounts.spec.ts" time="2.892">
+</testcase>
+</testsuite>
+<testsuite name="example.spec.ts" timestamp="2025-12-12T06:46:55.319Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.001" errors="0">
+<testcase name="E2E Tests Example › should demonstrate end-to-end testing pattern" classname="example.spec.ts" time="0.001">
+</testcase>
+</testsuite>
+<testsuite name="accounts.spec.ts" timestamp="2025-12-12T06:46:55.319Z" hostname="firefox" tests="23" failures="0" skipped="0" time="75.056" errors="0">
+<testcase name="Account Management › should display Chart of Accounts page" classname="accounts.spec.ts" time="2.747">
+</testcase>
+<testcase name="Account Management › should display General Ledger page" classname="accounts.spec.ts" time="3.307">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should validate required fields when creating account" classname="accounts.spec.ts" time="3.377">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should successfully create new account" classname="accounts.spec.ts" time="6.028">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should handle API errors gracefully" classname="accounts.spec.ts" time="2.556">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should filter accounts by type" classname="accounts.spec.ts" time="3.776">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should search accounts" classname="accounts.spec.ts" time="4.666">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate required fields when creating account" classname="accounts.spec.ts" time="1.24">
+</testcase>
+<testcase name="Account Management › General Ledger › should successfully create new account" classname="accounts.spec.ts" time="3.294">
+</testcase>
+<testcase name="Account Management › General Ledger › should display account statistics" classname="accounts.spec.ts" time="3.053">
+</testcase>
+<testcase name="Account Management › General Ledger › should search accounts in general ledger" classname="accounts.spec.ts" time="4.121">
+</testcase>
+<testcase name="Account Management › General Ledger › should handle network errors gracefully" classname="accounts.spec.ts" time="3.427">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate account type selection" classname="accounts.spec.ts" time="1.226">
+</testcase>
+<testcase name="Account Management › General Ledger › should handle API errors when creating accounts" classname="accounts.spec.ts" time="1.397">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle 500 server errors" classname="accounts.spec.ts" time="4.139">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle network timeouts" classname="accounts.spec.ts" time="4.877">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle malformed JSON responses" classname="accounts.spec.ts" time="3.712">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle authentication errors" classname="accounts.spec.ts" time="3.869">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle retry functionality" classname="accounts.spec.ts" time="3.558">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle special characters in account names" classname="accounts.spec.ts" time="3.324">
+</testcase>
+<testcase name="Account Management › Edge Cases › should validate account code format" classname="accounts.spec.ts" time="1.273">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle very long account names" classname="accounts.spec.ts" time="3.095">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle concurrent account creation attempts" classname="accounts.spec.ts" time="2.994">
+</testcase>
+</testsuite>
+<testsuite name="example.spec.ts" timestamp="2025-12-12T06:46:55.319Z" hostname="firefox" tests="1" failures="0" skipped="0" time="0.001" errors="0">
+<testcase name="E2E Tests Example › should demonstrate end-to-end testing pattern" classname="example.spec.ts" time="0.001">
+</testcase>
+</testsuite>
+</testsuites>
