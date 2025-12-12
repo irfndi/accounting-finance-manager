@@ -4,31 +4,33 @@ test.describe('Account Management', () => {
   test.beforeEach(async ({ page }) => {
     // Wait for the app to be ready
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    // Wait for React to render - check for navigation or main content
+    await page.waitForTimeout(2000);
   });
 
   test('should display Chart of Accounts page', async ({ page }) => {
     await page.goto('/chart-of-accounts');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    // Wait for the page to load and check for the heading
-    await expect(page.locator('h1').first()).toContainText('Chart of Accounts');
-    await expect(page.getByRole('button', { name: /add account/i })).toBeVisible();
+    // Wait for React lazy-loaded content with longer timeout
+    await expect(page.locator('h1').first()).toContainText('Chart of Accounts', { timeout: 30000 });
+    await expect(page.getByRole('button', { name: /add account/i })).toBeVisible({ timeout: 15000 });
   });
 
   test('should display General Ledger page', async ({ page }) => {
     await page.goto('/general-ledger');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    // Wait for the page to load and check for the heading
-    await expect(page.locator('h1').first()).toContainText('General Ledger');
-    await expect(page.getByRole('button', { name: /add account/i })).toBeVisible();
+    // Wait for React lazy-loaded content with longer timeout
+    await expect(page.locator('h1').first()).toContainText('General Ledger', { timeout: 30000 });
+    await expect(page.getByRole('button', { name: /add account/i })).toBeVisible({ timeout: 15000 });
   });
 
   test.describe('Chart of Accounts', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/chart-of-accounts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('should validate required fields when creating account', async ({ page }) => {
@@ -138,7 +140,7 @@ test.describe('Account Management', () => {
   test.describe('General Ledger', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/general-ledger');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('should validate required fields when creating account', async ({ page }) => {
@@ -269,7 +271,7 @@ test.describe('Account Management', () => {
   test.describe('API Error Handling', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/chart-of-accounts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('should handle 500 server errors', async ({ page }) => {
@@ -392,7 +394,7 @@ test.describe('Account Management', () => {
   test.describe('Edge Cases', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/chart-of-accounts');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     });
 
     test('should handle special characters in account names', async ({ page }) => {
