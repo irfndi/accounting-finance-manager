@@ -103,8 +103,8 @@ jobs:
           # Wait for server to be ready
           echo "Waiting for server to be ready..."
           for i in {1..60}; do
-            if curl -f http://localhost:4321 >/dev/null 2>&1; then
-              echo "✓ Preview server is ready at http://localhost:4321"
+            if curl -f http://localhost:4173 >/dev/null 2>&1; then
+              echo "✓ Preview server is ready at http://localhost:4173"
               break
             fi
             echo "Attempt $i/60: Server not ready yet, waiting 2 seconds..."
@@ -124,7 +124,7 @@ jobs:
           echo "✓ E2E tests completed"
         env:
           PLAYWRIGHT_BROWSER: ${{ matrix.browser }}
-          BASE_URL: http://localhost:4321
+          BASE_URL: http://localhost:4173
           CI: true
           HOME: /root
 
