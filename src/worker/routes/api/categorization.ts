@@ -65,27 +65,27 @@ categorization.post('/suggest', async (c) => {
   try {
     const body = await c.req.json()
     const validatedData = categorizationRequestSchema.parse(body)
-    
+
     const { description, amount, merchant, existingCategories, transactionId } = validatedData
     const user = c.get('user')
-    
+
     // Initialize AI service
     const primaryProvider = createProvider({
-        provider: 'openrouter',
-        modelId: 'google/gemini-flash-1.5',
-        apiKey: c.env.OPENROUTER_API_KEY || '',
-        baseUrl: 'https://openrouter.ai/api/v1'
-      })
-      
-      const aiService = new AIService({
-        primaryProvider,
-        retryAttempts: 3,
-        retryDelay: 1000,
-        timeout: 30000
-      })
-      
-      const financialAI = new FinancialAIService(aiService)
-    
+      provider: 'openrouter',
+      modelId: 'google/gemini-flash-1.5',
+      apiKey: c.env.OPENROUTER_API_KEY || '',
+      baseUrl: 'https://openrouter.ai/api/v1'
+    })
+
+    const aiService = new AIService({
+      primaryProvider,
+      retryAttempts: 3,
+      retryDelay: 1000,
+      timeout: 30000
+    })
+
+    const financialAI = new FinancialAIService(aiService)
+
     // Get AI categorization suggestion
     const aiResult = await financialAI.categorizeExpense(
       description,
@@ -93,30 +93,30 @@ categorization.post('/suggest', async (c) => {
       merchant,
       existingCategories
     )
-    
+
     // Find matching account based on category
     const db = new DatabaseAdapter({ database: c.env.FINANCE_MANAGER_DB })
     let suggestedAccountId: string | undefined
-    
+
     try {
       const accounts = await db.getAllAccounts();
       const lowerCaseCategory = aiResult.category.toLowerCase();
-      const matchingAccount = accounts.find((account: Account) => 
+      const matchingAccount = accounts.find((account: Account) =>
         account.category?.toLowerCase().includes(lowerCaseCategory) ||
         account.name.toLowerCase().includes(lowerCaseCategory)
       );
-      
+
       if (matchingAccount) {
         suggestedAccountId = matchingAccount.id?.toString();
       }
     } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error while finding matching account';
-        console.warn('Failed to find matching account:', errorMessage);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error while finding matching account';
+      console.warn('Failed to find matching account:', errorMessage);
     }
-    
+
     // Generate unique suggestion ID
     const suggestionId = `cat_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    
+
     // Create suggestion object
     const suggestion: CategorizationSuggestion = {
       id: suggestionId,
@@ -132,7 +132,7 @@ categorization.post('/suggest', async (c) => {
       userId: user.id,
       status: 'pending'
     }
-    
+
     // Store suggestion in KV for user approval
     const kvKey = `categorization:${user.id}:${suggestionId}`
     await c.env.FINANCE_MANAGER_CACHE.put(
@@ -140,10 +140,10 @@ categorization.post('/suggest', async (c) => {
       JSON.stringify(suggestion),
       { expirationTtl: 86400 * 7 } // 7 days expiration
     )
-    
+
     // Determine if approval is required (low confidence suggestions)
     const requiresApproval = aiResult.confidence < 0.8
-    
+
     const response: CategorizationResponse = {
       suggestionId,
       category: aiResult.category,
@@ -152,23 +152,23 @@ categorization.post('/suggest', async (c) => {
       confidence: aiResult.confidence,
       requiresApproval
     }
-    
+
     return c.json({
       success: true,
       data: response
     })
-    
+
   } catch (error: unknown) {
     console.error('Categorization suggestion error:', error)
-    
+
     if (error instanceof z.ZodError) {
       return c.json({
         success: false,
         error: 'Validation error',
-        details: error.errors
+        details: error.issues
       }, 400)
     }
-    
+
     return c.json({
       success: false,
       error: 'Failed to generate categorization suggestion',
@@ -184,14 +184,14 @@ categorization.post('/suggest', async (c) => {
 categorization.get('/pending', async (c) => {
   try {
     const user = c.get('user')
-    
+
     // List all categorization keys for the user
     const listResult = await c.env.FINANCE_MANAGER_CACHE.list({
       prefix: `categorization:${user.id}:`
     })
-    
+
     const pendingSuggestions: CategorizationSuggestion[] = []
-    
+
     // Fetch each suggestion
     for (const key of listResult.keys) {
       const suggestionData = await c.env.FINANCE_MANAGER_CACHE.get(key.name)
@@ -202,15 +202,15 @@ categorization.get('/pending', async (c) => {
         }
       }
     }
-    
+
     // Sort by timestamp (newest first)
     pendingSuggestions.sort((a, b) => b.timestamp - a.timestamp)
-    
+
     return c.json({
       success: true,
       data: pendingSuggestions
     })
-    
+
   } catch (error: unknown) {
     console.error('Failed to fetch pending suggestions:', error instanceof Error ? error.message : String(error))
     return c.json({
@@ -228,12 +228,12 @@ categorization.post('/approve', async (c) => {
   try {
     const body = await c.req.json()
     const validatedData = approvalRequestSchema.parse(body)
-    
+
     const { suggestionId, approved, accountId } = validatedData
     const user = c.get('user')
-    
+
     const kvKey = `categorization:${user.id}:${suggestionId}`
-    
+
     // Get the suggestion
     const suggestionData = await c.env.FINANCE_MANAGER_CACHE.get(kvKey)
     if (!suggestionData) {
@@ -242,24 +242,24 @@ categorization.post('/approve', async (c) => {
         error: 'Suggestion not found or expired'
       }, 404)
     }
-    
+
     const suggestion: CategorizationSuggestion = JSON.parse(suggestionData)
-    
+
     // Update suggestion status
     suggestion.status = approved ? 'approved' : 'rejected'
-    
+
     // If approved and accountId override provided, use it
     if (approved && accountId) {
       suggestion.suggestedAccountId = accountId
     }
-    
+
     // Update in KV
     await c.env.FINANCE_MANAGER_CACHE.put(
       kvKey,
       JSON.stringify(suggestion),
       { expirationTtl: 86400 * 30 } // Keep approved/rejected for 30 days for analytics
     )
-    
+
     // If approved and has transaction ID, update the transaction
     if (approved && suggestion.transactionId && suggestion.suggestedAccountId) {
       try {
@@ -270,7 +270,7 @@ categorization.post('/approve', async (c) => {
         console.warn('Failed to update transaction with approved category:', error instanceof Error ? error.message : String(error))
       }
     }
-    
+
     return c.json({
       success: true,
       data: {
@@ -280,18 +280,18 @@ categorization.post('/approve', async (c) => {
         accountId: suggestion.suggestedAccountId
       }
     })
-    
+
   } catch (error: unknown) {
     console.error('Approval error:', error)
-    
+
     if (error instanceof z.ZodError) {
       return c.json({
         success: false,
         error: 'Validation error',
-        details: error.errors
+        details: error.issues
       }, 400)
     }
-    
+
     return c.json({
       success: false,
       error: 'Failed to process approval',
@@ -310,43 +310,43 @@ categorization.get('/history', async (c) => {
     const url = new URL(c.req.url)
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const status = url.searchParams.get('status') // 'approved', 'rejected', or 'all'
-    
+
     // List all categorization keys for the user
     const listResult = await c.env.FINANCE_MANAGER_CACHE.list({
       prefix: `categorization:${user.id}:`
     })
-    
+
     const suggestions: CategorizationSuggestion[] = []
-    
+
     // Fetch each suggestion
     for (const key of listResult.keys) {
       const suggestionData = await c.env.FINANCE_MANAGER_CACHE.get(key.name)
       if (suggestionData) {
         const suggestion: CategorizationSuggestion = JSON.parse(suggestionData)
-        
+
         // Filter by status if specified
         if (!status || status === 'all' || suggestion.status === status) {
           suggestions.push(suggestion)
         }
       }
     }
-    
+
     // Sort by timestamp (newest first) and limit
     suggestions.sort((a, b) => b.timestamp - a.timestamp)
     const limitedSuggestions = suggestions.slice(0, limit)
-    
+
     // Calculate analytics
     const analytics = {
       total: suggestions.length,
       approved: suggestions.filter(s => s.status === 'approved').length,
       rejected: suggestions.filter(s => s.status === 'rejected').length,
       pending: suggestions.filter(s => s.status === 'pending').length,
-      averageConfidence: suggestions.length > 0 
-        ? suggestions.reduce((sum, s) => sum + s.confidence, 0) / suggestions.length 
+      averageConfidence: suggestions.length > 0
+        ? suggestions.reduce((sum, s) => sum + s.confidence, 0) / suggestions.length
         : 0,
       topCategories: getTopCategories(suggestions.filter(s => s.status === 'approved'))
     }
-    
+
     return c.json({
       success: true,
       data: {
@@ -354,7 +354,7 @@ categorization.get('/history', async (c) => {
         analytics
       }
     })
-    
+
   } catch (error) {
     console.error('Failed to fetch categorization history:', error instanceof Error ? error.message : String(error))
     return c.json({
@@ -372,9 +372,9 @@ categorization.delete('/suggestion/:id', async (c) => {
   try {
     const suggestionId = c.req.param('id')
     const user = c.get('user')
-    
+
     const kvKey = `categorization:${user.id}:${suggestionId}`
-    
+
     // Check if suggestion exists
     const suggestionData = await c.env.FINANCE_MANAGER_CACHE.get(kvKey)
     if (!suggestionData) {
@@ -383,15 +383,15 @@ categorization.delete('/suggestion/:id', async (c) => {
         error: 'Suggestion not found'
       }, 404)
     }
-    
+
     // Delete from KV
     await c.env.FINANCE_MANAGER_CACHE.delete(kvKey)
-    
+
     return c.json({
       success: true,
       message: 'Suggestion deleted successfully'
     })
-    
+
   } catch (error) {
     console.error('Failed to delete suggestion:', error instanceof Error ? error.message : String(error))
     return c.json({

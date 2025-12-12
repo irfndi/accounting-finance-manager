@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { Button } from './ui/button';
 
 interface NavigationItem {
@@ -72,8 +73,13 @@ interface NavigationProps {
   currentPath?: string;
 }
 
-export default function Navigation({ currentPath = '/' }: NavigationProps) {
+export default function Navigation({ currentPath }: NavigationProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname =
+    currentPath ||
+    useRouterState({
+      select: (state) => state.location.pathname,
+    });
 
   return (
     <nav className={`bg-slate-900 text-white transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} min-h-screen fixed left-0 top-0 z-40`}>
@@ -109,11 +115,12 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
       {/* Navigation Items */}
       <div className="p-2">
         {navigationItems.map((item) => {
-          const isActive = currentPath === item.href;
+          const isActive = pathname === item.href;
           return (
-            <a
+            <Link
               key={item.id}
-              href={item.href}
+              to={item.href}
+              preload="intent"
               className={`flex items-center p-3 rounded-lg mb-1 transition-colors group ${
                 isActive
                   ? 'bg-blue-600 text-white'
@@ -146,7 +153,7 @@ export default function Navigation({ currentPath = '/' }: NavigationProps) {
                   {item.label}
                 </div>
               )}
-            </a>
+            </Link>
           );
         })}
       </div>

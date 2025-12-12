@@ -393,6 +393,7 @@ export default function GeneralLedger() {
                 onClick={saveAccount}
                 disabled={isSubmitting}
                 className="bg-blue-600 text-white hover:bg-blue-700"
+                data-testid="account-submit"
               >
                 {isSubmitting ? 'Creating...' : 'Create Account'}
               </Button>

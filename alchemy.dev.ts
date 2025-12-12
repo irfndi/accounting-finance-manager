@@ -26,7 +26,7 @@ const ai = new Ai();
 // Create the main worker (development)
 const worker = await Worker("finance-manager-dev", {
   name: "finance-manager-dev",
-  entrypoint: "./src/worker/index.ts",
+  entrypoint: "./src/index.ts",
   compatibilityDate: "2024-12-01",
   compatibilityFlags: ["nodejs_compat"],
   bindings: {

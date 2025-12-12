@@ -1,0 +1,1798 @@
+{
+  "config": {
+    "configFile": "/Users/irfandi/Coding/2025/finance-manager/playwright.config.ts",
+    "rootDir": "/Users/irfandi/Coding/2025/finance-manager/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/irfandi/Coding/2025/finance-manager/tests/e2e/global-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/irfandi/Coding/2025/finance-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/irfandi/Coding/2025/finance-manager/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/irfandi/Coding/2025/finance-manager/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/irfandi/Coding/2025/finance-manager/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.spec\\.ts$/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 4,
+    "webServer": {
+      "command": "pnpm build && pnpm preview --host",
+      "url": "http://localhost:4321",
+      "reuseExistingServer": true,
+      "timeout": 180000
+    }
+  },
+  "suites": [
+    {
+      "title": "accounts.spec.ts",
+      "file": "accounts.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Account Management",
+          "file": "accounts.spec.ts",
+          "line": 2,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display Chart of Accounts page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1309,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-12T06:46:55.805Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-3f3a9c8f5272acadc8fc",
+              "file": "accounts.spec.ts",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "should display General Ledger page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1333,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-12T06:46:55.814Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-5a4767115e80e5c7c24b",
+              "file": "accounts.spec.ts",
+              "line": 159,
+              "column": 3
+            },
+            {
+              "title": "should display Chart of Accounts page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 2747,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-12T06:47:10.339Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-33c07b7f5610f13f5577",
+              "file": "accounts.spec.ts",
+              "line": 149,
+              "column": 3
+            },
+            {
+              "title": "should display General Ledger page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3307,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-12T06:47:11.419Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cbe1475516a9f5b841ab-edf4df9b20db17b1de00",
+              "file": "accounts.spec.ts",
+              "line": 159,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "Chart of Accounts",
+              "file": "accounts.spec.ts",
+              "line": 169,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should validate required fields when creating account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1464,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:46:55.805Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-0a0946fca6a7e1e6a0a7",
+                  "file": "accounts.spec.ts",
+                  "line": 170,
+                  "column": 5
+                },
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 3504,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:46:55.816Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-75073bf66e52699c3089",
+                  "file": "accounts.spec.ts",
+                  "line": 189,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1276,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:46:57.841Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-a27a0c9ee5463501801b",
+                  "file": "accounts.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should filter accounts by type",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3228,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:46:57.841Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-bf27bed95f2ae504c12a",
+                  "file": "accounts.spec.ts",
+                  "line": 235,
+                  "column": 5
+                },
+                {
+                  "title": "should search accounts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 3936,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:46:57.987Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-6a96a862696e2461db43",
+                  "file": "accounts.spec.ts",
+                  "line": 275,
+                  "column": 5
+                },
+                {
+                  "title": "should validate required fields when creating account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3377,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:12.290Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-10f76bb36ff13f67b8f7",
+                  "file": "accounts.spec.ts",
+                  "line": 170,
+                  "column": 5
+                },
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 6028,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:12.453Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-62fd15dc573e983698c2",
+                  "file": "accounts.spec.ts",
+                  "line": 189,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2556,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:16.847Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-9f702291be44d2658263",
+                  "file": "accounts.spec.ts",
+                  "line": 214,
+                  "column": 5
+                },
+                {
+                  "title": "should filter accounts by type",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3776,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:17.855Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-9603b968bcbf9c221ac2",
+                  "file": "accounts.spec.ts",
+                  "line": 235,
+                  "column": 5
+                },
+                {
+                  "title": "should search accounts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 4666,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:18.593Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-e463b6d74a2c389d0baa",
+                  "file": "accounts.spec.ts",
+                  "line": 275,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "General Ledger",
+              "file": "accounts.spec.ts",
+              "line": 309,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should validate required fields when creating account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 784,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:46:59.130Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-0b48cb740ec0a8f72fa8",
+                  "file": "accounts.spec.ts",
+                  "line": 310,
+                  "column": 5
+                },
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 3046,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:46:59.922Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-d4f5cf6ff31d0c0174a2",
+                  "file": "accounts.spec.ts",
+                  "line": 325,
+                  "column": 5
+                },
+                {
+                  "title": "should display account statistics",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2895,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:00.029Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-3aa08aa618ae7e45dd72",
+                  "file": "accounts.spec.ts",
+                  "line": 344,
+                  "column": 5
+                },
+                {
+                  "title": "should search accounts in general ledger",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3900,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:01.082Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-63a0cb8b06057c2a5391",
+                  "file": "accounts.spec.ts",
+                  "line": 374,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 3206,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:01.938Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-4c5287a9f00b59aa2364",
+                  "file": "accounts.spec.ts",
+                  "line": 407,
+                  "column": 5
+                },
+                {
+                  "title": "should validate account type selection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 895,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:02.943Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-a59acd34d5234537ca3a",
+                  "file": "accounts.spec.ts",
+                  "line": 423,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors when creating accounts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1068,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:02.978Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-259c519db9a1a0d2c8af",
+                  "file": "accounts.spec.ts",
+                  "line": 433,
+                  "column": 5
+                },
+                {
+                  "title": "should validate required fields when creating account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1240,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:19.416Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-13abeba45bcbb78e367d",
+                  "file": "accounts.spec.ts",
+                  "line": 310,
+                  "column": 5
+                },
+                {
+                  "title": "should successfully create new account",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 3294,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:20.665Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-37e29e10a3894c2fc1b8",
+                  "file": "accounts.spec.ts",
+                  "line": 325,
+                  "column": 5
+                },
+                {
+                  "title": "should display account statistics",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3053,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:21.643Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-7e8e2825ce3b65d5fd80",
+                  "file": "accounts.spec.ts",
+                  "line": 344,
+                  "column": 5
+                },
+                {
+                  "title": "should search accounts in general ledger",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 4121,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:22.276Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-f4d5e5764dff2bb9b8fe",
+                  "file": "accounts.spec.ts",
+                  "line": 374,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 3427,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:23.269Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-917c2469e75d470b81ce",
+                  "file": "accounts.spec.ts",
+                  "line": 407,
+                  "column": 5
+                },
+                {
+                  "title": "should validate account type selection",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1226,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:23.978Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-bfea11afb989bbce25a3",
+                  "file": "accounts.spec.ts",
+                  "line": 423,
+                  "column": 5
+                },
+                {
+                  "title": "should handle API errors when creating accounts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1397,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:24.705Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-3513fb0fa518e4f25673",
+                  "file": "accounts.spec.ts",
+                  "line": 433,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "API Error Handling",
+              "file": "accounts.spec.ts",
+              "line": 455,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle 500 server errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2911,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:03.866Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-071b94f8ff54c3f57a6b",
+                  "file": "accounts.spec.ts",
+                  "line": 456,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network timeouts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 3852,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:04.055Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-f32c00ce5422ac8457b7",
+                  "file": "accounts.spec.ts",
+                  "line": 476,
+                  "column": 5
+                },
+                {
+                  "title": "should handle malformed JSON responses",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2918,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:04.992Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-a62cad9f2220e14fedae",
+                  "file": "accounts.spec.ts",
+                  "line": 494,
+                  "column": 5
+                },
+                {
+                  "title": "should handle authentication errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 3953,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:05.156Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-967267f917d9241b335e",
+                  "file": "accounts.spec.ts",
+                  "line": 515,
+                  "column": 5
+                },
+                {
+                  "title": "should handle retry functionality",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2933,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:06.794Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-ab2eb89e6790f1c275f7",
+                  "file": "accounts.spec.ts",
+                  "line": 538,
+                  "column": 5
+                },
+                {
+                  "title": "should handle 500 server errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 4139,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:25.215Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-c10c048b61d0caa7dca4",
+                  "file": "accounts.spec.ts",
+                  "line": 456,
+                  "column": 5
+                },
+                {
+                  "title": "should handle network timeouts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4877,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:26.112Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-970de4df6ea2092bb271",
+                  "file": "accounts.spec.ts",
+                  "line": 476,
+                  "column": 5
+                },
+                {
+                  "title": "should handle malformed JSON responses",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 3712,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:26.416Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-23af6e4e6841ea1dcf03",
+                  "file": "accounts.spec.ts",
+                  "line": 494,
+                  "column": 5
+                },
+                {
+                  "title": "should handle authentication errors",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 3869,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:26.719Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-ae6b7a80a11ccd70e2f6",
+                  "file": "accounts.spec.ts",
+                  "line": 515,
+                  "column": 5
+                },
+                {
+                  "title": "should handle retry functionality",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 3558,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:29.370Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-95db97f82e2bf614ea4d",
+                  "file": "accounts.spec.ts",
+                  "line": 538,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Edge Cases",
+              "file": "accounts.spec.ts",
+              "line": 587,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle special characters in account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 3073,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:07.934Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-812242c49131a567d386",
+                  "file": "accounts.spec.ts",
+                  "line": 588,
+                  "column": 5
+                },
+                {
+                  "title": "should validate account code format",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1007,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:07.919Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-8a53750f61e308c50381",
+                  "file": "accounts.spec.ts",
+                  "line": 605,
+                  "column": 5
+                },
+                {
+                  "title": "should handle very long account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2865,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:08.934Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-4d5b6e0c7c65af9095bd",
+                  "file": "accounts.spec.ts",
+                  "line": 620,
+                  "column": 5
+                },
+                {
+                  "title": "should handle concurrent account creation attempts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 2892,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:09.118Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-953985b2b88519fdae9b",
+                  "file": "accounts.spec.ts",
+                  "line": 640,
+                  "column": 5
+                },
+                {
+                  "title": "should handle special characters in account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 3324,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:30.147Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-e8bbdf7f4f5a8076ec78",
+                  "file": "accounts.spec.ts",
+                  "line": 588,
+                  "column": 5
+                },
+                {
+                  "title": "should validate account code format",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1273,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:30.646Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-7b2492bad7dea21d52b8",
+                  "file": "accounts.spec.ts",
+                  "line": 605,
+                  "column": 5
+                },
+                {
+                  "title": "should handle very long account names",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3095,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:30.997Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-2769f063f4a991a003b6",
+                  "file": "accounts.spec.ts",
+                  "line": 620,
+                  "column": 5
+                },
+                {
+                  "title": "should handle concurrent account creation attempts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 2994,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-12T06:47:31.930Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "cbe1475516a9f5b841ab-89dc2b3ee65c418b2292",
+                  "file": "accounts.spec.ts",
+                  "line": 640,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "example.spec.ts",
+      "file": "example.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "E2E Tests Example",
+          "file": "example.spec.ts",
+          "line": 2,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should demonstrate end-to-end testing pattern",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-12T06:47:09.740Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-fb60b36d808e8839b683",
+              "file": "example.spec.ts",
+              "line": 3,
+              "column": 3
+            },
+            {
+              "title": "should demonstrate end-to-end testing pattern",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-12T06:47:33.191Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a30a6eba6312f6b87ea5-de2025ebf5bc3cba7d83",
+              "file": "example.spec.ts",
+              "line": 3,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-12T06:46:47.964Z",
+    "duration": 47370.234,
+    "expected": 48,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
