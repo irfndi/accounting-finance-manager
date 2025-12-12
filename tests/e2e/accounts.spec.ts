@@ -13,8 +13,8 @@ test.describe('Account Management', () => {
     await page.goto('/chart-of-accounts');
     await page.waitForLoadState('domcontentloaded');
 
-    // Wait for React lazy-loaded content with longer timeout
-    await expect(page.locator('h1').first()).toContainText('Chart of Accounts', { timeout: 30000 });
+    // Wait for React lazy-loaded content - look in main content area (not nav)
+    await expect(page.locator('main h1, header h1').first()).toContainText('Chart of Accounts', { timeout: 30000 });
     await expect(page.getByRole('button', { name: /add account/i })).toBeVisible({ timeout: 15000 });
   });
 
@@ -22,8 +22,8 @@ test.describe('Account Management', () => {
     await page.goto('/general-ledger');
     await page.waitForLoadState('domcontentloaded');
 
-    // Wait for React lazy-loaded content with longer timeout
-    await expect(page.locator('h1').first()).toContainText('General Ledger', { timeout: 30000 });
+    // Wait for React lazy-loaded content - look in main content area (not nav)
+    await expect(page.locator('main h1, header h1').first()).toContainText('General Ledger', { timeout: 30000 });
     await expect(page.getByRole('button', { name: /add account/i })).toBeVisible({ timeout: 15000 });
   });
 
