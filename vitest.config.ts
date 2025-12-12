@@ -2,18 +2,22 @@ import { resolve } from 'path';
 import { defineWorkersConfig, defineWorkersProject } from '@cloudflare/vitest-pool-workers/config';
 import { defineProject } from 'vitest/config';
 
+const useCloudflarePool = process.env.VITEST_USE_CF_POOL === 'true';
+
 export default defineWorkersConfig({
   plugins: [],
   esbuild: {
     jsx: 'automatic',
   },
   test: {
-    pool: '@cloudflare/vitest-pool-workers',
-    poolOptions: {
-      workers: {
-        wrangler: { configPath: './wrangler.jsonc' },
-      },
-    },
+    pool: useCloudflarePool ? '@cloudflare/vitest-pool-workers' : 'threads',
+    poolOptions: useCloudflarePool
+      ? {
+          workers: {
+            wrangler: { configPath: './wrangler.jsonc' },
+          },
+        }
+      : undefined,
     globals: true,
     testTimeout: 10000,
     setupFiles: ['./tests/setup.ts'],
@@ -65,7 +69,7 @@ export default defineWorkersConfig({
           extensions: ['.ts', '.js', '.tsx', '.jsx'],
         },
       }),
-      
+
       // Frontend tests - for React components
       defineProject({
         test: {

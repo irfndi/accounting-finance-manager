@@ -50,7 +50,7 @@
 
 *   **Single Source of Truth:** The `.taskmaster/tasks/tasks.json` file. Section titles must not be changed.
 *   **Working Notes:** Use `.taskmaster/docs/scratchpad.md` for brainstorming and a running log of lessons.
-*   **Preserve History:** Append new information or mark outdated sections as `[OUTDATED]` or using `deferred` status. Refine content; try to do not rewrite entire documents.
+*   **Preserve History:** Append new information or mark outdated sections as `[OUTDATED]` or using `deferred` status. Refine content; try not to rewrite entire documents.
 *   **Log All Lessons:** Every insight must be added to `scratchpad.md`'s `Lessons Learned` with a `[YYYY-MM-DD]` timestamp.
 *   **User Responsibility:** The human user archives completed/deferred/canceled plans.
 

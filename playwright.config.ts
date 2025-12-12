@@ -57,6 +57,23 @@ export default defineConfig({
       use: { ...devices['Desktop Firefox'] },
       testMatch: /.*\.spec\.ts$/,
     },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+      testMatch: /.*\.spec\.ts$/,
+    },
+    {
+      name: 'visual-regression',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: /.*\.(visual|spec)\.ts$/,
+      grep: /@visual/,
+    },
+    {
+      name: 'accessibility',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: /.*\.(a11y|spec)\.ts$/,
+      grep: /@a11y/,
+    },
   ],
 
   /* Run your local dev server before starting the tests */

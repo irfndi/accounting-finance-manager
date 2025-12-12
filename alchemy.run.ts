@@ -1,5 +1,11 @@
 import alchemy from "alchemy";
-import { Astro, KVNamespace, R2Bucket, D1Database, Ai } from "alchemy/cloudflare";
+import {
+  Astro,
+  KVNamespace,
+  R2Bucket,
+  D1Database,
+  Ai,
+} from "alchemy/cloudflare";
 
 // Initialize Alchemy app
 const app = await alchemy("finance-manager");
@@ -42,12 +48,12 @@ export const worker = await Astro("finance-manager", {
     ALCHEMY_MANAGED: "true",
     CONTAINER_VERSION: "1.0.0",
     DEPLOYMENT_STRATEGY: "alchemy",
-    STAGE: "dev",
-    ENVIRONMENT: "development",
-    AUTH_SESSION_DURATION: "7d",
-    AWS_REGION: "us-east-1",
-    SES_FROM_EMAIL: "noreply@finance-manager.com",
-    SES_FROM_NAME: "Finance Manager",
+    STAGE: process.env.STAGE || "dev",
+    ENVIRONMENT: process.env.ENVIRONMENT || "development",
+    AUTH_SESSION_DURATION: process.env.AUTH_SESSION_DURATION || "7d",
+    AWS_REGION: process.env.AWS_REGION || "us-east-1",
+    SES_FROM_EMAIL: process.env.SES_FROM_EMAIL || "noreply@finance-manager.com",
+    SES_FROM_NAME: process.env.SES_FROM_NAME || "Finance Manager",
   },
 });
 

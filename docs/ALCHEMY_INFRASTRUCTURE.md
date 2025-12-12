@@ -16,10 +16,10 @@ Alchemy provides a TypeScript-first approach to managing Cloudflare infrastructu
 
 ### Cloudflare Worker
 - **Name**: finance-manager
-- **Entry Point**: `./src/worker/index.ts`
+- **Entry Point**: `./src/index.ts`
 - **Compatibility Date**: 2025-06-17
 - **Compatibility Flags**: nodejs_compat
-- **Note**: Currently using a single worker for all environments (dev, prod, etc.)
+- **Note**: Web Assets built with Vite/TanStack to `dist/client` and served via the Worker `ASSETS` binding
 
 ### D1 Database
 - **All Environments**: finance-manager-db-v2

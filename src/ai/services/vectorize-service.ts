@@ -3,8 +3,8 @@
  * Handles document embeddings and semantic search using Cloudflare Vectorize
  */
 
-import type { Vectorize, Ai } from '@cloudflare/workers-types';
-import { AIServiceError } from '../types.js';
+import type { Vectorize, Ai } from "@cloudflare/workers-types";
+import { AIServiceError } from "../types.js";
 
 export interface VectorizeConfig {
   vectorize: Vectorize;
@@ -62,7 +62,7 @@ export class VectorizeService {
   constructor(config: VectorizeConfig) {
     this.vectorize = config.vectorize;
     this.ai = config.ai;
-    this.embeddingModel = config.embeddingModel || '@cf/baai/bge-base-en-v1.5';
+    this.embeddingModel = config.embeddingModel || "@cf/baai/bge-base-en-v1.5";
     this.maxTextLength = config.maxTextLength || 8000;
     this.chunkSize = config.chunkSize || 1000;
     this.chunkOverlap = config.chunkOverlap || 200;
@@ -74,17 +74,22 @@ export class VectorizeService {
   async embedDocument(
     fileId: string,
     text: string,
-    metadata: Partial<EmbeddingMetadata> = {}
+    metadata: Partial<EmbeddingMetadata> = {},
   ): Promise<{ success: boolean; chunksCreated: number; error?: string }> {
     try {
       if (!text || text.trim().length === 0) {
-        return { success: false, chunksCreated: 0, error: 'No text content to embed' };
+        return {
+          success: false,
+          chunksCreated: 0,
+          error: "No text content to embed",
+        };
       }
 
       // Truncate text if too long
-      const processedText = text.length > this.maxTextLength 
-        ? text.substring(0, this.maxTextLength)
-        : text;
+      const processedText =
+        text.length > this.maxTextLength
+          ? text.substring(0, this.maxTextLength)
+          : text;
 
       // Split text into chunks for better embedding quality
       const chunks = this.splitTextIntoChunks(processedText);
@@ -93,18 +98,27 @@ export class VectorizeService {
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const chunkId = chunks.length > 1 ? `${fileId}_chunk_${i}` : fileId;
-        
+
         if (!this.ai) {
-          throw new AIServiceError('AI binding is required for embedding generation', 'AI_NOT_CONFIGURED');
+          throw new AIServiceError(
+            "AI binding is required for embedding generation",
+            "AI_NOT_CONFIGURED",
+          );
         }
 
         // Generate embedding for this chunk
-        const embeddingResponse = await this.ai.run(this.embeddingModel as any, {
-          text: [chunk]
-        }) as { shape: number[]; data: number[][] };
+        const embeddingResponse = (await this.ai.run(
+          this.embeddingModel as any,
+          {
+            text: [chunk],
+          },
+        )) as { shape: number[]; data: number[][] };
 
         if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
-          throw new AIServiceError(`Failed to generate embedding for chunk ${i}`, 'EMBEDDING_FAILED');
+          throw new AIServiceError(
+            `Failed to generate embedding for chunk ${i}`,
+            "EMBEDDING_FAILED",
+          );
         }
 
         const vectorData = {
@@ -116,8 +130,8 @@ export class VectorizeService {
             timestamp: new Date().toISOString(),
             chunkIndex: i,
             totalChunks: chunks.length,
-            ...metadata
-          } as EmbeddingMetadata
+            ...metadata,
+          } as EmbeddingMetadata,
         };
 
         vectors.push(vectorData);
@@ -125,15 +139,15 @@ export class VectorizeService {
 
       // Insert vectors into Vectorize
       await this.vectorize.insert(vectors);
-      
-      // console.log(`✅ Generated embeddings for document ${fileId} (${chunks.length} chunks)`);
+
       return { success: true, chunksCreated: chunks.length };
     } catch (error) {
-      console.error('Failed to generate embeddings:', error);
-      return { 
-        success: false, 
+      console.error("Failed to generate embeddings:", error);
+      return {
+        success: false,
         chunksCreated: 0,
-        error: error instanceof Error ? error.message : 'Unknown embedding error' 
+        error:
+          error instanceof Error ? error.message : "Unknown embedding error",
       };
     }
   }
@@ -143,17 +157,20 @@ export class VectorizeService {
    */
   async searchByText(
     query: string,
-    options: SearchOptions = {}
+    options: SearchOptions = {},
   ): Promise<SearchResponse> {
     const startTime = Date.now();
-    
+
     try {
-      if (!query || typeof query !== 'string' || query.trim().length === 0) {
-        throw new AIServiceError('Search query is required', 'INVALID_QUERY');
+      if (!query || typeof query !== "string" || query.trim().length === 0) {
+        throw new AIServiceError("Search query is required", "INVALID_QUERY");
       }
 
       if (!this.ai) {
-        throw new AIServiceError('AI binding is required for text-to-vector conversion', 'AI_NOT_CONFIGURED');
+        throw new AIServiceError(
+          "AI binding is required for text-to-vector conversion",
+          "AI_NOT_CONFIGURED",
+        );
       }
 
       const {
@@ -161,16 +178,19 @@ export class VectorizeService {
         threshold = 0.7,
         filter,
         returnMetadata = true,
-        includeValues = false
+        includeValues = false,
       } = options;
 
       // Convert text to vector using Workers AI
-      const embeddingResponse = await this.ai.run(this.embeddingModel as any, {
-        text: [query]
-      }) as { shape: number[]; data: number[][] };
+      const embeddingResponse = (await this.ai.run(this.embeddingModel as any, {
+        text: [query],
+      })) as { shape: number[]; data: number[][] };
 
       if (!embeddingResponse.data || embeddingResponse.data.length === 0) {
-        throw new AIServiceError('Failed to generate embedding for query', 'EMBEDDING_FAILED');
+        throw new AIServiceError(
+          "Failed to generate embedding for query",
+          "EMBEDDING_FAILED",
+        );
       }
 
       const queryVector = embeddingResponse.data[0];
@@ -180,17 +200,21 @@ export class VectorizeService {
         topK,
         returnMetadata,
         returnValues: includeValues,
-        filter
+        filter,
       });
 
       // Filter results by similarity threshold
       const filteredMatches = searchResults.matches
-        .filter(match => match.score >= threshold)
-        .map(match => ({
+        .filter((match) => match.score >= threshold)
+        .map((match) => ({
           id: match.id,
           score: match.score,
           metadata: match.metadata as EmbeddingMetadata,
-          values: match.values as number[] | Float32Array | Float64Array | undefined
+          values: match.values as
+            | number[]
+            | Float32Array
+            | Float64Array
+            | undefined,
         }));
 
       const processingTime = Date.now() - startTime;
@@ -200,15 +224,15 @@ export class VectorizeService {
         query,
         totalMatches: filteredMatches.length,
         threshold,
-        processingTime
+        processingTime,
       };
     } catch (error) {
-      console.error('Semantic search error:', error);
-      
+      console.error("Semantic search error:", error);
+
       throw new AIServiceError(
-        `Failed to perform semantic search: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'SEARCH_FAILED',
-        'vectorize'
+        `Failed to perform semantic search: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "SEARCH_FAILED",
+        "vectorize",
       );
     }
   }
@@ -218,13 +242,13 @@ export class VectorizeService {
    */
   async searchByVector(
     vector: number[],
-    options: SearchOptions = {}
+    options: SearchOptions = {},
   ): Promise<SearchResponse> {
     const startTime = Date.now();
-    
+
     try {
       if (!vector || !Array.isArray(vector) || vector.length === 0) {
-        throw new AIServiceError('Search vector is required', 'INVALID_VECTOR');
+        throw new AIServiceError("Search vector is required", "INVALID_VECTOR");
       }
 
       const {
@@ -232,42 +256,46 @@ export class VectorizeService {
         threshold = 0.7,
         filter,
         returnMetadata = true,
-        includeValues = false
+        includeValues = false,
       } = options;
 
       const searchResults = await this.vectorize.query(vector, {
         topK,
         returnMetadata,
         returnValues: includeValues,
-        filter
+        filter,
       });
 
       // Filter results by similarity threshold
       const filteredMatches = searchResults.matches
-        .filter(match => match.score >= threshold)
-        .map(match => ({
+        .filter((match) => match.score >= threshold)
+        .map((match) => ({
           id: match.id,
           score: match.score,
           metadata: match.metadata as EmbeddingMetadata,
-          values: match.values as number[] | Float32Array | Float64Array | undefined
+          values: match.values as
+            | number[]
+            | Float32Array
+            | Float64Array
+            | undefined,
         }));
 
       const processingTime = Date.now() - startTime;
 
       return {
         matches: filteredMatches,
-        query: '[Vector Query]',
+        query: "[Vector Query]",
         totalMatches: filteredMatches.length,
         threshold,
-        processingTime
+        processingTime,
       };
     } catch (error) {
-      console.error('Vector search error:', error);
-      
+      console.error("Vector search error:", error);
+
       throw new AIServiceError(
-        `Failed to perform vector search: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'SEARCH_FAILED',
-        'vectorize'
+        `Failed to perform vector search: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "SEARCH_FAILED",
+        "vectorize",
       );
     }
   }
@@ -275,32 +303,35 @@ export class VectorizeService {
   /**
    * Delete embeddings for a document
    */
-  async deleteDocument(fileId: string): Promise<{ success: boolean; error?: string }> {
+  async deleteDocument(
+    fileId: string,
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       // Delete all chunks for this document
       // Note: Vectorize doesn't have a direct delete by metadata filter,
       // so we need to delete by specific IDs
       await this.vectorize.deleteByIds([fileId]);
-      
+
       // Also try to delete potential chunks
       const chunkIds = [];
-      for (let i = 0; i < 50; i++) { // Assume max 50 chunks
+      for (let i = 0; i < 50; i++) {
+        // Assume max 50 chunks
         chunkIds.push(`${fileId}_chunk_${i}`);
       }
-      
+
       try {
         await this.vectorize.deleteByIds(chunkIds);
       } catch {
         // Ignore errors for non-existent chunk IDs
       }
-      
-      // console.log(`✅ Deleted embeddings for document ${fileId}`);
+
       return { success: true };
     } catch (error) {
-      console.error('Failed to delete embeddings:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown deletion error' 
+      console.error("Failed to delete embeddings:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown deletion error",
       };
     }
   }
@@ -314,17 +345,21 @@ export class VectorizeService {
       const results = await this.vectorize.query([0], {
         topK: 1000, // Large number to get all chunks
         returnMetadata: true,
-        filter: { fileId }
+        filter: { fileId },
       });
 
-      return results.matches.map(match => ({
+      return results.matches.map((match) => ({
         id: match.id,
         score: match.score,
         metadata: match.metadata as EmbeddingMetadata,
-        values: match.values as number[] | Float32Array | Float64Array | undefined
+        values: match.values as
+          | number[]
+          | Float32Array
+          | Float64Array
+          | undefined,
       }));
     } catch (error) {
-      console.error('Failed to get document embeddings:', error);
+      console.error("Failed to get document embeddings:", error);
       return [];
     }
   }
@@ -342,21 +377,25 @@ export class VectorizeService {
 
     while (start < text.length) {
       let end = start + this.chunkSize;
-      
+
       // If not the last chunk, try to break at a sentence or word boundary
       if (end < text.length) {
         // Look for sentence boundary
-        const sentenceEnd = text.lastIndexOf('.', end);
-        const questionEnd = text.lastIndexOf('?', end);
-        const exclamationEnd = text.lastIndexOf('!', end);
-        
-        const sentenceBoundary = Math.max(sentenceEnd, questionEnd, exclamationEnd);
-        
+        const sentenceEnd = text.lastIndexOf(".", end);
+        const questionEnd = text.lastIndexOf("?", end);
+        const exclamationEnd = text.lastIndexOf("!", end);
+
+        const sentenceBoundary = Math.max(
+          sentenceEnd,
+          questionEnd,
+          exclamationEnd,
+        );
+
         if (sentenceBoundary > start + this.chunkSize * 0.5) {
           end = sentenceBoundary + 1;
         } else {
           // Look for word boundary
-          const wordBoundary = text.lastIndexOf(' ', end);
+          const wordBoundary = text.lastIndexOf(" ", end);
           if (wordBoundary > start + this.chunkSize * 0.5) {
             end = wordBoundary;
           }
@@ -367,7 +406,7 @@ export class VectorizeService {
       start = end - this.chunkOverlap;
     }
 
-    return chunks.filter(chunk => chunk.length > 0);
+    return chunks.filter((chunk) => chunk.length > 0);
   }
 
   /**
@@ -383,15 +422,15 @@ export class VectorizeService {
       // This is a placeholder for future implementation
       return {
         totalVectors: 0,
-        indexSize: 'Unknown',
-        lastUpdated: new Date().toISOString()
+        indexSize: "Unknown",
+        lastUpdated: new Date().toISOString(),
       };
     } catch (error) {
-      console.error('Failed to get vectorize stats:', error);
+      console.error("Failed to get vectorize stats:", error);
       return {
         totalVectors: 0,
-        indexSize: 'Error',
-        lastUpdated: new Date().toISOString()
+        indexSize: "Error",
+        lastUpdated: new Date().toISOString(),
       };
     }
   }
@@ -400,6 +439,8 @@ export class VectorizeService {
 /**
  * Factory function to create VectorizeService
  */
-export function createVectorizeService(config: VectorizeConfig): VectorizeService {
+export function createVectorizeService(
+  config: VectorizeConfig,
+): VectorizeService {
   return new VectorizeService(config);
 }

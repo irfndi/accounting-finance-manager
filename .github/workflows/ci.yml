@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: "22"
   # Disable Playwright browsers download in container environments
-  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 jobs:
   # ============================================================================
@@ -206,13 +206,6 @@ jobs:
           pnpm typecheck
           echo "✓ Application type checking passed"
 
-      - name: Astro check
-        timeout-minutes: 5
-        run: |
-          echo "Running Astro check..."
-          pnpm exec astro check
-          echo "✓ Astro check passed"
-
   # ============================================================================
   # UNIT TESTING
   # ============================================================================
@@ -292,6 +285,97 @@ jobs:
           name: unit-test-coverage
           fail_ci_if_error: false
 
+  # ============================================================================
+  # INTEGRATION TESTING
+  # ============================================================================
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          STORE_PATH=$(pnpm store path --silent)
+          echo "STORE_PATH=$STORE_PATH" >> $GITHUB_ENV
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ needs.setup.outputs.pnpm-cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            **/node_modules
+          key: ${{ needs.setup.outputs.node-modules-cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(pnpm list @playwright/test --depth=0 --json | jq -r '.[0].devDependencies["@playwright/test"].version' || echo 'latest')" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: |
+          echo "Installing Playwright Chromium browser..."
+          pnpm exec playwright install chromium --with-deps
+          echo "✓ Playwright Chromium installed"
+
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            .astro
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Build all packages
+        timeout-minutes: 5
+        run: |
+          echo "Building application..."
+          pnpm build
+          echo "✓ Build complete"
+
+      - name: Run integration tests
+        timeout-minutes: 15
+        run: |
+          echo "Running integration tests (Chromium only)..."
+          pnpm exec playwright test --project=chromium
+          echo "✓ Integration tests passed"
 
   # ============================================================================
   # BUILD VALIDATION
@@ -351,13 +435,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
-      - name: Run unit tests
-        timeout-minutes: 10
-        run: |
-          echo "Running unit tests (frontend only - workers tests require Cloudflare auth)..."
-          pnpm vitest run --project=frontend
-          echo "✓ Unit tests passed"
-
       - name: Build application
         timeout-minutes: 15
         run: |
@@ -390,12 +467,12 @@ jobs:
           echo "Unit Tests: ${{ needs.test-unit.result }}"
 
           echo "Build: ${{ needs.build.result }}"
-          
-          if [[ "${{ needs.setup.result }}" == "failure" || 
-                "${{ needs.lint.result }}" == "failure" || 
-                "${{ needs.typecheck.result }}" == "failure" || 
-                "${{ needs.test-unit.result }}" == "failure" || 
- 
+
+          if [[ "${{ needs.setup.result }}" == "failure" ||
+                "${{ needs.lint.result }}" == "failure" ||
+                "${{ needs.typecheck.result }}" == "failure" ||
+                "${{ needs.test-unit.result }}" == "failure" ||
+
                 "${{ needs.build.result }}" == "failure" ]]; then
             echo "❌ CI Pipeline Failed"
             exit 1

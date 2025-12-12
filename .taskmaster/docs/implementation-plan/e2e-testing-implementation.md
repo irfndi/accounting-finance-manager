@@ -97,16 +97,18 @@ The Finance Manager application requires comprehensive end-to-end testing to ens
 
 ## Current Status / Progress Tracking
 
-*This section will be updated by the Executor as work progresses*
+### Progress Updates
+_This section will be updated by the Executor as work progresses_
 
 ## Executor's Feedback or Assistance Requests
 
-*This section will be updated by the Executor when assistance is needed*
+### Assistance Requests
+_This section will be updated by the Executor when assistance is needed_
 
 ## Technical Implementation Notes
 
 ### Test Structure
-```
+```text
 tests/e2e/
 ├── config/
 │   ├── environments.ts

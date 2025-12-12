@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
+    "@cloudflare/kv-asset-handler": "^0.4.1",
     "@hono/zod-validator": "^0.7.5",
     "@noble/hashes": "^2.0.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -79,7 +80,7 @@
     "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query-devtools": "^5.91.1",
-    "@tanstack/router-devtools": "^1.140.0",
+    "@tanstack/react-router-devtools": "^1.140.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
