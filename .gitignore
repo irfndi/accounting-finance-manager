@@ -29,6 +29,7 @@ node_modules/
 coverage/
 .wrangler
 .astro
+.alchemy/
 
 test-result
 playwright-report
@@ -43,7 +44,7 @@ src/web/pages/api/**/*.js.map
 
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/
 
 dist
 *.tsbuildinfo
