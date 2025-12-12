@@ -93,6 +93,7 @@ jobs:
       # No need to install browsers separately
 
       - name: Start preview server
+        shell: bash
         run: |
           echo "Starting preview server..."
           pnpm preview --host > preview.log 2>&1 &
@@ -218,6 +219,7 @@ jobs:
           echo "✓ Lighthouse CI installed"
 
       - name: Start application
+        shell: bash
         run: |
           echo "Starting application for performance testing..."
           pnpm dev > dev.log 2>&1 &
