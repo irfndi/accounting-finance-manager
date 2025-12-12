@@ -95,7 +95,7 @@ jobs:
       - name: Start preview server
         run: |
           echo "Starting preview server..."
-          pnpm preview > preview.log 2>&1 &
+          pnpm preview --host > preview.log 2>&1 &
           PREVIEW_PID=$!
           echo $PREVIEW_PID > preview.pid
           echo "Preview server started with PID: $PREVIEW_PID"
