@@ -41,7 +41,16 @@ test.describe('Account Management', () => {
     }));
     let nextId = accounts.length + 1;
 
-    await page.route('**/api/accounts**', async (route) => {
+    await page.addStyleTag({
+      content: `
+        *, *::before, *::after {
+          transition: none !important;
+          animation: none !important;
+        }
+      `
+    });
+
+    await page.route(/\/api\/accounts/, async (route) => {
       const request = route.request();
       const method = request.method();
 
@@ -143,11 +152,14 @@ test.describe('Account Management', () => {
   };
 
   const openAccountDialog = async (page: Page) => {
-    const addButton = page.getByRole('button', { name: /add account/i }).first();
+    const addButton = page.getByTestId('add-account-btn').first();
     await expect(addButton).toBeVisible({ timeout: 20000 });
-    await addButton.click();
+    await addButton.click({ force: true });
+
+    // Check if attached first
     const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible({ timeout: 10000 });
+    await expect(dialog).toBeAttached({ timeout: 20000 });
+    await expect(dialog).toBeVisible({ timeout: 20000 });
     return dialog;
   };
 

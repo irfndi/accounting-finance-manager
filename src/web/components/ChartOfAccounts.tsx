@@ -37,21 +37,10 @@ import {
   SelectValue,
 } from "./ui/select";
 import { apiUrl } from "../lib/api";
+import type { Account as DomainAccount } from "../../types";
 
-interface Account {
-  id: number;
-  code: string;
-  name: string;
+interface Account extends Omit<DomainAccount, 'createdAt' | 'updatedAt' | 'normalBalance' | 'type'> {
   type: string;
-  subtype?: string;
-  category?: string;
-  description?: string;
-  parentId?: number | null;
-  level: number;
-  path: string;
-  isActive: boolean;
-  isSystem: boolean;
-  allowTransactions: boolean;
   normalBalance: string;
   currentBalance: number;
   reportCategory: string;
@@ -64,6 +53,9 @@ interface Account {
     isIncomeStatement: boolean;
   };
   children?: Account[];
+  // API might not return these or might return them as strings, handled by Omit/Override if needed
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 }
 
 interface CreateAccountData {
@@ -113,6 +105,7 @@ export default function ChartOfAccounts() {
     allowTransactions: true,
     reportOrder: 0,
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Fetch accounts from API
   const fetchAccounts = async () => {
@@ -141,18 +134,22 @@ export default function ChartOfAccounts() {
   const saveAccount = async () => {
     console.log("saveAccount called with formData:", formData);
     try {
+      setFormErrors({});
+      const errors: Record<string, string> = {};
+
       // Frontend validation
       if (!formData.code.trim()) {
-        console.log("Setting error: Account code is required");
-        setError("Account code is required");
-        return;
+        errors.code = "Account code is required";
       }
       if (!formData.name.trim()) {
-        setError("Account name is required");
-        return;
+        errors.name = "Account name is required";
       }
       if (!formData.type) {
-        setError("Account type is required");
+        errors.type = "Account type is required";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
         return;
       }
 
@@ -175,7 +172,14 @@ export default function ChartOfAccounts() {
         const errorData = (await response.json()) as {
           error?: string;
           message?: string;
+          errors?: Record<string, string>;
         };
+
+        if (errorData.errors) {
+          setFormErrors(errorData.errors);
+          return;
+        }
+
         throw new Error(
           errorData.error || errorData.message || "Failed to save account",
         );
@@ -239,6 +243,7 @@ export default function ChartOfAccounts() {
       reportOrder: 0,
     });
     setEditingAccount(null);
+    setFormErrors({});
     setError(null); // Clear any previous errors
   };
 
@@ -281,6 +286,7 @@ export default function ChartOfAccounts() {
       allowTransactions: account.allowTransactions,
       reportOrder: account.reportOrder,
     });
+    setFormErrors({});
     setIsDialogOpen(true);
   };
 
@@ -362,17 +368,16 @@ export default function ChartOfAccounts() {
         <TableCell>{account.name}</TableCell>
         <TableCell>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              account.type === "ASSET"
-                ? "bg-blue-100 text-blue-800"
-                : account.type === "LIABILITY"
-                  ? "bg-red-100 text-red-800"
-                  : account.type === "EQUITY"
-                    ? "bg-purple-100 text-purple-800"
-                    : account.type === "REVENUE"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-orange-100 text-orange-800"
-            }`}
+            className={`px-2 py-1 rounded-full text-xs font-medium ${account.type === "ASSET"
+              ? "bg-blue-100 text-blue-800"
+              : account.type === "LIABILITY"
+                ? "bg-red-100 text-red-800"
+                : account.type === "EQUITY"
+                  ? "bg-purple-100 text-purple-800"
+                  : account.type === "REVENUE"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-orange-100 text-orange-800"
+              }`}
           >
             {account.type}
           </span>
@@ -382,11 +387,10 @@ export default function ChartOfAccounts() {
         </TableCell>
         <TableCell>
           <span
-            className={`px-2 py-1 rounded-full text-xs ${
-              account.isActive
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
+            className={`px-2 py-1 rounded-full text-xs ${account.isActive
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+              }`}
           >
             {account.isActive ? "Active" : "Inactive"}
           </span>
@@ -479,7 +483,7 @@ export default function ChartOfAccounts() {
               <Button variant="outline" onClick={exportAccounts}>
                 Export Accounts
               </Button>
-              <Button onClick={openCreateDialog}>Add Account</Button>
+              <Button onClick={openCreateDialog} data-testid="add-account-btn">Add Account</Button>
             </div>
           </div>
         </CardHeader>
@@ -580,6 +584,9 @@ export default function ChartOfAccounts() {
                   }
                   placeholder="e.g., 1000"
                 />
+                {formErrors.code && (
+                  <p className="text-sm text-red-600 mt-1">{formErrors.code}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="type">Type</Label>
@@ -600,6 +607,9 @@ export default function ChartOfAccounts() {
                     ))}
                   </SelectContent>
                 </Select>
+                {formErrors.type && (
+                  <p className="text-sm text-red-600 mt-1">{formErrors.type}</p>
+                )}
               </div>
             </div>
 
@@ -613,6 +623,9 @@ export default function ChartOfAccounts() {
                 }
                 placeholder="e.g., Cash and Cash Equivalents"
               />
+              {formErrors.name && (
+                <p className="text-sm text-red-600 mt-1">{formErrors.name}</p>
+              )}
             </div>
 
             <div>

@@ -13,10 +13,10 @@ export default defineWorkersConfig({
     pool: useCloudflarePool ? '@cloudflare/vitest-pool-workers' : 'threads',
     poolOptions: useCloudflarePool
       ? {
-          workers: {
-            wrangler: { configPath: './wrangler.jsonc' },
-          },
-        }
+        workers: {
+          wrangler: { configPath: './wrangler.jsonc' },
+        },
+      }
       : undefined,
     globals: true,
     testTimeout: 10000,
@@ -55,7 +55,7 @@ export default defineWorkersConfig({
           include: ['./src/**/*.test.ts', './tests/unit/**/*.test.ts'],
           poolOptions: {
             workers: {
-              wrangler: { configPath: './wrangler.jsonc' },
+              wrangler: { configPath: './wrangler.test.jsonc' },
             },
           },
           globals: true,

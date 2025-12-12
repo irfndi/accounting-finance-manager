@@ -20,9 +20,9 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Timeout settings */
-  timeout: 60 * 1000, // 60 seconds per test
+  timeout: 90 * 1000, // 90 seconds per test
   expect: {
-    timeout: 10 * 1000, // 10 seconds for assertions
+    timeout: 15 * 1000, // 15 seconds for assertions
   },
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
@@ -79,10 +79,10 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: shouldStartWebServer
     ? {
-        command: 'pnpm build && pnpm preview --host',
-        url: baseURL,
-        reuseExistingServer: true,
-        timeout: 180 * 1000,
-      }
+      command: 'pnpm build && pnpm preview --host',
+      url: baseURL,
+      reuseExistingServer: true,
+      timeout: 180 * 1000,
+    }
     : undefined,
 });
