@@ -74,7 +74,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
-    "@cloudflare/vitest-pool-workers": "^0.10.14",
+    "@cloudflare/vitest-pool-workers": "^0.10.15",
     "@cloudflare/workers-types": "^4.20251205.0",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.1.17",
