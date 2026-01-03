@@ -245,7 +245,6 @@ describe("GeneralLedger Component", () => {
   it("should open add account dialog when button is clicked", async () => {
     render(<GeneralLedger />);
 
-    // Wait for component to load
     await waitFor(
       () => {
         expect(screen.getByText("General Ledger")).toBeInTheDocument();
@@ -253,23 +252,20 @@ describe("GeneralLedger Component", () => {
       { timeout: 3000 },
     );
 
-    // Open dialog
-    const addButton = screen.getByRole("button", { name: /add/i });
-    fireEvent.click(addButton);
+    fireEvent.click(screen.getByTestId("add-account-btn"));
 
-    // Verify dialog opens
     await waitFor(
       () => {
-        expect(screen.getByTestId("dialog")).toBeInTheDocument();
+        expect(screen.getByTestId("dialog-content")).toBeInTheDocument();
+        expect(screen.getByText("Add New Account")).toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 3000 },
     );
   });
 
   it("should validate required fields before submission", async () => {
     render(<GeneralLedger />);
 
-    // Wait for component to load
     await waitFor(
       () => {
         expect(screen.getByText("General Ledger")).toBeInTheDocument();
@@ -277,23 +273,29 @@ describe("GeneralLedger Component", () => {
       { timeout: 3000 },
     );
 
-    // Open dialog
-    const addButton = screen.getByRole("button", { name: /add/i });
-    fireEvent.click(addButton);
+    fireEvent.click(screen.getByTestId("add-account-btn"));
 
-    // Since we're using mocked components, just verify the dialog trigger works
     await waitFor(
       () => {
-        expect(screen.getByTestId("dialog-trigger")).toBeInTheDocument();
+        expect(screen.getByTestId("dialog-content")).toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 3000 },
+    );
+
+    fireEvent.click(screen.getByTestId("account-submit"));
+
+    await waitFor(
+      () => {
+        expect(screen.getByText("Account code is required")).toBeInTheDocument();
+        expect(screen.getByText("Account name is required")).toBeInTheDocument();
+      },
+      { timeout: 3000 },
     );
   });
 
   it("should submit form with valid data", async () => {
     render(<GeneralLedger />);
 
-    // Wait for component to load
     await waitFor(
       () => {
         expect(screen.getByText("General Ledger")).toBeInTheDocument();
@@ -301,16 +303,33 @@ describe("GeneralLedger Component", () => {
       { timeout: 3000 },
     );
 
-    // Open dialog
-    fireEvent.click(screen.getByText("Add Account"));
+    fireEvent.click(screen.getByTestId("add-account-btn"));
 
-    // Verify dialog interaction works
     await waitFor(
       () => {
-        expect(screen.getByTestId("dialog-trigger")).toBeInTheDocument();
+        expect(screen.getByTestId("dialog-content")).toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 3000 },
     );
+
+    fireEvent.change(screen.getByLabelText("Code"), {
+      target: { value: "1100" },
+    });
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "New Cash Account" },
+    });
+
+    fireEvent.click(screen.getByTestId("account-submit"));
+
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId("dialog-content")).not.toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
+
+    expect(fetch).toHaveBeenCalled();
   });
 
   it("should handle API errors gracefully", async () => {
@@ -496,10 +515,9 @@ describe("GeneralLedger Component", () => {
     );
   });
 
-  it("should validate normal balance selection", async () => {
+  it("should render normal balance field in add account dialog", async () => {
     render(<GeneralLedger />);
 
-    // Wait for component to load
     await waitFor(
       () => {
         expect(screen.getByText("General Ledger")).toBeInTheDocument();
@@ -507,18 +525,14 @@ describe("GeneralLedger Component", () => {
       { timeout: 3000 },
     );
 
-    // Open dialog - look for the button by test id or partial text
-    const addButton =
-      screen.getByRole("button", { name: /add/i }) ||
-      screen.getByTestId("dialog-trigger");
-    fireEvent.click(addButton);
+    fireEvent.click(screen.getByTestId("add-account-btn"));
 
-    // Verify dialog interaction
     await waitFor(
       () => {
-        expect(screen.getByTestId("dialog-trigger")).toBeInTheDocument();
+        expect(screen.getByTestId("dialog-content")).toBeInTheDocument();
+        expect(screen.getByText("Normal Balance")).toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 3000 },
     );
   });
 });
