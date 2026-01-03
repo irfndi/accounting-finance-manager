@@ -34,7 +34,7 @@ importers:
         version: 0.4.1
       '@hono/zod-validator':
         specifier: ^0.7.5
-        version: 0.7.5(hono@4.10.7)(zod@4.1.13)
+        version: 0.7.5(hono@4.11.3)(zod@4.1.13)
       '@noble/hashes':
         specifier: ^2.0.1
         version: 2.0.1
@@ -81,8 +81,8 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0
       hono:
-        specifier: ^4.10.7
-        version: 4.10.7
+        specifier: ^4.11.1
+        version: 4.11.3
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
@@ -3443,8 +3443,8 @@ packages:
   hastscript@9.0.1:
     resolution: {integrity: sha512-g7df9rMFX/SPi34tyGCyUBREQoKkapwdY/T04Qn9TDWfHhAYt4/I0gMVirzK5wEzeUqIjEB+LXC/ypb7Aqno5w==}
 
-  hono@4.10.7:
-    resolution: {integrity: sha512-icXIITfw/07Q88nLSkB9aiUrd8rYzSweK681Kjo/TSggaGbOX4RRyxxm71v+3PC8C/j+4rlxGeoTRxQDkaJkUw==}
+  hono@4.11.3:
+    resolution: {integrity: sha512-PmQi306+M/ct/m5s66Hrg+adPnkD5jiO6IjA7WhWw0gSBSo1EcRegwuI1deZ+wd5pzCGynCcn2DprnE4/yEV4w==}
     engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@4.0.0:
@@ -6884,9 +6884,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@hono/zod-validator@0.7.5(hono@4.10.7)(zod@4.1.13)':
+  '@hono/zod-validator@0.7.5(hono@4.11.3)(zod@4.1.13)':
     dependencies:
-      hono: 4.10.7
+      hono: 4.11.3
       zod: 4.1.13
 
   '@iarna/toml@2.2.5': {}
@@ -9372,7 +9372,7 @@ snapshots:
       space-separated-tokens: 2.0.2
     optional: true
 
-  hono@4.10.7: {}
+  hono@4.11.3: {}
 
   html-encoding-sniffer@4.0.0:
     dependencies:
