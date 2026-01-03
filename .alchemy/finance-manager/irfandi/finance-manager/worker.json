@@ -1,0 +1,589 @@
+{
+  "kind": "cloudflare::Worker",
+  "id": "worker",
+  "fqn": "finance-manager/irfandi/finance-manager/worker",
+  "seq": 3,
+  "data": {},
+  "status": "created",
+  "output": {
+    "Symbol(alchemy::ResourceKind)": "cloudflare::Worker",
+    "Symbol(alchemy::ResourceID)": "worker",
+    "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager/worker",
+    "Symbol(alchemy::ResourceScope)": {
+      "@scope": null
+    },
+    "Symbol(alchemy::ResourceSeq)": 3,
+    "command": "pnpm run build",
+    "bindings": {
+      "FINANCE_MANAGER_DB": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
+        "Symbol(alchemy::ResourceID)": "finance-manager-db-v2",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-db-v2",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 2,
+        "type": "d1",
+        "id": "ed6f24bb-ddf5-4e5d-8c51-154b819a82fd",
+        "name": "finance-manager-db-v2",
+        "fileSize": 12288,
+        "numTables": 0,
+        "version": "production",
+        "readReplication": {
+          "mode": "disabled"
+        },
+        "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+      },
+      "FINANCE_MANAGER_CACHE": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+        "Symbol(alchemy::ResourceID)": "finance-manager-cache-v2",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-cache-v2",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 0,
+        "type": "kv_namespace",
+        "namespaceId": "08b151862b2a44f5bc352376eb0b9b85",
+        "title": "finance-manager-cache-v2",
+        "createdAt": 1751013987736,
+        "modifiedAt": 1751259595158
+      },
+      "FINANCE_MANAGER_DOCUMENTS": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::R2Bucket",
+        "Symbol(alchemy::ResourceID)": "finance-manager-docs-v2",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-docs-v2",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 1,
+        "name": "finance-manager-docs-v2",
+        "location": "default",
+        "creationDate": {
+          "@date": "2025-06-30T05:00:00.408Z"
+        },
+        "jurisdiction": "default",
+        "type": "r2_bucket",
+        "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+      },
+      "AI": {
+        "type": "ai"
+      },
+      "ASSETS": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::Asset",
+        "Symbol(alchemy::ResourceID)": "assets",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager/assets",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 2,
+        "id": "assets",
+        "type": "assets",
+        "path": "dist",
+        "files": [
+          {
+            "path": "_routes.json",
+            "filePath": "dist/_routes.json",
+            "contentType": "application/json"
+          },
+          {
+            "path": "_astro/DocumentSearch.LdM4yEDj.js",
+            "filePath": "dist/_astro/DocumentSearch.LdM4yEDj.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/FinanceDashboard.CzY4EnKl.js",
+            "filePath": "dist/_astro/FinanceDashboard.CzY4EnKl.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/Navigation.DQoiZNIG.js",
+            "filePath": "dist/_astro/Navigation.DQoiZNIG.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/button.CDive8EV.js",
+            "filePath": "dist/_astro/button.CDive8EV.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/card.Dfef4M5o.js",
+            "filePath": "dist/_astro/card.Dfef4M5o.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/chart-of-accounts.C2tdSe1z.css",
+            "filePath": "dist/_astro/chart-of-accounts.C2tdSe1z.css",
+            "contentType": "text/css"
+          },
+          {
+            "path": "_astro/chart-of-accounts.astro_astro_type_script_index_0_lang.BoRqll1n.js",
+            "filePath": "dist/_astro/chart-of-accounts.astro_astro_type_script_index_0_lang.BoRqll1n.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/client.DHuBr1-O.js",
+            "filePath": "dist/_astro/client.DHuBr1-O.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/client.DU9XfzbK.js",
+            "filePath": "dist/_astro/client.DU9XfzbK.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/financial-statements.astro_astro_type_script_index_0_lang.DCXI3H2k.js",
+            "filePath": "dist/_astro/financial-statements.astro_astro_type_script_index_0_lang.DCXI3H2k.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/index.BktWGMfe.js",
+            "filePath": "dist/_astro/index.BktWGMfe.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/index.D4lIrffr.js",
+            "filePath": "dist/_astro/index.D4lIrffr.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_worker.js/_@astrojs-ssr-adapter.mjs",
+            "filePath": "dist/_worker.js/_@astrojs-ssr-adapter.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/_astro-internal_middleware.mjs",
+            "filePath": "dist/_worker.js/_astro-internal_middleware.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/_noop-actions.mjs",
+            "filePath": "dist/_worker.js/_noop-actions.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/index.js",
+            "filePath": "dist/_worker.js/index.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_worker.js/manifest_DzctNOBF.mjs",
+            "filePath": "dist/_worker.js/manifest_DzctNOBF.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/renderers.mjs",
+            "filePath": "dist/_worker.js/renderers.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/Layout_B4meHhMb.mjs",
+            "filePath": "dist/_worker.js/chunks/Layout_B4meHhMb.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/_@astro-renderers_CAihl0VG.mjs",
+            "filePath": "dist/_worker.js/chunks/_@astro-renderers_CAihl0VG.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/_@astrojs-ssr-adapter_TFe9dpdK.mjs",
+            "filePath": "dist/_worker.js/chunks/_@astrojs-ssr-adapter_TFe9dpdK.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/astro-designed-error-pages_D_sGkmK6.mjs",
+            "filePath": "dist/_worker.js/chunks/astro-designed-error-pages_D_sGkmK6.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/card_7bi00kW0.mjs",
+            "filePath": "dist/_worker.js/chunks/card_7bi00kW0.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/cloudflare-kv-binding_DMly_2Gl.mjs",
+            "filePath": "dist/_worker.js/chunks/cloudflare-kv-binding_DMly_2Gl.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/index_NdZg1j-b.mjs",
+            "filePath": "dist/_worker.js/chunks/index_NdZg1j-b.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/noop-middleware_htrWkiXL.mjs",
+            "filePath": "dist/_worker.js/chunks/noop-middleware_htrWkiXL.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/astro/server_J0iYCP8G.mjs",
+            "filePath": "dist/_worker.js/chunks/astro/server_J0iYCP8G.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/_image.astro.mjs",
+            "filePath": "dist/_worker.js/pages/_image.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/chart-of-accounts.astro.mjs",
+            "filePath": "dist/_worker.js/pages/chart-of-accounts.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/financial-statements.astro.mjs",
+            "filePath": "dist/_worker.js/pages/financial-statements.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/general-ledger.astro.mjs",
+            "filePath": "dist/_worker.js/pages/general-ledger.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/index.astro.mjs",
+            "filePath": "dist/_worker.js/pages/index.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/reports.astro.mjs",
+            "filePath": "dist/_worker.js/pages/reports.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/search.astro.mjs",
+            "filePath": "dist/_worker.js/pages/search.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/api/ai-analysis.astro.mjs",
+            "filePath": "dist/_worker.js/pages/api/ai-analysis.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/api/ai-insights.astro.mjs",
+            "filePath": "dist/_worker.js/pages/api/ai-insights.astro.mjs",
+            "contentType": "application/javascript+module"
+          }
+        ],
+        "createdAt": 1751259858903,
+        "updatedAt": 1751259858903
+      }
+    },
+    "vars": {
+      "ALCHEMY_MANAGED": "true",
+      "CONTAINER_VERSION": "1.0.0",
+      "DEPLOYMENT_STRATEGY": "alchemy",
+      "STAGE": "dev",
+      "ENVIRONMENT": "development",
+      "AUTH_SESSION_DURATION": "7d",
+      "AWS_REGION": "us-east-1",
+      "SES_FROM_EMAIL": "noreply@finance-manager.com",
+      "SES_FROM_NAME": "Finance Manager"
+    },
+    "noBundle": true,
+    "main": "dist/_worker.js/index.js",
+    "assets": {
+      "html_handling": "auto-trailing-slash",
+      "not_found_handling": "none",
+      "run_worker_first": false,
+      "dist": "dist"
+    },
+    "wrangler": true,
+    "compatibilityDate": "2025-06-27",
+    "name": "finance-manager",
+    "entrypoint": "dist/_worker.js/index.js",
+    "url": "https://finance-manager.irfandimarsya.workers.dev",
+    "adopt": true,
+    "type": "service",
+    "id": "worker",
+    "compatibilityFlags": [],
+    "format": "esm",
+    "createdAt": 1751259880721,
+    "updatedAt": 1751259880721
+  },
+  "props": {
+    "command": "pnpm run build",
+    "bindings": {
+      "FINANCE_MANAGER_DB": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::D1Database",
+        "Symbol(alchemy::ResourceID)": "finance-manager-db-v2",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-db-v2",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 2,
+        "type": "d1",
+        "id": "ed6f24bb-ddf5-4e5d-8c51-154b819a82fd",
+        "name": "finance-manager-db-v2",
+        "fileSize": 12288,
+        "numTables": 0,
+        "version": "production",
+        "readReplication": {
+          "mode": "disabled"
+        },
+        "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+      },
+      "FINANCE_MANAGER_CACHE": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::KVNamespace",
+        "Symbol(alchemy::ResourceID)": "finance-manager-cache-v2",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-cache-v2",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 0,
+        "type": "kv_namespace",
+        "namespaceId": "08b151862b2a44f5bc352376eb0b9b85",
+        "title": "finance-manager-cache-v2",
+        "createdAt": 1751013987736,
+        "modifiedAt": 1751259595158
+      },
+      "FINANCE_MANAGER_DOCUMENTS": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::R2Bucket",
+        "Symbol(alchemy::ResourceID)": "finance-manager-docs-v2",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager-docs-v2",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 1,
+        "name": "finance-manager-docs-v2",
+        "location": "default",
+        "creationDate": {
+          "@date": "2025-06-30T05:00:00.408Z"
+        },
+        "jurisdiction": "default",
+        "type": "r2_bucket",
+        "accountId": "4d12ccdb69bc57519b6aac269a04c9af"
+      },
+      "AI": {
+        "type": "ai"
+      },
+      "ASSETS": {
+        "Symbol(alchemy::ResourceKind)": "cloudflare::Asset",
+        "Symbol(alchemy::ResourceID)": "assets",
+        "Symbol(alchemy::ResourceFQN)": "finance-manager/irfandi/finance-manager/assets",
+        "Symbol(alchemy::ResourceScope)": {
+          "@scope": null
+        },
+        "Symbol(alchemy::ResourceSeq)": 2,
+        "id": "assets",
+        "type": "assets",
+        "path": "dist",
+        "files": [
+          {
+            "path": "_routes.json",
+            "filePath": "dist/_routes.json",
+            "contentType": "application/json"
+          },
+          {
+            "path": "_astro/DocumentSearch.LdM4yEDj.js",
+            "filePath": "dist/_astro/DocumentSearch.LdM4yEDj.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/FinanceDashboard.CzY4EnKl.js",
+            "filePath": "dist/_astro/FinanceDashboard.CzY4EnKl.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/Navigation.DQoiZNIG.js",
+            "filePath": "dist/_astro/Navigation.DQoiZNIG.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/button.CDive8EV.js",
+            "filePath": "dist/_astro/button.CDive8EV.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/card.Dfef4M5o.js",
+            "filePath": "dist/_astro/card.Dfef4M5o.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/chart-of-accounts.C2tdSe1z.css",
+            "filePath": "dist/_astro/chart-of-accounts.C2tdSe1z.css",
+            "contentType": "text/css"
+          },
+          {
+            "path": "_astro/chart-of-accounts.astro_astro_type_script_index_0_lang.BoRqll1n.js",
+            "filePath": "dist/_astro/chart-of-accounts.astro_astro_type_script_index_0_lang.BoRqll1n.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/client.DHuBr1-O.js",
+            "filePath": "dist/_astro/client.DHuBr1-O.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/client.DU9XfzbK.js",
+            "filePath": "dist/_astro/client.DU9XfzbK.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/financial-statements.astro_astro_type_script_index_0_lang.DCXI3H2k.js",
+            "filePath": "dist/_astro/financial-statements.astro_astro_type_script_index_0_lang.DCXI3H2k.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/index.BktWGMfe.js",
+            "filePath": "dist/_astro/index.BktWGMfe.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_astro/index.D4lIrffr.js",
+            "filePath": "dist/_astro/index.D4lIrffr.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_worker.js/_@astrojs-ssr-adapter.mjs",
+            "filePath": "dist/_worker.js/_@astrojs-ssr-adapter.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/_astro-internal_middleware.mjs",
+            "filePath": "dist/_worker.js/_astro-internal_middleware.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/_noop-actions.mjs",
+            "filePath": "dist/_worker.js/_noop-actions.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/index.js",
+            "filePath": "dist/_worker.js/index.js",
+            "contentType": "application/javascript"
+          },
+          {
+            "path": "_worker.js/manifest_DzctNOBF.mjs",
+            "filePath": "dist/_worker.js/manifest_DzctNOBF.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/renderers.mjs",
+            "filePath": "dist/_worker.js/renderers.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/Layout_B4meHhMb.mjs",
+            "filePath": "dist/_worker.js/chunks/Layout_B4meHhMb.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/_@astro-renderers_CAihl0VG.mjs",
+            "filePath": "dist/_worker.js/chunks/_@astro-renderers_CAihl0VG.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/_@astrojs-ssr-adapter_TFe9dpdK.mjs",
+            "filePath": "dist/_worker.js/chunks/_@astrojs-ssr-adapter_TFe9dpdK.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/astro-designed-error-pages_D_sGkmK6.mjs",
+            "filePath": "dist/_worker.js/chunks/astro-designed-error-pages_D_sGkmK6.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/card_7bi00kW0.mjs",
+            "filePath": "dist/_worker.js/chunks/card_7bi00kW0.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/cloudflare-kv-binding_DMly_2Gl.mjs",
+            "filePath": "dist/_worker.js/chunks/cloudflare-kv-binding_DMly_2Gl.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/index_NdZg1j-b.mjs",
+            "filePath": "dist/_worker.js/chunks/index_NdZg1j-b.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/noop-middleware_htrWkiXL.mjs",
+            "filePath": "dist/_worker.js/chunks/noop-middleware_htrWkiXL.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/chunks/astro/server_J0iYCP8G.mjs",
+            "filePath": "dist/_worker.js/chunks/astro/server_J0iYCP8G.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/_image.astro.mjs",
+            "filePath": "dist/_worker.js/pages/_image.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/chart-of-accounts.astro.mjs",
+            "filePath": "dist/_worker.js/pages/chart-of-accounts.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/financial-statements.astro.mjs",
+            "filePath": "dist/_worker.js/pages/financial-statements.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/general-ledger.astro.mjs",
+            "filePath": "dist/_worker.js/pages/general-ledger.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/index.astro.mjs",
+            "filePath": "dist/_worker.js/pages/index.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/reports.astro.mjs",
+            "filePath": "dist/_worker.js/pages/reports.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/search.astro.mjs",
+            "filePath": "dist/_worker.js/pages/search.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/api/ai-analysis.astro.mjs",
+            "filePath": "dist/_worker.js/pages/api/ai-analysis.astro.mjs",
+            "contentType": "application/javascript+module"
+          },
+          {
+            "path": "_worker.js/pages/api/ai-insights.astro.mjs",
+            "filePath": "dist/_worker.js/pages/api/ai-insights.astro.mjs",
+            "contentType": "application/javascript+module"
+          }
+        ],
+        "createdAt": 1751259858903,
+        "updatedAt": 1751259858903
+      }
+    },
+    "vars": {
+      "ALCHEMY_MANAGED": "true",
+      "CONTAINER_VERSION": "1.0.0",
+      "DEPLOYMENT_STRATEGY": "alchemy",
+      "STAGE": "dev",
+      "ENVIRONMENT": "development",
+      "AUTH_SESSION_DURATION": "7d",
+      "AWS_REGION": "us-east-1",
+      "SES_FROM_EMAIL": "noreply@finance-manager.com",
+      "SES_FROM_NAME": "Finance Manager"
+    },
+    "noBundle": true,
+    "main": "dist/_worker.js/index.js",
+    "assets": {
+      "html_handling": "auto-trailing-slash",
+      "not_found_handling": "none",
+      "run_worker_first": false,
+      "dist": "dist"
+    },
+    "wrangler": true,
+    "compatibilityDate": "2025-06-27",
+    "name": "finance-manager",
+    "entrypoint": "dist/_worker.js/index.js",
+    "url": true,
+    "adopt": true
+  }
+}

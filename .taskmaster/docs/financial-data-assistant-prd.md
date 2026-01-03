@@ -359,7 +359,7 @@ CREATE TABLE user_subscriptions (
 ### AI Prompts
 
 **Data Mapping Prompt**:
-```
+```text
 You are a financial data mapping expert. Analyze the provided column headers and sample data to map them to standard financial fields.
 
 Column headers: [...]
@@ -378,7 +378,7 @@ Respond with JSON:
 ```
 
 **Anomaly Detection Prompt**:
-```
+```text
 You are a financial analyst. Analyze this transaction for anomalies compared to historical patterns.
 
 Transaction: [...]
@@ -402,7 +402,7 @@ Respond with JSON:
 ```
 
 **Insight Generation Prompt**:
-```
+```text
 You are a financial advisor. Analyze the financial data and provide actionable insights.
 
 Data summary: [...]
@@ -447,7 +447,7 @@ Respond with JSON:
 - % of recommendations acted upon: >40%
 
 ### Business
-- Free to paid conversion rate: >10%
+- Free-to-paid conversion rate: >10%
 - Monthly churn rate: <5%
 - Average revenue per user (ARPU): increasing
 
@@ -509,7 +509,7 @@ Respond with JSON:
 
 ### Example Use Cases
 
-**Use Case 1: Small Business Owner**
+#### Use Case 1: Small Business Owner
 - Uploads monthly expense Excel file
 - System detects columns, suggests mappings
 - Flags 3 missing GL codes
@@ -518,7 +518,7 @@ Respond with JSON:
 - Dashboard shows spending spike in "Travel"
 - Recommends reviewing vendor concentration
 
-**Use Case 2: Startup Founder**
+#### Use Case 2: Startup Founder
 - Manually enters transactions
 - Real-time validation warns of unusual amount
 - System suggests category based on description
@@ -526,7 +526,7 @@ Respond with JSON:
 - Highlights growing payroll trend
 - Recommends diversifying revenue
 
-**Use Case 3: Enterprise Accountant**
+#### Use Case 3: Enterprise Accountant
 - Imports multi-entity consolidated data
 - Maps custom fields to standard format
 - Reviews anomalies detected by AI

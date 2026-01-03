@@ -122,10 +122,10 @@ async function createAccountingServices(d1Database: D1Database, entityId: string
 // GET /accounts - List all accounts with enhanced functionality
 accounts.get('/', async (c) => {
   try {
-    const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
-    
     // Get query parameters for filtering
     const { type, active, parent, entityId = 'default' } = c.req.query()
+    
+    const { accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB, entityId)
     
     let allAccounts
     
@@ -193,6 +193,7 @@ accounts.get('/', async (c) => {
 accounts.get('/:id', async (c) => {
   try {
     const accountId = Number.parseInt(c.req.param('id'), 10)
+    const { entityId = 'default' } = c.req.query()
     
     if (Number.isNaN(accountId) || accountId <= 0) {
       return c.json({ 
@@ -202,7 +203,7 @@ accounts.get('/:id', async (c) => {
       }, 400)
     }
 
-    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
+    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB, entityId)
     
     const account = await dbAdapter.getAccount(accountId)
     
@@ -264,7 +265,8 @@ accounts.get('/:id', async (c) => {
 // POST /accounts - Create new account with enhanced validation
 accounts.post('/', async (c) => {
   try {
-    const body: CreateAccountRequest = await c.req.json()
+    const body: CreateAccountRequest & { entityId?: string } = await c.req.json()
+    const entityId = body.entityId || 'default'
     
     // Enhanced validation using core logic
     const codeError = validateAccountCode(body.code)
@@ -287,7 +289,7 @@ accounts.post('/', async (c) => {
       return c.json({ error: normalBalanceError, code: 'VALIDATION_ERROR' }, 400)
     }
     
-    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB)
+    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB, entityId)
     
     // Check if account code already exists using account registry
     const existingAccounts = accountRegistry.getAllAccounts()
@@ -339,7 +341,7 @@ accounts.post('/', async (c) => {
       currentBalance: 0,
       reportCategory: body.reportCategory || body.type,
       reportOrder: body.reportOrder || 0,
-      entityId: 'default'
+      entityId: entityId
     }
     
     const newAccount = await dbAdapter.createAccount(accountData)
@@ -467,5 +469,82 @@ accounts.put('/:id', async (c) => {
 });
 
 // DELETE /accounts/:id - Delete an account
+accounts.delete('/:id', async (c) => {
+  try {
+    const accountId = Number.parseInt(c.req.param('id'), 10)
+    const { entityId = 'default' } = c.req.query()
+    
+    if (!accountId || accountId <= 0) {
+      return c.json({
+        error: 'Invalid account ID',
+        message: 'Account ID must be a positive integer',
+        code: 'INVALID_ACCOUNT_ID'
+      }, 400)
+    }
+
+    const { dbAdapter, accountRegistry } = await createAccountingServices(c.env.FINANCE_MANAGER_DB, entityId)
+    
+    const account = await dbAdapter.getAccount(accountId)
+    
+    if (!account) {
+      return c.json({
+        error: 'Account not found',
+        message: `No account found with ID ${accountId}`,
+        code: 'ACCOUNT_NOT_FOUND'
+      }, 404)
+    }
+    
+    // Check if account has existing transactions
+    const hasTransactions = await c.env.FINANCE_MANAGER_DB.prepare(
+      'SELECT COUNT(*) as count FROM journal_entries WHERE account_id = ?'
+    ).bind(accountId).first()
+    
+    const transactionCount = hasTransactions ? Number(hasTransactions.count) : 0
+    if (transactionCount > 0) {
+      return c.json({
+        message: 'Cannot delete account with existing transactions',
+        error: `Account ${account.name} has ${transactionCount} existing transactions and cannot be deleted`,
+        code: 'ACCOUNT_HAS_TRANSACTIONS'
+      }, 400)
+    }
+    
+    // Check if account has child accounts
+    const childAccounts = accountRegistry.getAllAccounts().filter((acc: CoreAccount) => acc.parentId === accountId)
+    
+    if (childAccounts.length > 0) {
+      return c.json({
+        error: 'Cannot delete account with child accounts',
+        message: `Account ${account.name} has ${childAccounts.length} child accounts and cannot be deleted`,
+        code: 'ACCOUNT_HAS_CHILDREN'
+      }, 400)
+    }
+    
+    // Delete the account
+    await c.env.FINANCE_MANAGER_DB.prepare(
+      'DELETE FROM accounts WHERE id = ? AND entity_id = ?'
+    ).bind(accountId, entityId).run()
+    
+    return c.json({
+      success: true,
+      message: `Account ${account.name} deleted successfully`
+    })
+  } catch (error: unknown) {
+    console.error('Error deleting account:', error instanceof Error ? error.message : String(error))
+    const accountingError = handleAccountingError(error)
+    if (accountingError) {
+      return c.json(accountingError, 400)
+    }
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return c.json(
+      {
+        error: 'Failed to delete account',
+        message: errorMessage,
+        code: 'ACCOUNT_DELETE_ERROR',
+      },
+      500
+    )
+  }
+})
 
 export default accounts

@@ -1,23 +1,28 @@
 import { resolve } from 'path';
-import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
+import { defineWorkersConfig, defineWorkersProject } from '@cloudflare/vitest-pool-workers/config';
+import { defineProject } from 'vitest/config';
 
 const useCloudflarePool = process.env.VITEST_USE_CF_POOL === 'true';
 
 export default defineWorkersConfig({
   plugins: [],
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     pool: useCloudflarePool ? '@cloudflare/vitest-pool-workers' : 'threads',
     poolOptions: useCloudflarePool
       ? {
-          workers: {
-            wrangler: { configPath: './wrangler.jsonc' },
-          },
-        }
+        workers: {
+          wrangler: { configPath: './wrangler.jsonc' },
+        },
+      }
       : undefined,
     globals: true,
     testTimeout: 10000,
     setupFiles: ['./tests/setup.ts'],
-    include: ['./src/**/*.test.ts', './tests/**/*.test.ts'],
+    include: ['./src/**/*.test.ts', './tests/unit/**/*.test.ts', './tests/integration/**/*.test.tsx'],
+    // Workers pool handles all test environments automatically
     silent: false,
     reporters: ['verbose'],
     coverage: {
@@ -41,12 +46,52 @@ export default defineWorkersConfig({
           statements: 0
         }
       }
-    }
+    },
+    projects: [
+      // Workers tests - for API endpoints and Workers functionality
+      defineWorkersProject({
+        test: {
+          name: 'workers',
+          include: ['./src/**/*.test.ts', './tests/unit/**/*.test.ts'],
+          poolOptions: {
+            workers: {
+              wrangler: { configPath: './wrangler.test.jsonc' },
+            },
+          },
+          globals: true,
+          testTimeout: 10000,
+          setupFiles: ['./tests/setup.ts'],
+        },
+        resolve: {
+          alias: {
+            '@': resolve(__dirname, './src'),
+          },
+          extensions: ['.ts', '.js', '.tsx', '.jsx'],
+        },
+      }),
+
+      // Frontend tests - for React components
+      defineProject({
+        test: {
+          name: 'frontend',
+          include: ['./tests/integration/**/*.test.tsx'],
+          environment: 'jsdom',
+          globals: true,
+          testTimeout: 10000,
+          setupFiles: ['./tests/setup-frontend.ts'],
+        },
+        resolve: {
+          alias: {
+            '@': resolve(__dirname, './src'),
+          },
+        },
+      }),
+    ]
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src')
     },
-    extensions: ['.ts', '.tsx', '.js', '.jsx']
+    extensions: ['.ts', '.js', '.tsx', '.jsx']
   }
 });

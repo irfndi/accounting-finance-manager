@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
 
       - name: Setup PNPM
         uses: pnpm/action-setup@v4
@@ -31,7 +31,7 @@ jobs:
         continue-on-error: true
 
       - name: Fix TypeScript issues
-        run: pnpm exec tsc --noEmit || true
+        run: pnpm exec tsc --noEmit
         continue-on-error: true
 
       - name: Apply autofix.ci

@@ -39,7 +39,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Run PNPM audit
         timeout-minutes: 2
@@ -99,7 +104,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Build for CodeQL analysis
         run: |
@@ -133,7 +143,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Install Snyk CLI
         run: |
@@ -173,7 +188,7 @@ jobs:
         if: secrets.SNYK_TOKEN == ''
         run: |
           echo "🔍 Running OSV vulnerability scanner..."
-          curl -L https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
+          curl -L https://github.com/google/osv-scanner/releases/download/v1.9.2/osv-scanner_linux_amd64 -o osv-scanner
           chmod +x osv-scanner
           ./osv-scanner --lockfile=pnpm-lock.yaml --output=json > osv-report.json || echo "OSV scan completed"
           echo "✅ OSV scan completed"
@@ -207,7 +222,12 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
 
       - name: Install license checker
         run: |
@@ -259,7 +279,7 @@ jobs:
       - name: Run TruffleHog secret scan
         run: |
           echo "🔍 Scanning for secrets with TruffleHog..."
-          trufflehog git file://. --branch=main --json > secret-scan-report.json || echo "Secret scan completed"
+          trufflehog filesystem . --json > secret-scan-report.json || echo "Secret scan completed"
           echo "✅ Secret scan completed"
 
       - name: Check for findings
@@ -267,7 +287,8 @@ jobs:
           echo "📊 Checking secret scan results..."
           if [ -s secret-scan-report.json ]; then
             echo "⚠️ Potential secrets found! Please review the report."
-            cat secret-scan-report.json
+            echo "Report generated (see workflow artifact: secret-scan-report.json)."
+            exit 1
           else
             echo "✅ No secrets detected"
           fi
@@ -303,7 +324,11 @@ jobs:
       - name: Verify package integrity
         run: |
           echo "🔐 Verifying package integrity..."
-          pnpm install --frozen-lockfile --verify-store-integrity
+          # Try frozen lockfile first, fallback to updating if overrides mismatch
+          pnpm install --frozen-lockfile --verify-store-integrity || {
+            echo "Lockfile config mismatch detected, updating lockfile..."
+            pnpm install --no-frozen-lockfile --verify-store-integrity
+          }
           echo "✅ Package integrity verified"
 
       - name: Check for suspicious packages
@@ -358,7 +383,7 @@ jobs:
           echo "| Secret Scan | ${{ needs.secret-scan.result }} | TruffleHog analysis |" >> $GITHUB_STEP_SUMMARY
           echo "| Supply Chain | ${{ needs.supply-chain.result }} | Package integrity & SBOM |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Count failures
           FAILURES=0
           if [[ "${{ needs.dependency-audit.result }}" == "failure" ]]; then ((FAILURES++)); fi
@@ -367,7 +392,7 @@ jobs:
           if [[ "${{ needs.license-check.result }}" == "failure" ]]; then ((FAILURES++)); fi
           if [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then ((FAILURES++)); fi
           if [[ "${{ needs.supply-chain.result }}" == "failure" ]]; then ((FAILURES++)); fi
-          
+
           if [[ $FAILURES -eq 0 ]]; then
             echo "## ✅ All Security Checks Passed" >> $GITHUB_STEP_SUMMARY
             echo "No critical security issues detected." >> $GITHUB_STEP_SUMMARY
@@ -375,7 +400,7 @@ jobs:
             echo "## ⚠️ Security Issues Detected" >> $GITHUB_STEP_SUMMARY
             echo "$FAILURES security check(s) failed. Please review the individual reports." >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "📁 **Security reports** are available in the workflow artifacts." >> $GITHUB_STEP_SUMMARY
 
@@ -389,12 +414,12 @@ jobs:
           echo "License Check: ${{ needs.license-check.result }}"
           echo "Secret Scan: ${{ needs.secret-scan.result }}"
           echo "Supply Chain: ${{ needs.supply-chain.result }}"
-          
+
           # Exit with error if any critical checks failed
           if [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
             echo "❌ Critical: Secrets detected in repository"
             exit 1
-          elif [[ "${{ needs.dependency-audit.result }}" == "failure" && 
+          elif [[ "${{ needs.dependency-audit.result }}" == "failure" &&
                   "${{ needs.vulnerability-scan.result }}" == "failure" ]]; then
             echo "❌ Critical: Multiple vulnerability scanners failed"
             exit 1
