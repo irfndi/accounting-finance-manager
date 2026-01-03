@@ -31,9 +31,12 @@ coverage/
 .astro
 .alchemy/
 
-test-result/
-playwright-report
-coverage/
+test-results/
+playwright-report/
+blob-report/
+*.zip
+*.backup
+wrangler.*.backup
 
 # TypeScript compiled output
 worker/src/**/*.js
