@@ -1,0 +1,58 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy fin-in-flow to Production
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      deployments: write
+
+    environment:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      JWT_SECRET_PROD: ${{ secrets.JWT_SECRET_PROD }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build frontend
+        run: pnpm build:web
+
+      - name: Build worker
+        run: pnpm build:worker
+
+      - name: Deploy to production
+        run: |
+          # Update wrangler.jsonc with production environment variables
+          echo "Deploying to production..."
+
+          # Create production .env file from secrets
+          cat > .env.production << EOF
+          CLOUDFLARE_ACCOUNT_ID=${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}
+          JWT_SECRET=CHANGE-THIS-TO-STRONG-RANDOM-KEY-MIN-32-CHARS
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          EOF
+
+          # Deploy using Alchemy
+          pnpm deploy:prod
+
+        env:
+          # Alchemy will use production env from wrangler.jsonc
+          STAGE: prod
