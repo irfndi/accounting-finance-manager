@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/cloudflare/cloudflare-go"
+	"github.com/irfndi/fin-in-flow/backend/api"
+	"github.com/irfndi/fin-in-flow/backend/middleware"
 	"net/http"
 	"os"
 )
@@ -13,21 +14,21 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"message":"Finance Manager API - Go 1.25 Backend","status":"healthy"}`)
-	})
+	mux := api.NewRouter()
 
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"status":"ok","service":"finance-container"}`)
-	})
+	mux.HandleFunc("/", api.IndexHandler)
+	mux.HandleFunc("/health", api.HealthHandler)
+	mux.HandleFunc("/api", api.APIHandler)
+
+	middleware := middleware.CORS(
+		middleware.Logging(
+			middleware.Recovery(nil),
+		),
+	)
 
 	fmt.Printf("Starting Finance Manager backend on port %s\n", port)
 
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, middleware); err != nil {
 		fmt.Printf("Server failed: %v\n", err)
 		os.Exit(1)
 	}
