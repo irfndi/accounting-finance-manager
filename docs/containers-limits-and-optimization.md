@@ -2,27 +2,28 @@
 
 ## Global Limits (Workers Paid Account)
 
-| Resource | Limit | Implications for fin-in-flow |
-|-----------|-------|----------------------------|
-| **Total Memory** | 400 GiB (all concurrent instances) | Heavy calculations need efficient memory usage |
-| **Total vCPU** | 100 (all concurrent instances) | Limited concurrent heavy operations |
-| **Total Disk** | 2 TB (all concurrent instances) | Bank statements, PDFs, receipts stored in Container |
-| **Image Storage** | 50 GB per account | Manage old images to avoid hitting limit |
+| Resource          | Limit                              | Implications for fin-in-flow                        |
+| ----------------- | ---------------------------------- | --------------------------------------------------- |
+| **Total Memory**  | 400 GiB (all concurrent instances) | Heavy calculations need efficient memory usage      |
+| **Total vCPU**    | 100 (all concurrent instances)     | Limited concurrent heavy operations                 |
+| **Total Disk**    | 2 TB (all concurrent instances)    | Bank statements, PDFs, receipts stored in Container |
+| **Image Storage** | 50 GB per account                  | Manage old images to avoid hitting limit            |
 
 ---
 
 ## Instance Types Available
 
-| Instance Type | vCPU | Memory | Disk | Best For |
-|-------------|--------|--------|----------|
-| **lite** | 1/16 | 256 MiB | 2 GB | Simple operations, minimal cost |
-| **basic** | 1/4 | 1 GiB | 4 GB | Low-computation tasks |
-| **standard-1** | 1/2 | 4 GiB | 8 GB | **Financial calculations** (RECOMMENDED) |
-| **standard-2** | 1 | 6 GiB | 12 GB | Bank statement parsing, PDF processing |
-| **standard-3** | 2 | 8 GiB | 16 GB | Heavy computation, large datasets |
-| **standard-4** | 4 | 12 GiB | 20 GB | Maximum performance |
+| Instance Type  | vCPU | Memory  | Disk  | Best For                                 |
+| -------------- | ---- | ------- | ----- | ---------------------------------------- |
+| **lite**       | 1/16 | 256 MiB | 2 GB  | Simple operations, minimal cost          |
+| **basic**      | 1/4  | 1 GiB   | 4 GB  | Low-computation tasks                    |
+| **standard-1** | 1/2  | 4 GiB   | 8 GB  | **Financial calculations** (RECOMMENDED) |
+| **standard-2** | 1    | 6 GiB   | 12 GB | Bank statement parsing, PDF processing   |
+| **standard-3** | 2    | 8 GiB   | 16 GB | Heavy computation, large datasets        |
+| **standard-4** | 4    | 12 GiB  | 20 GB | Maximum performance                      |
 
 **Custom Instance Constraints:**
+
 - Min vCPU: 1
 - Max vCPU: 4
 - Max Memory: 12 GiB
@@ -35,25 +36,27 @@
 ## Recommended Instance Types for fin-in-flow
 
 ### Worker (Hono/TypeScript)
+
 - **No Container limits apply** (runs on Workers runtime)
 - Fast, always warm (~50ms response time)
 - Handles: Auth, routing, simple CRUD, edge logic
 
 ### Container (Go) - Instance Allocation
 
-| Use Case | Instance Type | Reason |
-|----------|---------------|--------|
-| **Simple Calculations** | lite or basic | Low resource needs, fast response |
-| **Financial Statements** | standard-1 (4 GiB) | Moderate computation, memory for data |
-| **Bank Statement Parsing** | standard-2 (6 GiB) | Heavy processing, needs memory for large files |
-| **PDF/OCR Processing** | standard-3 (8 GiB) | Computationally expensive, benefits from 2 vCPU |
-| **Batch Jobs** | standard-4 (12 GiB) | Maximum performance for large datasets |
+| Use Case                   | Instance Type       | Reason                                          |
+| -------------------------- | ------------------- | ----------------------------------------------- |
+| **Simple Calculations**    | lite or basic       | Low resource needs, fast response               |
+| **Financial Statements**   | standard-1 (4 GiB)  | Moderate computation, memory for data           |
+| **Bank Statement Parsing** | standard-2 (6 GiB)  | Heavy processing, needs memory for large files  |
+| **PDF/OCR Processing**     | standard-3 (8 GiB)  | Computationally expensive, benefits from 2 vCPU |
+| **Batch Jobs**             | standard-4 (12 GiB) | Maximum performance for large datasets          |
 
 ---
 
 ## Concurrency Strategy
 
 ### Challenge
+
 - **100 vCPU total limit** for all concurrent instances
 - If 20 users request financial statements simultaneously (each needs 1 vCPU), they're all queued
 - High load = throttling or failures
@@ -61,6 +64,7 @@
 ### Solutions
 
 #### 1. Queue System (Worker-Based)
+
 ```
 Worker (Hono) handles incoming requests
   ↓
@@ -72,11 +76,13 @@ Container (Go) instances process jobs at controlled rate
 ```
 
 **Benefits:**
+
 - Never exceed 100 vCPU limit
 - Fair job scheduling
 - Can prioritize jobs (user tier, urgency)
 
 #### 2. Instance Management
+
 ```typescript
 // wrangler.jsonc configuration
 {
@@ -90,11 +96,13 @@ Container (Go) instances process jobs at controlled rate
 ```
 
 **Strategy:**
+
 - **max_instances**: 20 (20% of vCPU limit, leaving buffer for other instances)
 - **sleepAfter**: 5-10 minutes (balance cost vs responsiveness)
 - **Result**: Only 20 financial calculations can run simultaneously, others queue
 
 #### 3. Pre-Warming
+
 ```
 Worker schedules pre-warm tasks during low-traffic periods
   ↓
@@ -104,6 +112,7 @@ When user requests, Container already warm (~50ms response)
 ```
 
 **What to Pre-Warm:**
+
 - Common account balances
 - Cached financial statement templates
 - Frequently accessed entities
@@ -114,12 +123,12 @@ When user requests, Container already warm (~50ms response)
 
 ### Container Cost Factors
 
-| Factor | Impact | Optimization |
-|---------|----------|--------------|
-| **vCPU usage** | Direct cost impact | Use Worker for 80% of requests |
-| **Memory allocation** | Direct cost impact | Choose smallest sufficient instance type |
-| **Running time** | Direct cost impact | Aggressive `sleepAfter` (5 min) |
-| **Cold starts** | Poor UX, but same cost | Pre-warm strategies, caching |
+| Factor                | Impact                 | Optimization                             |
+| --------------------- | ---------------------- | ---------------------------------------- |
+| **vCPU usage**        | Direct cost impact     | Use Worker for 80% of requests           |
+| **Memory allocation** | Direct cost impact     | Choose smallest sufficient instance type |
+| **Running time**      | Direct cost impact     | Aggressive `sleepAfter` (5 min)          |
+| **Cold starts**       | Poor UX, but same cost | Pre-warm strategies, caching             |
 
 ### Recommended Strategy
 
@@ -137,6 +146,7 @@ Request → Worker Decision:
 ```
 
 **Cost Benefits:**
+
 - 80% of requests never hit Container (Worker only)
 - Heavy operations benefit from Go performance
 - KV cache reduces redundant Container calls
@@ -147,6 +157,7 @@ Request → Worker Decision:
 ## Specific Limits Impact on fin-in-flow Features
 
 ### Double-Entry Accounting
+
 ```
 ✅ Fits in standard-1 (4 GiB)
 ✅ Single vCPU sufficient for typical calculations
@@ -154,6 +165,7 @@ Request → Worker Decision:
 ```
 
 ### Financial Statement Generation
+
 ```
 ⚠️ Heavy computation
 → Use standard-2 (6 GiB) or standard-3 (8 GiB)
@@ -162,6 +174,7 @@ Request → Worker Decision:
 ```
 
 ### Bank Statement Parsing
+
 ```
 ⚠️ Very heavy (CSV, PDF, OFX, QIF)
 → Use standard-3 (8 GiB) for large statements
@@ -170,6 +183,7 @@ Request → Worker Decision:
 ```
 
 ### Receipt/Invoice OCR
+
 ```
 ⚠️ Computationally expensive
 → Use standard-4 (12 GiB) if many images
@@ -183,12 +197,12 @@ Request → Worker Decision:
 
 ### Must Track
 
-| Metric | Alert Threshold | Action |
-|---------|----------------|--------|
+| Metric              | Alert Threshold         | Action                                          |
+| ------------------- | ----------------------- | ----------------------------------------------- |
 | **Concurrent vCPU** | > 80 (80% of 100 limit) | Scale down requests, implement queue throttling |
-| **Memory Usage** | > 320 GiB (80% of 400) | Release cached data, optimize algorithms |
-| **Disk Usage** | > 1.6 TB (80% of 2TB) | Clean up temporary files, archive old data |
-| **Cold Start Rate** | > 50% (high churn) | Adjust `sleepAfter`, implement pre-warming |
+| **Memory Usage**    | > 320 GiB (80% of 400)  | Release cached data, optimize algorithms        |
+| **Disk Usage**      | > 1.6 TB (80% of 2TB)   | Clean up temporary files, archive old data      |
+| **Cold Start Rate** | > 50% (high churn)      | Adjust `sleepAfter`, implement pre-warming      |
 
 ### Recommended Tools
 
@@ -205,15 +219,16 @@ Based on limits, **Hybrid Architecture (Option B)** remains **HIGHLY RECOMMENDED
 
 ### Why Hybrid Still Best
 
-| Architecture | Container Hits | vCPU Impact | UX Impact |
-|-------------|----------------|---------------|-----------|
-| **Pure Go** | 100% of requests | ⚠️ Hit 100 vCPU limit quickly | ⚠️ Slow cold starts for simple ops |
-| **Hybrid** | ~20% of requests | ✅ Well under limits | ✅ Fast for 80% of requests |
-| **Minimal Go** | ~5% of requests | ✅ Minimal vCPU usage | ✅ Mostly fast, some slow |
+| Architecture   | Container Hits   | vCPU Impact                   | UX Impact                          |
+| -------------- | ---------------- | ----------------------------- | ---------------------------------- |
+| **Pure Go**    | 100% of requests | ⚠️ Hit 100 vCPU limit quickly | ⚠️ Slow cold starts for simple ops |
+| **Hybrid**     | ~20% of requests | ✅ Well under limits          | ✅ Fast for 80% of requests        |
+| **Minimal Go** | ~5% of requests  | ✅ Minimal vCPU usage         | ✅ Mostly fast, some slow          |
 
 ### Final Recommendation
 
 **Hybrid with Queue System:**
+
 1. **Worker**: Handles 80% (auth, routing, simple CRUD)
 2. **KV Cache**: Reduces Container calls by 40%
 3. **Queue System**: Manages Container concurrency (max 20 instances)
