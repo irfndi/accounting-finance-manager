@@ -1,0 +1,49 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [staging, develop]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy fin-in-flow to Staging
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      deployments: write
+
+    environment:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      JWT_SECRET_DEV: ${{ secrets.JWT_SECRET_DEV }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build frontend
+        run: pnpm build:web
+
+      - name: Build worker
+        run: pnpm build:worker
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging..."
+
+          # Deploy using Alchemy
+          pnpm deploy
+
+        env:
+          # Alchemy will use development env from wrangler.jsonc
+          STAGE: dev

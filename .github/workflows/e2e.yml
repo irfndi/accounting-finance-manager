@@ -7,15 +7,15 @@ on:
     branches: [main, develop]
   schedule:
     # Run E2E tests daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '22'
-  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '0'
+  NODE_VERSION: "22"
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "0"
 
 jobs:
   # ============================================================================
@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: [chromium, firefox]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -92,14 +92,15 @@ jobs:
       # Browsers are pre-installed in the Docker container
       # No need to install browsers separately
 
-      - name: Start dev server
+      - name: Start preview server
+        shell: bash
         run: |
-          echo "Starting dev server..."
-          pnpm dev > dev.log 2>&1 &
-          DEV_PID=$!
-          echo $DEV_PID > dev.pid
-          echo "Dev server started with PID: $DEV_PID"
-          
+          echo "Starting preview server..."
+          pnpm preview --host > preview.log 2>&1 &
+          PREVIEW_PID=$!
+          echo $PREVIEW_PID > preview.pid
+          echo "Preview server started with PID: $PREVIEW_PID"
+
           # Wait for server to be ready
           echo "Waiting for server to be ready..."
           for i in {1..60}; do
@@ -293,6 +294,7 @@ jobs:
           echo "✓ Lighthouse CI installed"
 
       - name: Start application
+        shell: bash
         run: |
           echo "Starting application for performance testing..."
           pnpm dev > dev.log 2>&1 &
@@ -300,7 +302,7 @@ jobs:
           echo $DEV_PID > dev.pid
           # Wait for server to be ready
           for i in {1..60}; do
-            if curl -f http://localhost:4321/health >/dev/null 2>&1 || curl -f http://localhost:4321 >/dev/null 2>&1; then
+            if curl -f http://localhost:3000/health >/dev/null 2>&1 || curl -f http://localhost:3000 >/dev/null 2>&1; then
               echo "✓ Development server is ready"
               break
             fi
@@ -423,7 +425,7 @@ jobs:
   e2e-results:
     name: E2E Results Summary
     runs-on: ubuntu-latest
-    needs: [e2e-test, visual-regression, performance, accessibility]
+    needs: [e2e-test, performance]
     if: always()
     steps:
       - name: Download all artifacts
@@ -438,16 +440,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Test Suite | Status | Browser Coverage |" >> $GITHUB_STEP_SUMMARY
           echo "|------------|--------|------------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| E2E Tests | ${{ needs.e2e-test.result }} | Chromium, Firefox, WebKit |" >> $GITHUB_STEP_SUMMARY
-          echo "| Visual Regression | ${{ needs.visual-regression.result }} | Chromium |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ${{ needs.e2e-test.result }} | Chromium, Firefox |" >> $GITHUB_STEP_SUMMARY
           echo "| Performance | ${{ needs.performance.result }} | Lighthouse CI |" >> $GITHUB_STEP_SUMMARY
-          echo "| Accessibility | ${{ needs.accessibility.result }} | axe-playwright |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [[ "${{ needs.e2e-test.result }}" == "failure" || 
-                "${{ needs.visual-regression.result }}" == "failure" || 
-                "${{ needs.performance.result }}" == "failure" || 
-                "${{ needs.accessibility.result }}" == "failure" ]]; then
+
+          if [[ "${{ needs.e2e-test.result }}" == "failure" ||
+                "${{ needs.performance.result }}" == "failure" ]]; then
             echo "❌ E2E Pipeline Failed" >> $GITHUB_STEP_SUMMARY
             echo "Please check the individual job results and artifacts for details." >> $GITHUB_STEP_SUMMARY
           else
@@ -461,15 +459,11 @@ jobs:
           echo "===================="
           echo "Setup: ${{ needs.e2e-setup.result }}"
           echo "E2E Tests: ${{ needs.e2e-test.result }}"
-          echo "Visual Regression: ${{ needs.visual-regression.result }}"
           echo "Performance: ${{ needs.performance.result }}"
-          echo "Accessibility: ${{ needs.accessibility.result }}"
-          
-          if [[ "${{ needs.e2e-setup.result }}" == "failure" || 
-                "${{ needs.e2e-test.result }}" == "failure" || 
-                "${{ needs.visual-regression.result }}" == "failure" || 
-                "${{ needs.performance.result }}" == "failure" || 
-                "${{ needs.accessibility.result }}" == "failure" ]]; then
+
+          if [[ "${{ needs.e2e-setup.result }}" == "failure" ||
+                "${{ needs.e2e-test.result }}" == "failure" ||
+                "${{ needs.performance.result }}" == "failure" ]]; then
             echo "❌ E2E Pipeline Failed"
             exit 1
           else

@@ -1,21 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from './ui/card';
-import {
-  Button,
-} from './ui/button';
+} from "./ui/card";
+import { Button } from "./ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select';
+} from "./ui/select";
 import {
   Table,
   TableBody,
@@ -23,14 +21,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from './ui/table';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from './ui/tabs';
-import { apiUrl } from '../lib/api';
+} from "./ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { apiUrl } from "../lib/api";
 
 interface FinancialData {
   id: string;
@@ -75,11 +68,16 @@ interface CashFlowData {
 export default function FinancialStatements() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('current');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
-  
-  const [balanceSheet, setBalanceSheet] = useState<BalanceSheetData | null>(null);
-  const [incomeStatement, setIncomeStatement] = useState<IncomeStatementData | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState("current");
+  const [selectedYear, setSelectedYear] = useState(
+    new Date().getFullYear().toString(),
+  );
+
+  const [balanceSheet, setBalanceSheet] = useState<BalanceSheetData | null>(
+    null,
+  );
+  const [incomeStatement, setIncomeStatement] =
+    useState<IncomeStatementData | null>(null);
   const [cashFlow, setCashFlow] = useState<CashFlowData | null>(null);
 
   // Generate year options (current year and 4 previous years)
@@ -92,16 +90,24 @@ export default function FinancialStatements() {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch(apiUrl(`/api/reports/balance-sheet?year=${selectedYear}&period=${selectedPeriod}`));
+
+      const response = await fetch(
+        apiUrl(
+          `/api/reports/balance-sheet?year=${selectedYear}&period=${selectedPeriod}`,
+        ),
+      );
       if (!response.ok) {
-        throw new Error(`Failed to fetch balance sheet: ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch balance sheet: ${response.statusText}`,
+        );
       }
-      
-      const data = await response.json() as BalanceSheetData;
+
+      const data = (await response.json()) as BalanceSheetData;
       setBalanceSheet(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch balance sheet');
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch balance sheet",
+      );
     } finally {
       setLoading(false);
     }
@@ -111,16 +117,24 @@ export default function FinancialStatements() {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch(apiUrl(`/api/reports/income-statement?year=${selectedYear}&period=${selectedPeriod}`));
+
+      const response = await fetch(
+        apiUrl(
+          `/api/reports/income-statement?year=${selectedYear}&period=${selectedPeriod}`,
+        ),
+      );
       if (!response.ok) {
-        throw new Error(`Failed to fetch income statement: ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch income statement: ${response.statusText}`,
+        );
       }
-      
-      const data = await response.json() as IncomeStatementData;
+
+      const data = (await response.json()) as IncomeStatementData;
       setIncomeStatement(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch income statement');
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch income statement",
+      );
     } finally {
       setLoading(false);
     }
@@ -130,16 +144,22 @@ export default function FinancialStatements() {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch(apiUrl(`/api/reports/cash-flow?year=${selectedYear}&period=${selectedPeriod}`));
+
+      const response = await fetch(
+        apiUrl(
+          `/api/reports/cash-flow?year=${selectedYear}&period=${selectedPeriod}`,
+        ),
+      );
       if (!response.ok) {
         throw new Error(`Failed to fetch cash flow: ${response.statusText}`);
       }
-      
-      const data = await response.json() as CashFlowData;
+
+      const data = (await response.json()) as CashFlowData;
       setCashFlow(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch cash flow');
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch cash flow",
+      );
     } finally {
       setLoading(false);
     }
@@ -149,7 +169,7 @@ export default function FinancialStatements() {
     await Promise.all([
       fetchBalanceSheet(),
       fetchIncomeStatement(),
-      fetchCashFlow()
+      fetchCashFlow(),
     ]);
   };
 
@@ -158,16 +178,19 @@ export default function FinancialStatements() {
   }, [selectedYear, selectedPeriod]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
-  const renderFinancialDataRows = (items: FinancialData[], level: number = 0) => {
+  const renderFinancialDataRows = (
+    items: FinancialData[],
+    level: number = 0,
+  ) => {
     return items.map((item) => (
       <React.Fragment key={item.id}>
-        <TableRow className={level > 0 ? 'bg-gray-50' : ''}>
+        <TableRow className={level > 0 ? "bg-gray-50" : ""}>
           <TableCell style={{ paddingLeft: `${16 + level * 20}px` }}>
             {item.name}
           </TableCell>
@@ -209,7 +232,7 @@ export default function FinancialStatements() {
                   <SelectValue placeholder="Year" />
                 </SelectTrigger>
                 <SelectContent>
-                  {yearOptions.map(year => (
+                  {yearOptions.map((year) => (
                     <SelectItem key={year.value} value={year.value}>
                       {year.label}
                     </SelectItem>
@@ -242,7 +265,9 @@ export default function FinancialStatements() {
           <Tabs defaultValue="balance-sheet" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="balance-sheet">Balance Sheet</TabsTrigger>
-              <TabsTrigger value="income-statement">Income Statement</TabsTrigger>
+              <TabsTrigger value="income-statement">
+                Income Statement
+              </TabsTrigger>
               <TabsTrigger value="cash-flow">Cash Flow</TabsTrigger>
             </TabsList>
 
@@ -266,22 +291,35 @@ export default function FinancialStatements() {
                           {balanceSheet.assets.currentAssets.length > 0 && (
                             <>
                               <TableRow className="bg-blue-50">
-                                <TableCell className="font-semibold">Current Assets</TableCell>
+                                <TableCell className="font-semibold">
+                                  Current Assets
+                                </TableCell>
                                 <TableCell></TableCell>
                               </TableRow>
-                              {renderFinancialDataRows(balanceSheet.assets.currentAssets, 1)}
+                              {renderFinancialDataRows(
+                                balanceSheet.assets.currentAssets,
+                                1,
+                              )}
                             </>
                           )}
                           {balanceSheet.assets.nonCurrentAssets.length > 0 && (
                             <>
                               <TableRow className="bg-blue-50">
-                                <TableCell className="font-semibold">Non-Current Assets</TableCell>
+                                <TableCell className="font-semibold">
+                                  Non-Current Assets
+                                </TableCell>
                                 <TableCell></TableCell>
                               </TableRow>
-                              {renderFinancialDataRows(balanceSheet.assets.nonCurrentAssets, 1)}
+                              {renderFinancialDataRows(
+                                balanceSheet.assets.nonCurrentAssets,
+                                1,
+                              )}
                             </>
                           )}
-                          <TableRow className="border-t-2 border-gray-300 font-bold">
+                          <TableRow
+                            className="border-t-2 border-gray-300 font-bold"
+                            data-testid="total-assets-row"
+                          >
                             <TableCell>Total Assets</TableCell>
                             <TableCell className="text-right font-mono">
                               {formatCurrency(balanceSheet.assets.totalAssets)}
@@ -295,7 +333,9 @@ export default function FinancialStatements() {
                   {/* Liabilities & Equity */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Liabilities & Equity</CardTitle>
+                      <CardTitle className="text-lg">
+                        Liabilities & Equity
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Table>
@@ -306,37 +346,56 @@ export default function FinancialStatements() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {balanceSheet.liabilities.currentLiabilities.length > 0 && (
+                          {balanceSheet.liabilities.currentLiabilities.length >
+                            0 && (
                             <>
                               <TableRow className="bg-red-50">
-                                <TableCell className="font-semibold">Current Liabilities</TableCell>
+                                <TableCell className="font-semibold">
+                                  Current Liabilities
+                                </TableCell>
                                 <TableCell></TableCell>
                               </TableRow>
-                              {renderFinancialDataRows(balanceSheet.liabilities.currentLiabilities, 1)}
+                              {renderFinancialDataRows(
+                                balanceSheet.liabilities.currentLiabilities,
+                                1,
+                              )}
                             </>
                           )}
-                          {balanceSheet.liabilities.nonCurrentLiabilities.length > 0 && (
+                          {balanceSheet.liabilities.nonCurrentLiabilities
+                            .length > 0 && (
                             <>
                               <TableRow className="bg-red-50">
-                                <TableCell className="font-semibold">Non-Current Liabilities</TableCell>
+                                <TableCell className="font-semibold">
+                                  Non-Current Liabilities
+                                </TableCell>
                                 <TableCell></TableCell>
                               </TableRow>
-                              {renderFinancialDataRows(balanceSheet.liabilities.nonCurrentLiabilities, 1)}
+                              {renderFinancialDataRows(
+                                balanceSheet.liabilities.nonCurrentLiabilities,
+                                1,
+                              )}
                             </>
                           )}
                           <TableRow className="border-t border-gray-200 font-semibold">
                             <TableCell>Total Liabilities</TableCell>
                             <TableCell className="text-right font-mono">
-                              {formatCurrency(balanceSheet.liabilities.totalLiabilities)}
+                              {formatCurrency(
+                                balanceSheet.liabilities.totalLiabilities,
+                              )}
                             </TableCell>
                           </TableRow>
                           {balanceSheet.equity.items.length > 0 && (
                             <>
                               <TableRow className="bg-purple-50">
-                                <TableCell className="font-semibold">Equity</TableCell>
+                                <TableCell className="font-semibold">
+                                  Equity
+                                </TableCell>
                                 <TableCell></TableCell>
                               </TableRow>
-                              {renderFinancialDataRows(balanceSheet.equity.items, 1)}
+                              {renderFinancialDataRows(
+                                balanceSheet.equity.items,
+                                1,
+                              )}
                             </>
                           )}
                           <TableRow className="border-t border-gray-200 font-semibold">
@@ -348,7 +407,10 @@ export default function FinancialStatements() {
                           <TableRow className="border-t-2 border-gray-300 font-bold">
                             <TableCell>Total Liabilities & Equity</TableCell>
                             <TableCell className="text-right font-mono">
-                              {formatCurrency(balanceSheet.liabilities.totalLiabilities + balanceSheet.equity.totalEquity)}
+                              {formatCurrency(
+                                balanceSheet.liabilities.totalLiabilities +
+                                  balanceSheet.equity.totalEquity,
+                              )}
                             </TableCell>
                           </TableRow>
                         </TableBody>
@@ -381,10 +443,15 @@ export default function FinancialStatements() {
                         {incomeStatement.revenue.length > 0 && (
                           <>
                             <TableRow className="bg-green-50">
-                              <TableCell className="font-semibold">Revenue</TableCell>
+                              <TableCell className="font-semibold">
+                                Revenue
+                              </TableCell>
                               <TableCell></TableCell>
                             </TableRow>
-                            {renderFinancialDataRows(incomeStatement.revenue, 1)}
+                            {renderFinancialDataRows(
+                              incomeStatement.revenue,
+                              1,
+                            )}
                             <TableRow className="border-t border-gray-200 font-semibold">
                               <TableCell>Total Revenue</TableCell>
                               <TableCell className="text-right font-mono">
@@ -396,10 +463,15 @@ export default function FinancialStatements() {
                         {incomeStatement.expenses.length > 0 && (
                           <>
                             <TableRow className="bg-orange-50">
-                              <TableCell className="font-semibold">Expenses</TableCell>
+                              <TableCell className="font-semibold">
+                                Expenses
+                              </TableCell>
                               <TableCell></TableCell>
                             </TableRow>
-                            {renderFinancialDataRows(incomeStatement.expenses, 1)}
+                            {renderFinancialDataRows(
+                              incomeStatement.expenses,
+                              1,
+                            )}
                             <TableRow className="border-t border-gray-200 font-semibold">
                               <TableCell>Total Expenses</TableCell>
                               <TableCell className="text-right font-mono">
@@ -410,9 +482,13 @@ export default function FinancialStatements() {
                         )}
                         <TableRow className="border-t-2 border-gray-300 font-bold">
                           <TableCell>Net Income</TableCell>
-                          <TableCell className={`text-right font-mono ${
-                            incomeStatement.netIncome >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <TableCell
+                            className={`text-right font-mono ${
+                              incomeStatement.netIncome >= 0
+                                ? "text-green-700"
+                                : "text-red-600"
+                            }`}
+                          >
                             {formatCurrency(incomeStatement.netIncome)}
                           </TableCell>
                         </TableRow>
@@ -431,7 +507,9 @@ export default function FinancialStatements() {
               {cashFlow ? (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Cash Flow Statement</CardTitle>
+                    <CardTitle className="text-lg">
+                      Cash Flow Statement
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Table>
@@ -445,7 +523,9 @@ export default function FinancialStatements() {
                         {cashFlow.operating.length > 0 && (
                           <>
                             <TableRow className="bg-blue-50">
-                              <TableCell className="font-semibold">Operating Activities</TableCell>
+                              <TableCell className="font-semibold">
+                                Operating Activities
+                              </TableCell>
                               <TableCell></TableCell>
                             </TableRow>
                             {renderFinancialDataRows(cashFlow.operating, 1)}
@@ -454,7 +534,9 @@ export default function FinancialStatements() {
                         {cashFlow.investing.length > 0 && (
                           <>
                             <TableRow className="bg-purple-50">
-                              <TableCell className="font-semibold">Investing Activities</TableCell>
+                              <TableCell className="font-semibold">
+                                Investing Activities
+                              </TableCell>
                               <TableCell></TableCell>
                             </TableRow>
                             {renderFinancialDataRows(cashFlow.investing, 1)}
@@ -463,7 +545,9 @@ export default function FinancialStatements() {
                         {cashFlow.financing.length > 0 && (
                           <>
                             <TableRow className="bg-green-50">
-                              <TableCell className="font-semibold">Financing Activities</TableCell>
+                              <TableCell className="font-semibold">
+                                Financing Activities
+                              </TableCell>
                               <TableCell></TableCell>
                             </TableRow>
                             {renderFinancialDataRows(cashFlow.financing, 1)}
@@ -471,9 +555,13 @@ export default function FinancialStatements() {
                         )}
                         <TableRow className="border-t-2 border-gray-300 font-bold">
                           <TableCell>Net Cash Flow</TableCell>
-                          <TableCell className={`text-right font-mono ${
-                            cashFlow.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
+                          <TableCell
+                            className={`text-right font-mono ${
+                              cashFlow.netCashFlow >= 0
+                                ? "text-green-700"
+                                : "text-red-600"
+                            }`}
+                          >
                             {formatCurrency(cashFlow.netCashFlow)}
                           </TableCell>
                         </TableRow>

@@ -1,122 +1,182 @@
-import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  integer,
+  text,
+  real,
+  index,
+} from "drizzle-orm/sqlite-core";
 import { z } from "zod";
 
 /**
  * Data Imports - Tracks file uploads and data imports
  */
-export const dataImports = sqliteTable("data_imports", {
-  id: text("id").primaryKey(), // UUID
-  entityId: text("entity_id").notNull(), // Multi-entity support
-  userId: text("user_id").notNull(), // User who uploaded
-  
-  // File information
-  fileName: text("file_name").notNull(),
-  fileSize: integer("file_size").notNull(), // Size in bytes
-  fileType: text("file_type").notNull(), // xlsx, csv, json, etc.
-  
-  // Import status
-  status: text("status").notNull().default("pending"), // pending, processing, previewing, completed, failed
-  detectedFormat: text("detected_format"), // general-ledger, accounts-payable, etc.
-  
-  // Processing results
-  rowCount: integer("row_count"),
-  importedCount: integer("imported_count"),
-  errorCount: integer("error_count"),
-  
-  // Timestamps
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-  completedAt: integer("completed_at", { mode: "timestamp" }),
-  
-  // Additional metadata
-  metadata: text("metadata"), // JSON string
-});
+export const dataImports = sqliteTable(
+  "data_imports",
+  {
+    id: text("id").primaryKey(), // UUID
+    entityId: text("entity_id").notNull(), // Multi-entity support
+    userId: text("user_id").notNull(), // User who uploaded
+
+    // File information
+    fileName: text("file_name").notNull(),
+    fileSize: integer("file_size").notNull(), // Size in bytes
+    fileType: text("file_type").notNull(), // xlsx, csv, json, etc.
+
+    // Import status
+    status: text("status").notNull().default("pending"), // pending, processing, previewing, completed, failed
+    detectedFormat: text("detected_format"), // general-ledger, accounts-payable, etc.
+
+    // Processing results
+    rowCount: integer("row_count"),
+    importedCount: integer("imported_count"),
+    errorCount: integer("error_count"),
+
+    // Timestamps
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+
+    // Additional metadata
+    metadata: text("metadata"), // JSON string
+  },
+  (table) => ({
+    entityIdIdx: index("data_imports_entity_id_idx").on(table.entityId),
+    statusIdx: index("data_imports_status_idx").on(table.status),
+    userIdIdx: index("data_imports_user_id_idx").on(table.userId),
+  }),
+);
 
 /**
  * Column Mappings - Stores mapping configurations for data imports
  */
-export const columnMappings = sqliteTable("column_mappings", {
-  id: text("id").primaryKey(), // UUID
-  importId: text("import_id").notNull(), // References data_imports.id
-  
-  // Mapping configuration
-  sourceColumn: text("source_column").notNull(),
-  targetField: text("target_field").notNull(),
-  confidence: real("confidence").notNull(), // 0.0 - 1.0
-  dataType: text("data_type").notNull(), // string, number, date, boolean
-  
-  // Transformation rules
-  transformation: text("transformation"), // JSON string
-  
-  // Timestamps
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-});
+export const columnMappings = sqliteTable(
+  "column_mappings",
+  {
+    id: text("id").primaryKey(), // UUID
+    importId: text("import_id").notNull(), // References data_imports.id
+
+    // Mapping configuration
+    sourceColumn: text("source_column").notNull(),
+    targetField: text("target_field").notNull(),
+    confidence: real("confidence").notNull(), // 0.0 - 1.0
+    dataType: text("data_type").notNull(), // string, number, date, boolean
+
+    // Transformation rules
+    transformation: text("transformation"), // JSON string
+
+    // Timestamps
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    importIdIdx: index("column_mappings_import_id_idx").on(table.importId),
+  }),
+);
 
 /**
  * Validation Warnings - Stores validation warnings and issues
  */
-export const validationWarnings = sqliteTable("validation_warnings", {
-  id: text("id").primaryKey(), // UUID
-  entityId: text("entity_id").notNull(),
-  
-  // Related records
-  importId: text("import_id"), // Optional reference to data import
-  transactionId: text("transaction_id"), // Optional reference to transaction
-  
-  // Warning details
-  warningType: text("warning_type").notNull(), // critical, warning, info, opportunity
-  category: text("category").notNull(), // missing_field, duplicate, anomaly, etc.
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  suggestedAction: text("suggested_action"),
-  
-  // Status
-  status: text("status").notNull().default("active"), // active, dismissed, resolved
-  
-  // Timestamps
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-  resolvedAt: integer("resolved_at", { mode: "timestamp" }),
-});
+export const validationWarnings = sqliteTable(
+  "validation_warnings",
+  {
+    id: text("id").primaryKey(), // UUID
+    entityId: text("entity_id").notNull(),
+
+    // Related records
+    importId: text("import_id"), // Optional reference to data import
+    transactionId: text("transaction_id"), // Optional reference to transaction
+
+    // Warning details
+    warningType: text("warning_type").notNull(), // critical, warning, info, opportunity
+    category: text("category").notNull(), // missing_field, duplicate, anomaly, etc.
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    suggestedAction: text("suggested_action"),
+
+    // Status
+    status: text("status").notNull().default("active"), // active, dismissed, resolved
+
+    // Timestamps
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+
+    resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+  },
+  (table) => ({
+    entityIdIdx: index("validation_warnings_entity_id_idx").on(table.entityId),
+
+    statusIdx: index("validation_warnings_status_idx").on(table.status),
+
+    importIdIdx: index("validation_warnings_import_id_idx").on(table.importId),
+  }),
+);
 
 /**
  * Insights Cache - Caches generated insights for performance
  */
-export const insightsCache = sqliteTable("insights_cache", {
-  id: text("id").primaryKey(), // UUID
-  entityId: text("entity_id").notNull(),
-  
-  // Insight metadata
-  insightType: text("insight_type").notNull(), // dashboard, forecast, trends, etc.
-  
-  // Cached data
-  data: text("data").notNull(), // JSON string
-  
-  // Cache control
-  generatedAt: integer("generated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-});
+export const insightsCache = sqliteTable(
+  "insights_cache",
+  {
+    id: text("id").primaryKey(), // UUID
+    entityId: text("entity_id").notNull(),
+
+    // Insight metadata
+    insightType: text("insight_type").notNull(), // dashboard, forecast, trends, etc.
+
+    // Cached data
+    data: text("data").notNull(), // JSON string
+
+    // Cache control
+
+    generatedAt: integer("generated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    entityIdIdx: index("insights_cache_entity_id_idx").on(table.entityId),
+  }),
+);
 
 /**
  * Integrations - Tracks third-party integrations
  */
-export const integrations = sqliteTable("integrations", {
-  id: text("id").primaryKey(), // UUID
-  entityId: text("entity_id").notNull(),
-  
-  // Integration details
-  integrationType: text("integration_type").notNull(), // tax, payroll, bank, etc.
-  status: text("status").notNull(), // connected, error, disconnected
-  
-  // Configuration
-  config: text("config").notNull(), // JSON string (encrypted)
-  
-  // Sync status
-  lastSyncAt: integer("last_sync_at", { mode: "timestamp" }),
-  nextSyncAt: integer("next_sync_at", { mode: "timestamp" }),
-  errorMessage: text("error_message"),
-  
-  // Timestamps
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-});
+export const integrations = sqliteTable(
+  "integrations",
+  {
+    id: text("id").primaryKey(), // UUID
+    entityId: text("entity_id").notNull(),
+
+    // Integration details
+    integrationType: text("integration_type").notNull(), // tax, payroll, bank, etc.
+    status: text("status").notNull(), // connected, error, disconnected
+
+    // Configuration
+    config: text("config").notNull(), // JSON string (encrypted)
+
+    // Sync status
+    lastSyncAt: integer("last_sync_at", { mode: "timestamp" }),
+    nextSyncAt: integer("next_sync_at", { mode: "timestamp" }),
+    errorMessage: text("error_message"),
+
+    // Timestamps
+
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    entityIdIdx: index("integrations_entity_id_idx").on(table.entityId),
+
+    statusIdx: index("integrations_status_idx").on(table.status),
+  }),
+);
 
 /**
  * User Subscriptions - Tracks user tier subscriptions
@@ -124,18 +184,20 @@ export const integrations = sqliteTable("integrations", {
 export const userSubscriptions = sqliteTable("user_subscriptions", {
   id: text("id").primaryKey(), // UUID
   userId: text("user_id").notNull().unique(),
-  
+
   // Subscription details
   tier: text("tier").notNull(), // free, pro, business, enterprise
   status: text("status").notNull(), // active, cancelled, expired
-  
+
   // Limits
   transactionLimit: integer("transaction_limit"),
   transactionCount: integer("transaction_count").default(0),
   integrationLimit: integer("integration_limit"),
-  
+
   // Timestamps
-  startedAt: integer("started_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  startedAt: integer("started_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
   expiresAt: integer("expires_at", { mode: "timestamp" }),
 });
 
@@ -145,7 +207,7 @@ export const ImportStatus = {
   PROCESSING: "processing",
   PREVIEWING: "previewing",
   COMPLETED: "completed",
-  FAILED: "failed"
+  FAILED: "failed",
 } as const;
 
 export const StandardFormat = {
@@ -155,14 +217,14 @@ export const StandardFormat = {
   INVENTORY: "inventory",
   PAYROLL: "payroll",
   BUDGET: "budget",
-  PROJECT_ACCOUNTING: "project-accounting"
+  PROJECT_ACCOUNTING: "project-accounting",
 } as const;
 
 export const WarningType = {
   CRITICAL: "critical",
   WARNING: "warning",
   INFO: "info",
-  OPPORTUNITY: "opportunity"
+  OPPORTUNITY: "opportunity",
 } as const;
 
 export const WarningCategory = {
@@ -175,14 +237,14 @@ export const WarningCategory = {
   VENDOR_ERROR: "vendor_error",
   AMOUNT_UNREASONABLE: "amount_unreasonable",
   COMPLIANCE: "compliance",
-  OPTIMIZATION: "optimization"
+  OPTIMIZATION: "optimization",
 } as const;
 
 export const UserTier = {
   FREE: "free",
   PRO: "pro",
   BUSINESS: "business",
-  ENTERPRISE: "enterprise"
+  ENTERPRISE: "enterprise",
 } as const;
 
 // Validation Schemas
@@ -193,12 +255,14 @@ export const insertDataImportSchema = z.object({
   fileName: z.string().min(1).max(255),
   fileSize: z.number().positive(),
   fileType: z.string().min(1),
-  status: z.enum(["pending", "processing", "previewing", "completed", "failed"]).default("pending"),
+  status: z
+    .enum(["pending", "processing", "previewing", "completed", "failed"])
+    .default("pending"),
   detectedFormat: z.string().optional(),
   rowCount: z.number().optional(),
   importedCount: z.number().optional(),
   errorCount: z.number().optional(),
-  metadata: z.string().optional()
+  metadata: z.string().optional(),
 });
 
 export const insertColumnMappingSchema = z.object({
@@ -208,7 +272,7 @@ export const insertColumnMappingSchema = z.object({
   targetField: z.string().min(1),
   confidence: z.number().min(0).max(1),
   dataType: z.enum(["string", "number", "date", "boolean"]),
-  transformation: z.string().optional()
+  transformation: z.string().optional(),
 });
 
 export const insertValidationWarningSchema = z.object({
@@ -227,12 +291,12 @@ export const insertValidationWarningSchema = z.object({
     "vendor_error",
     "amount_unreasonable",
     "compliance",
-    "optimization"
+    "optimization",
   ]),
   title: z.string().min(1).max(200),
   description: z.string().min(1),
   suggestedAction: z.string().optional(),
-  status: z.enum(["active", "dismissed", "resolved"]).default("active")
+  status: z.enum(["active", "dismissed", "resolved"]).default("active"),
 });
 
 export const insertInsightsCacheSchema = z.object({
@@ -240,7 +304,7 @@ export const insertInsightsCacheSchema = z.object({
   entityId: z.string().min(1),
   insightType: z.string().min(1),
   data: z.string().min(1),
-  expiresAt: z.date()
+  expiresAt: z.date(),
 });
 
 export const insertIntegrationSchema = z.object({
@@ -251,7 +315,7 @@ export const insertIntegrationSchema = z.object({
   config: z.string().min(1),
   lastSyncAt: z.date().optional(),
   nextSyncAt: z.date().optional(),
-  errorMessage: z.string().optional()
+  errorMessage: z.string().optional(),
 });
 
 export const insertUserSubscriptionSchema = z.object({
@@ -262,7 +326,7 @@ export const insertUserSubscriptionSchema = z.object({
   transactionLimit: z.number().optional(),
   transactionCount: z.number().default(0),
   integrationLimit: z.number().optional(),
-  expiresAt: z.date().optional()
+  expiresAt: z.date().optional(),
 });
 
 // Types

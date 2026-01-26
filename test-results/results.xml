@@ -1,0 +1,1817 @@
+<testsuites id="" name="" tests="78" failures="44" skipped="0" errors="0" time="354.28094300000004">
+<testsuite name="accounts.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="chromium" tests="23" failures="4" skipped="0" time="253.468" errors="0">
+<testcase name="Account Management › should display Chart of Accounts page" classname="accounts.spec.ts" time="4.91">
+</testcase>
+<testcase name="Account Management › should display General Ledger page" classname="accounts.spec.ts" time="4.948">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should validate required fields when creating account" classname="accounts.spec.ts" time="5.233">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should successfully create new account" classname="accounts.spec.ts" time="8.191">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should handle API errors gracefully" classname="accounts.spec.ts" time="3.478">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should filter accounts by type" classname="accounts.spec.ts" time="6.105">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should search accounts" classname="accounts.spec.ts" time="5.904">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate required fields when creating account" classname="accounts.spec.ts" time="27.557">
+<failure message="accounts.spec.ts:323:5 should validate required fields when creating account" type="FAILURE">
+<![CDATA[  [chromium] › accounts.spec.ts:323:5 › Account Management › General Ledger › should validate required fields when creating account 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:285:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-03d7b-ields-when-creating-account-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-03d7b-ields-when-creating-account-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-03d7b-ields-when-creating-account-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-03d7b-ields-when-creating-account-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-03d7b-ields-when-creating-account-chromium/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-03d7b-ields-when-creating-account-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should successfully create new account" classname="accounts.spec.ts" time="27.234">
+<failure message="accounts.spec.ts:338:5 should successfully create new account" type="FAILURE">
+<![CDATA[  [chromium] › accounts.spec.ts:338:5 › Account Management › General Ledger › should successfully create new account 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:297:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-chromium/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should display account statistics" classname="accounts.spec.ts" time="8.09">
+</testcase>
+<testcase name="Account Management › General Ledger › should search accounts in general ledger" classname="accounts.spec.ts" time="8.953">
+</testcase>
+<testcase name="Account Management › General Ledger › should handle network errors gracefully" classname="accounts.spec.ts" time="8.377">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate account type selection" classname="accounts.spec.ts" time="27.226">
+<failure message="accounts.spec.ts:436:5 should validate account type selection" type="FAILURE">
+<![CDATA[  [chromium] › accounts.spec.ts:436:5 › Account Management › General Ledger › should validate account type selection 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:370:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-chromium/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should handle API errors when creating accounts" classname="accounts.spec.ts" time="35.422">
+<failure message="accounts.spec.ts:446:5 should handle API errors when creating accounts" type="FAILURE">
+<![CDATA[  [chromium] › accounts.spec.ts:446:5 › Account Management › General Ledger › should handle API errors when creating accounts 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:382:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-chromium/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle 500 server errors" classname="accounts.spec.ts" time="5.623">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle network timeouts" classname="accounts.spec.ts" time="6.244">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle malformed JSON responses" classname="accounts.spec.ts" time="6.002">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle authentication errors" classname="accounts.spec.ts" time="5.887">
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle retry functionality" classname="accounts.spec.ts" time="7.098">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle special characters in account names" classname="accounts.spec.ts" time="10.79">
+</testcase>
+<testcase name="Account Management › Edge Cases › should validate account code format" classname="accounts.spec.ts" time="5.733">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle very long account names" classname="accounts.spec.ts" time="10.084">
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle concurrent account creation attempts" classname="accounts.spec.ts" time="14.379">
+</testcase>
+</testsuite>
+<testsuite name="app.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="chromium" tests="2" failures="0" skipped="0" time="11.759" errors="0">
+<testcase name="Application › should load the home page" classname="app.spec.ts" time="7.477">
+</testcase>
+<testcase name="Application › should navigate without errors" classname="app.spec.ts" time="4.282">
+</testcase>
+</testsuite>
+<testsuite name="example.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.007" errors="0">
+<testcase name="E2E Tests Example › should demonstrate end-to-end testing pattern" classname="example.spec.ts" time="0.007">
+</testcase>
+</testsuite>
+<testsuite name="accounts.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="firefox" tests="23" failures="13" skipped="0" time="532.132" errors="0">
+<testcase name="Account Management › should display Chart of Accounts page" classname="accounts.spec.ts" time="40.77">
+</testcase>
+<testcase name="Account Management › should display General Ledger page" classname="accounts.spec.ts" time="32.751">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should validate required fields when creating account" classname="accounts.spec.ts" time="37.673">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should successfully create new account" classname="accounts.spec.ts" time="43.648">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should handle API errors gracefully" classname="accounts.spec.ts" time="13.724">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should filter accounts by type" classname="accounts.spec.ts" time="16.182">
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should search accounts" classname="accounts.spec.ts" time="15.073">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate required fields when creating account" classname="accounts.spec.ts" time="39.416">
+<failure message="accounts.spec.ts:323:5 should validate required fields when creating account" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:323:5 › Account Management › General Ledger › should validate required fields when creating account 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:285:28
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-03d7b-ields-when-creating-account-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-03d7b-ields-when-creating-account-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-03d7b-ields-when-creating-account-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-03d7b-ields-when-creating-account-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should successfully create new account" classname="accounts.spec.ts" time="37.706">
+<failure message="accounts.spec.ts:338:5 should successfully create new account" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:338:5 › Account Management › General Ledger › should successfully create new account 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:297:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should display account statistics" classname="accounts.spec.ts" time="12.988">
+</testcase>
+<testcase name="Account Management › General Ledger › should search accounts in general ledger" classname="accounts.spec.ts" time="31.366">
+</testcase>
+<testcase name="Account Management › General Ledger › should handle network errors gracefully" classname="accounts.spec.ts" time="26.486">
+</testcase>
+<testcase name="Account Management › General Ledger › should validate account type selection" classname="accounts.spec.ts" time="38.144">
+<failure message="accounts.spec.ts:436:5 should validate account type selection" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:436:5 › Account Management › General Ledger › should validate account type selection 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:370:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should handle API errors when creating accounts" classname="accounts.spec.ts" time="62.918">
+<failure message="accounts.spec.ts:446:5 should handle API errors when creating accounts" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:446:5 › Account Management › General Ledger › should handle API errors when creating accounts 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByTestId('add-account-btn').first()
+    Expected: visible
+    Timeout: 20000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 20000ms
+      - waiting for getByTestId('add-account-btn').first()
+
+
+      154 |   const openAccountDialog = async (page: Page) => {
+      155 |     const addButton = page.getByTestId('add-account-btn').first();
+    > 156 |     await expect(addButton).toBeVisible({ timeout: 20000 });
+          |                             ^
+      157 |     await addButton.click({ force: true });
+      158 |
+      159 |     // Check if attached first
+        at openAccountDialog (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:156:29)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:382:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle 500 server errors" classname="accounts.spec.ts" time="22.21">
+<failure message="accounts.spec.ts:469:5 should handle 500 server errors" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:469:5 › Account Management › API Error Handling › should handle 500 server errors 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:395:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ca317-ld-handle-500-server-errors-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ca317-ld-handle-500-server-errors-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-ca317-ld-handle-500-server-errors-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-ca317-ld-handle-500-server-errors-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-ca317-ld-handle-500-server-errors-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-ca317-ld-handle-500-server-errors-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle network timeouts" classname="accounts.spec.ts" time="22.278">
+<failure message="accounts.spec.ts:489:5 should handle network timeouts" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:489:5 › Account Management › API Error Handling › should handle network timeouts 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:417:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-95262-uld-handle-network-timeouts-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-95262-uld-handle-network-timeouts-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-95262-uld-handle-network-timeouts-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-95262-uld-handle-network-timeouts-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-95262-uld-handle-network-timeouts-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-95262-uld-handle-network-timeouts-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle malformed JSON responses" classname="accounts.spec.ts" time="7.409">
+<failure message="accounts.spec.ts:507:5 should handle malformed JSON responses" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:507:5 › Account Management › API Error Handling › should handle malformed JSON responses 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:437:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-152ce-le-malformed-JSON-responses-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-152ce-le-malformed-JSON-responses-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-152ce-le-malformed-JSON-responses-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-152ce-le-malformed-JSON-responses-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-152ce-le-malformed-JSON-responses-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-152ce-le-malformed-JSON-responses-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle authentication errors" classname="accounts.spec.ts" time="5.783">
+<failure message="accounts.spec.ts:528:5 should handle authentication errors" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:528:5 › Account Management › API Error Handling › should handle authentication errors 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:457:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-799e5-andle-authentication-errors-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-799e5-andle-authentication-errors-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-799e5-andle-authentication-errors-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-799e5-andle-authentication-errors-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-799e5-andle-authentication-errors-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-799e5-andle-authentication-errors-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle retry functionality" classname="accounts.spec.ts" time="4.956">
+<failure message="accounts.spec.ts:551:5 should handle retry functionality" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:551:5 › Account Management › API Error Handling › should handle retry functionality 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:493:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ecc57--handle-retry-functionality-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ecc57--handle-retry-functionality-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-ecc57--handle-retry-functionality-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-ecc57--handle-retry-functionality-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-ecc57--handle-retry-functionality-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-ecc57--handle-retry-functionality-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle special characters in account names" classname="accounts.spec.ts" time="5.751">
+<failure message="accounts.spec.ts:601:5 should handle special characters in account names" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:601:5 › Account Management › Edge Cases › should handle special characters in account names 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:514:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-9e437-characters-in-account-names-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-9e437-characters-in-account-names-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-9e437-characters-in-account-names-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-9e437-characters-in-account-names-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-9e437-characters-in-account-names-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-9e437-characters-in-account-names-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should validate account code format" classname="accounts.spec.ts" time="4.701">
+<failure message="accounts.spec.ts:618:5 should validate account code format" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:618:5 › Account Management › Edge Cases › should validate account code format 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:529:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-a2041-alidate-account-code-format-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-a2041-alidate-account-code-format-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-a2041-alidate-account-code-format-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-a2041-alidate-account-code-format-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-a2041-alidate-account-code-format-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-a2041-alidate-account-code-format-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle very long account names" classname="accounts.spec.ts" time="4.623">
+<failure message="accounts.spec.ts:633:5 should handle very long account names" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:633:5 › Account Management › Edge Cases › should handle very long account names 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:542:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3c35b-dle-very-long-account-names-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3c35b-dle-very-long-account-names-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-3c35b-dle-very-long-account-names-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-3c35b-dle-very-long-account-names-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-3c35b-dle-very-long-account-names-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-3c35b-dle-very-long-account-names-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle concurrent account creation attempts" classname="accounts.spec.ts" time="5.576">
+<failure message="accounts.spec.ts:653:5 should handle concurrent account creation attempts" type="FAILURE">
+<![CDATA[  [firefox] › accounts.spec.ts:653:5 › Account Management › Edge Cases › should handle concurrent account creation attempts 
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:562:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3cc9d-t-account-creation-attempts-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3cc9d-t-account-creation-attempts-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/accounts-Account-Managemen-3cc9d-t-account-creation-attempts-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-3cc9d-t-account-creation-attempts-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-3cc9d-t-account-creation-attempts-firefox/video.webm]]
+
+[[ATTACHMENT|accounts-Account-Managemen-3cc9d-t-account-creation-attempts-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="app.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="firefox" tests="2" failures="2" skipped="0" time="12.3" errors="0">
+<testcase name="Application › should load the home page" classname="app.spec.ts" time="5.547">
+<failure message="app.spec.ts:7:3 should load the home page" type="FAILURE">
+<![CDATA[  [firefox] › app.spec.ts:7:3 › Application › should load the home page ────────────────────────────
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/", waiting until "load"
+
+
+       6 | test.describe('Application', () => {
+       7 |     test('should load the home page', async ({ page }) => {
+    >  8 |         await page.goto('/');
+         |                    ^
+       9 |
+      10 |         // Wait for the page to load
+      11 |         await page.waitForLoadState('domcontentloaded');
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/app.spec.ts:8:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-load-the-home-page-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-load-the-home-page-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/app-Application-should-load-the-home-page-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|app-Application-should-load-the-home-page-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|app-Application-should-load-the-home-page-firefox/video.webm]]
+
+[[ATTACHMENT|app-Application-should-load-the-home-page-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Application › should navigate without errors" classname="app.spec.ts" time="6.753">
+<failure message="app.spec.ts:18:3 should navigate without errors" type="FAILURE">
+<![CDATA[  [firefox] › app.spec.ts:18:3 › Application › should navigate without errors ──────────────────────
+
+    Error: page.goto: NS_ERROR_CONNECTION_REFUSED
+    Call log:
+      - navigating to "http://localhost:4321/", waiting until "load"
+
+
+      17 |     test('should navigate without errors', async ({ page }) => {
+      18 |         // Navigate to the home page
+    > 19 |         await page.goto('/');
+         |                    ^
+      20 |
+      21 |         // Verify no console errors on load
+      22 |         const errors: string[] = [];
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/app.spec.ts:19:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-navigate-without-errors-firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-navigate-without-errors-firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/app-Application-should-navigate-without-errors-firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|app-Application-should-navigate-without-errors-firefox/test-failed-1.png]]
+
+[[ATTACHMENT|app-Application-should-navigate-without-errors-firefox/video.webm]]
+
+[[ATTACHMENT|app-Application-should-navigate-without-errors-firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="example.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="firefox" tests="1" failures="0" skipped="0" time="0.034" errors="0">
+<testcase name="E2E Tests Example › should demonstrate end-to-end testing pattern" classname="example.spec.ts" time="0.034">
+</testcase>
+</testsuite>
+<testsuite name="accounts.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="webkit" tests="23" failures="23" skipped="0" time="57.694" errors="0">
+<testcase name="Account Management › should display Chart of Accounts page" classname="accounts.spec.ts" time="3.091">
+<failure message="accounts.spec.ts:162:3 should display Chart of Accounts page" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:162:3 › Account Management › should display Chart of Accounts page ───
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:167:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-4ba9e-play-Chart-of-Accounts-page-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-4ba9e-play-Chart-of-Accounts-page-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-4ba9e-play-Chart-of-Accounts-page-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-4ba9e-play-Chart-of-Accounts-page-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › should display General Ledger page" classname="accounts.spec.ts" time="3.068">
+<failure message="accounts.spec.ts:172:3 should display General Ledger page" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:172:3 › Account Management › should display General Ledger page ──────
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareLedger (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:145:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:172:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-8566e-display-General-Ledger-page-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-8566e-display-General-Ledger-page-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-8566e-display-General-Ledger-page-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-8566e-display-General-Ledger-page-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should validate required fields when creating account" classname="accounts.spec.ts" time="1.915">
+<failure message="accounts.spec.ts:183:5 should validate required fields when creating account" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:183:5 › Account Management › Chart of Accounts › should validate required fields when creating account 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:178:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-60d27-ields-when-creating-account-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-60d27-ields-when-creating-account-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-60d27-ields-when-creating-account-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-60d27-ields-when-creating-account-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should successfully create new account" classname="accounts.spec.ts" time="3.611">
+<failure message="accounts.spec.ts:202:5 should successfully create new account" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:202:5 › Account Management › Chart of Accounts › should successfully create new account 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:192:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-31ed6-essfully-create-new-account-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-31ed6-essfully-create-new-account-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-31ed6-essfully-create-new-account-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-31ed6-essfully-create-new-account-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should handle API errors gracefully" classname="accounts.spec.ts" time="3.54">
+<failure message="accounts.spec.ts:227:5 should handle API errors gracefully" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:227:5 › Account Management › Chart of Accounts › should handle API errors gracefully 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:214:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-51c9c-andle-API-errors-gracefully-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-51c9c-andle-API-errors-gracefully-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-51c9c-andle-API-errors-gracefully-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-51c9c-andle-API-errors-gracefully-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should filter accounts by type" classname="accounts.spec.ts" time="3.613">
+<failure message="accounts.spec.ts:248:5 should filter accounts by type" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:248:5 › Account Management › Chart of Accounts › should filter accounts by type 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:231:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-a7467-uld-filter-accounts-by-type-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-a7467-uld-filter-accounts-by-type-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-a7467-uld-filter-accounts-by-type-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-a7467-uld-filter-accounts-by-type-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Chart of Accounts › should search accounts" classname="accounts.spec.ts" time="2.082">
+<failure message="accounts.spec.ts:288:5 should search accounts" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:288:5 › Account Management › Chart of Accounts › should search accounts 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:257:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-60034-unts-should-search-accounts-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-60034-unts-should-search-accounts-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-60034-unts-should-search-accounts-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-60034-unts-should-search-accounts-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should validate required fields when creating account" classname="accounts.spec.ts" time="2.316">
+<failure message="accounts.spec.ts:323:5 should validate required fields when creating account" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:323:5 › Account Management › General Ledger › should validate required fields when creating account 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareLedger (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:145:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:284:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-03d7b-ields-when-creating-account-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-03d7b-ields-when-creating-account-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-03d7b-ields-when-creating-account-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-03d7b-ields-when-creating-account-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should successfully create new account" classname="accounts.spec.ts" time="2.324">
+<failure message="accounts.spec.ts:338:5 should successfully create new account" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:338:5 › Account Management › General Ledger › should successfully create new account 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareLedger (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:145:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:296:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-e5443-essfully-create-new-account-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-e5443-essfully-create-new-account-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should display account statistics" classname="accounts.spec.ts" time="2.269">
+<failure message="accounts.spec.ts:357:5 should display account statistics" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:357:5 › Account Management › General Ledger › should display account statistics 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareLedger (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:145:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:312:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-86c51--display-account-statistics-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-86c51--display-account-statistics-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-86c51--display-account-statistics-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-86c51--display-account-statistics-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should search accounts in general ledger" classname="accounts.spec.ts" time="2.321">
+<failure message="accounts.spec.ts:387:5 should search accounts in general ledger" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:387:5 › Account Management › General Ledger › should search accounts in general ledger 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareLedger (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:145:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:329:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-6e6f9--accounts-in-general-ledger-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-6e6f9--accounts-in-general-ledger-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-6e6f9--accounts-in-general-ledger-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-6e6f9--accounts-in-general-ledger-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should handle network errors gracefully" classname="accounts.spec.ts" time="2.319">
+<failure message="accounts.spec.ts:420:5 should handle network errors gracefully" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:420:5 › Account Management › General Ledger › should handle network errors gracefully 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:358:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-d66e7-e-network-errors-gracefully-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-d66e7-e-network-errors-gracefully-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-d66e7-e-network-errors-gracefully-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-d66e7-e-network-errors-gracefully-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should validate account type selection" classname="accounts.spec.ts" time="2.324">
+<failure message="accounts.spec.ts:436:5 should validate account type selection" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:436:5 › Account Management › General Ledger › should validate account type selection 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareLedger (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:145:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:369:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-db874-date-account-type-selection-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-db874-date-account-type-selection-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › General Ledger › should handle API errors when creating accounts" classname="accounts.spec.ts" time="2.326">
+<failure message="accounts.spec.ts:446:5 should handle API errors when creating accounts" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:446:5 › Account Management › General Ledger › should handle API errors when creating accounts 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/general-ledger", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareLedger (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:145:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:376:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-7b71a-rors-when-creating-accounts-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-7b71a-rors-when-creating-accounts-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle 500 server errors" classname="accounts.spec.ts" time="2.325">
+<failure message="accounts.spec.ts:469:5 should handle 500 server errors" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:469:5 › Account Management › API Error Handling › should handle 500 server errors 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:395:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ca317-ld-handle-500-server-errors-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ca317-ld-handle-500-server-errors-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-ca317-ld-handle-500-server-errors-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-ca317-ld-handle-500-server-errors-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle network timeouts" classname="accounts.spec.ts" time="2.434">
+<failure message="accounts.spec.ts:489:5 should handle network timeouts" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:489:5 › Account Management › API Error Handling › should handle network timeouts 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:417:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-95262-uld-handle-network-timeouts-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-95262-uld-handle-network-timeouts-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-95262-uld-handle-network-timeouts-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-95262-uld-handle-network-timeouts-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle malformed JSON responses" classname="accounts.spec.ts" time="2.429">
+<failure message="accounts.spec.ts:507:5 should handle malformed JSON responses" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:507:5 › Account Management › API Error Handling › should handle malformed JSON responses 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:437:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-152ce-le-malformed-JSON-responses-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-152ce-le-malformed-JSON-responses-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-152ce-le-malformed-JSON-responses-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-152ce-le-malformed-JSON-responses-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle authentication errors" classname="accounts.spec.ts" time="2.454">
+<failure message="accounts.spec.ts:528:5 should handle authentication errors" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:528:5 › Account Management › API Error Handling › should handle authentication errors 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:457:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-799e5-andle-authentication-errors-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-799e5-andle-authentication-errors-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-799e5-andle-authentication-errors-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-799e5-andle-authentication-errors-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › API Error Handling › should handle retry functionality" classname="accounts.spec.ts" time="2.428">
+<failure message="accounts.spec.ts:551:5 should handle retry functionality" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:551:5 › Account Management › API Error Handling › should handle retry functionality 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:493:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ecc57--handle-retry-functionality-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-ecc57--handle-retry-functionality-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-ecc57--handle-retry-functionality-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-ecc57--handle-retry-functionality-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle special characters in account names" classname="accounts.spec.ts" time="2.125">
+<failure message="accounts.spec.ts:601:5 should handle special characters in account names" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:601:5 › Account Management › Edge Cases › should handle special characters in account names 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:514:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-9e437-characters-in-account-names-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-9e437-characters-in-account-names-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-9e437-characters-in-account-names-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-9e437-characters-in-account-names-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should validate account code format" classname="accounts.spec.ts" time="2.148">
+<failure message="accounts.spec.ts:618:5 should validate account code format" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:618:5 › Account Management › Edge Cases › should validate account code format 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:529:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-a2041-alidate-account-code-format-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-a2041-alidate-account-code-format-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-a2041-alidate-account-code-format-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-a2041-alidate-account-code-format-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle very long account names" classname="accounts.spec.ts" time="2.092">
+<failure message="accounts.spec.ts:633:5 should handle very long account names" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:633:5 › Account Management › Edge Cases › should handle very long account names 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:542:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3c35b-dle-very-long-account-names-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3c35b-dle-very-long-account-names-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-3c35b-dle-very-long-account-names-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-3c35b-dle-very-long-account-names-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Account Management › Edge Cases › should handle concurrent account creation attempts" classname="accounts.spec.ts" time="2.14">
+<failure message="accounts.spec.ts:653:5 should handle concurrent account creation attempts" type="FAILURE">
+<![CDATA[  [webkit] › accounts.spec.ts:653:5 › Account Management › Edge Cases › should handle concurrent account creation attempts 
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/chart-of-accounts", waiting until "load"
+
+
+      147 |
+      148 |   const gotoAndWait = async (page: Page, path: string, heading: RegExp) => {
+    > 149 |     await page.goto(path);
+          |                ^
+      150 |     const h1 = page.locator('header').getByRole('heading', { level: 1, name: heading }).first();
+      151 |     await expect(h1).toBeVisible({ timeout: 30000 });
+      152 |   };
+        at gotoAndWait (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:149:16)
+        at prepareChart (/Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:140:11)
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/accounts.spec.ts:562:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3cc9d-t-account-creation-attempts-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/accounts-Account-Managemen-3cc9d-t-account-creation-attempts-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|accounts-Account-Managemen-3cc9d-t-account-creation-attempts-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|accounts-Account-Managemen-3cc9d-t-account-creation-attempts-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="app.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="webkit" tests="2" failures="2" skipped="0" time="2.282" errors="0">
+<testcase name="Application › should load the home page" classname="app.spec.ts" time="1.142">
+<failure message="app.spec.ts:7:3 should load the home page" type="FAILURE">
+<![CDATA[  [webkit] › app.spec.ts:7:3 › Application › should load the home page ─────────────────────────────
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/", waiting until "load"
+
+
+       6 | test.describe('Application', () => {
+       7 |     test('should load the home page', async ({ page }) => {
+    >  8 |         await page.goto('/');
+         |                    ^
+       9 |
+      10 |         // Wait for the page to load
+      11 |         await page.waitForLoadState('domcontentloaded');
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/app.spec.ts:8:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-load-the-home-page-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-load-the-home-page-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|app-Application-should-load-the-home-page-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|app-Application-should-load-the-home-page-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Application › should navigate without errors" classname="app.spec.ts" time="1.14">
+<failure message="app.spec.ts:18:3 should navigate without errors" type="FAILURE">
+<![CDATA[  [webkit] › app.spec.ts:18:3 › Application › should navigate without errors ───────────────────────
+
+    Error: page.goto: Could not connect to the server.
+    Call log:
+      - navigating to "http://localhost:4321/", waiting until "load"
+
+
+      17 |     test('should navigate without errors', async ({ page }) => {
+      18 |         // Navigate to the home page
+    > 19 |         await page.goto('/');
+         |                    ^
+      20 |
+      21 |         // Verify no console errors on load
+      22 |         const errors: string[] = [];
+        at /Users/irfandi/Coding/2025/finance-manager/tests/e2e/app.spec.ts:19:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-navigate-without-errors-webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/app-Application-should-navigate-without-errors-webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|app-Application-should-navigate-without-errors-webkit/test-failed-1.png]]
+
+[[ATTACHMENT|app-Application-should-navigate-without-errors-webkit/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="example.spec.ts" timestamp="2025-12-12T10:43:37.072Z" hostname="webkit" tests="1" failures="0" skipped="0" time="0.004" errors="0">
+<testcase name="E2E Tests Example › should demonstrate end-to-end testing pattern" classname="example.spec.ts" time="0.004">
+</testcase>
+</testsuite>
+</testsuites>

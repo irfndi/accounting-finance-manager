@@ -1,0 +1,7 @@
+# Backend build files and temp files
+backend/main
+backend/Dockerfile
+!*.exe
+!*.test
+!*.o
+vendor/

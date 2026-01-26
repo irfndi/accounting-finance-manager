@@ -3,7 +3,7 @@
  * Handles multi-format data uploads (Excel, CSV, JSON) with intelligent parsing and validation
  */
 
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database } from "@cloudflare/workers-types";
 
 // File upload types
 export interface DataUpload {
@@ -13,7 +13,7 @@ export interface DataUpload {
   fileName: string;
   fileSize: number;
   fileType: string;
-  status: 'pending' | 'processing' | 'previewing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "previewing" | "completed" | "failed";
   detectedFormat?: string;
   rowCount?: number;
   importedCount?: number;
@@ -28,8 +28,8 @@ export interface ColumnMapping {
   sourceColumn: string;
   targetField: string;
   confidence: number;
-  dataType: 'string' | 'number' | 'date' | 'boolean';
-  sampleValues: string[];
+  dataType: "string" | "number" | "date" | "boolean";
+  sampleValues?: string[]; // Only populated during preview, not stored in DB
   transformation?: string; // JSON string of transformation rules
 }
 
@@ -44,7 +44,7 @@ export interface FilePreview {
 
 export interface ImportResult {
   uploadId: string;
-  status: 'success' | 'partial' | 'failed';
+  status: "success" | "partial" | "failed";
   importedCount: number;
   errorCount: number;
   warnings: string[];
@@ -55,28 +55,86 @@ export interface ImportError {
   row: number;
   column?: string;
   message: string;
-  severity: 'error' | 'warning';
+  severity: "error" | "warning";
 }
 
 // Standard financial format types
-export type StandardFormat = 
-  | 'general-ledger' 
-  | 'accounts-payable' 
-  | 'accounts-receivable' 
-  | 'inventory' 
-  | 'payroll' 
-  | 'budget' 
-  | 'project-accounting';
+export type StandardFormat =
+  | "general-ledger"
+  | "accounts-payable"
+  | "accounts-receivable"
+  | "inventory"
+  | "payroll"
+  | "budget"
+  | "project-accounting";
 
 // Standard field mappings for each format
 export const STANDARD_FORMATS: Record<StandardFormat, string[]> = {
-  'general-ledger': ['date', 'accountCode', 'accountName', 'description', 'debit', 'credit', 'reference', 'currency'],
-  'accounts-payable': ['date', 'vendorId', 'vendorName', 'invoiceNumber', 'dueDate', 'amount', 'paid', 'category'],
-  'accounts-receivable': ['date', 'customerId', 'customerName', 'invoiceNumber', 'dueDate', 'amount', 'paid', 'terms'],
-  'inventory': ['itemCode', 'itemName', 'quantity', 'unitPrice', 'totalValue', 'location', 'category'],
-  'payroll': ['employeeId', 'employeeName', 'period', 'grossPay', 'deductions', 'netPay', 'taxWithheld'],
-  'budget': ['accountCode', 'accountName', 'period', 'budgetedAmount', 'actualAmount', 'variance'],
-  'project-accounting': ['projectCode', 'projectName', 'date', 'description', 'amount', 'category', 'billable']
+  "general-ledger": [
+    "date",
+    "accountCode",
+    "accountName",
+    "description",
+    "debit",
+    "credit",
+    "reference",
+    "currency",
+  ],
+  "accounts-payable": [
+    "date",
+    "vendorId",
+    "vendorName",
+    "invoiceNumber",
+    "dueDate",
+    "amount",
+    "paid",
+    "category",
+  ],
+  "accounts-receivable": [
+    "date",
+    "customerId",
+    "customerName",
+    "invoiceNumber",
+    "dueDate",
+    "amount",
+    "paid",
+    "terms",
+  ],
+  inventory: [
+    "itemCode",
+    "itemName",
+    "quantity",
+    "unitPrice",
+    "totalValue",
+    "location",
+    "category",
+  ],
+  payroll: [
+    "employeeId",
+    "employeeName",
+    "period",
+    "grossPay",
+    "deductions",
+    "netPay",
+    "taxWithheld",
+  ],
+  budget: [
+    "accountCode",
+    "accountName",
+    "period",
+    "budgetedAmount",
+    "actualAmount",
+    "variance",
+  ],
+  "project-accounting": [
+    "projectCode",
+    "projectName",
+    "date",
+    "description",
+    "amount",
+    "category",
+    "billable",
+  ],
 };
 
 /**
@@ -93,18 +151,18 @@ export class DataIngestionService {
     userId: string,
     fileName: string,
     fileSize: number,
-    fileType: string
+    fileType: string,
   ): Promise<DataUpload> {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
     await this.db
       .prepare(
-        `INSERT INTO data_imports 
-         (id, entity_id, user_id, file_name, file_size, file_type, status, created_at) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO data_imports
+         (id, entity_id, user_id, file_name, file_size, file_type, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-      .bind(id, entityId, userId, fileName, fileSize, fileType, 'pending', now)
+      .bind(id, entityId, userId, fileName, fileSize, fileType, "pending", now)
       .run();
 
     return {
@@ -114,8 +172,8 @@ export class DataIngestionService {
       fileName,
       fileSize,
       fileType,
-      status: 'pending',
-      createdAt: new Date(now)
+      status: "pending",
+      createdAt: new Date(now),
     };
   }
 
@@ -124,35 +182,35 @@ export class DataIngestionService {
    */
   async updateUploadStatus(
     uploadId: string,
-    status: DataUpload['status'],
-    additional?: Partial<DataUpload>
+    status: DataUpload["status"],
+    additional?: Partial<DataUpload>,
   ): Promise<void> {
-    const updates: string[] = ['status = ?'];
+    const updates: string[] = ["status = ?"];
     const values: any[] = [status];
 
     if (additional) {
       if (additional.detectedFormat) {
-        updates.push('detected_format = ?');
+        updates.push("detected_format = ?");
         values.push(additional.detectedFormat);
       }
       if (additional.rowCount !== undefined) {
-        updates.push('row_count = ?');
+        updates.push("row_count = ?");
         values.push(additional.rowCount);
       }
       if (additional.importedCount !== undefined) {
-        updates.push('imported_count = ?');
+        updates.push("imported_count = ?");
         values.push(additional.importedCount);
       }
       if (additional.errorCount !== undefined) {
-        updates.push('error_count = ?');
+        updates.push("error_count = ?");
         values.push(additional.errorCount);
       }
-      if (status === 'completed' || status === 'failed') {
-        updates.push('completed_at = ?');
+      if (status === "completed" || status === "failed") {
+        updates.push("completed_at = ?");
         values.push(new Date().toISOString());
       }
       if (additional.metadata) {
-        updates.push('metadata = ?');
+        updates.push("metadata = ?");
         values.push(JSON.stringify(additional.metadata));
       }
     }
@@ -160,7 +218,7 @@ export class DataIngestionService {
     values.push(uploadId);
 
     await this.db
-      .prepare(`UPDATE data_imports SET ${updates.join(', ')} WHERE id = ?`)
+      .prepare(`UPDATE data_imports SET ${updates.join(", ")} WHERE id = ?`)
       .bind(...values)
       .run();
   }
@@ -168,25 +226,30 @@ export class DataIngestionService {
   /**
    * Save column mappings
    */
-  async saveColumnMappings(uploadId: string, mappings: ColumnMapping[]): Promise<void> {
-    const stmt = this.db.prepare(
-      `INSERT INTO column_mappings 
-       (id, import_id, source_column, target_field, confidence, data_type, transformation, created_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  async saveColumnMappings(
+    uploadId: string,
+    mappings: ColumnMapping[],
+  ): Promise<void> {
+    const statements = mappings.map((mapping) =>
+      this.db
+        .prepare(
+          `INSERT INTO column_mappings
+           (id, import_id, source_column, target_field, confidence, data_type, transformation, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          crypto.randomUUID(),
+          uploadId,
+          mapping.sourceColumn,
+          mapping.targetField,
+          mapping.confidence,
+          mapping.dataType,
+          mapping.transformation || null,
+          new Date().toISOString(),
+        ),
     );
 
-    for (const mapping of mappings) {
-      await stmt.bind(
-        crypto.randomUUID(),
-        uploadId,
-        mapping.sourceColumn,
-        mapping.targetField,
-        mapping.confidence,
-        mapping.dataType,
-        mapping.transformation || null,
-        new Date().toISOString()
-      ).run();
-    }
+    await this.db.batch(statements);
   }
 
   /**
@@ -194,7 +257,7 @@ export class DataIngestionService {
    */
   async getUpload(uploadId: string): Promise<DataUpload | null> {
     const result = await this.db
-      .prepare('SELECT * FROM data_imports WHERE id = ?')
+      .prepare("SELECT * FROM data_imports WHERE id = ?")
       .bind(uploadId)
       .first();
 
@@ -207,14 +270,18 @@ export class DataIngestionService {
       fileName: result.file_name as string,
       fileSize: result.file_size as number,
       fileType: result.file_type as string,
-      status: result.status as DataUpload['status'],
+      status: result.status as DataUpload["status"],
       detectedFormat: result.detected_format as string | undefined,
       rowCount: result.row_count as number | undefined,
       importedCount: result.imported_count as number | undefined,
       errorCount: result.error_count as number | undefined,
       createdAt: new Date(result.created_at as string),
-      completedAt: result.completed_at ? new Date(result.completed_at as string) : undefined,
-      metadata: result.metadata ? JSON.parse(result.metadata as string) : undefined
+      completedAt: result.completed_at
+        ? new Date(result.completed_at as string)
+        : undefined,
+      metadata: result.metadata
+        ? JSON.parse(result.metadata as string)
+        : undefined,
     };
   }
 
@@ -223,7 +290,9 @@ export class DataIngestionService {
    */
   async getColumnMappings(uploadId: string): Promise<ColumnMapping[]> {
     const results = await this.db
-      .prepare('SELECT * FROM column_mappings WHERE import_id = ? ORDER BY created_at')
+      .prepare(
+        "SELECT * FROM column_mappings WHERE import_id = ? ORDER BY created_at",
+      )
       .bind(uploadId)
       .all();
 
@@ -231,22 +300,26 @@ export class DataIngestionService {
       sourceColumn: row.source_column as string,
       targetField: row.target_field as string,
       confidence: row.confidence as number,
-      dataType: row.data_type as ColumnMapping['dataType'],
+      dataType: row.data_type as ColumnMapping["dataType"],
       sampleValues: [], // Not stored in DB
-      transformation: row.transformation as string | undefined
+      transformation: row.transformation as string | undefined,
     }));
   }
 
   /**
    * List uploads for an entity
    */
-  async listUploads(entityId: string, limit = 50, offset = 0): Promise<DataUpload[]> {
+  async listUploads(
+    entityId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<DataUpload[]> {
     const results = await this.db
       .prepare(
-        `SELECT * FROM data_imports 
-         WHERE entity_id = ? 
-         ORDER BY created_at DESC 
-         LIMIT ? OFFSET ?`
+        `SELECT * FROM data_imports
+         WHERE entity_id = ?
+         ORDER BY created_at DESC
+         LIMIT ? OFFSET ?`,
       )
       .bind(entityId, limit, offset)
       .all();
@@ -258,14 +331,16 @@ export class DataIngestionService {
       fileName: row.file_name as string,
       fileSize: row.file_size as number,
       fileType: row.file_type as string,
-      status: row.status as DataUpload['status'],
+      status: row.status as DataUpload["status"],
       detectedFormat: row.detected_format as string | undefined,
       rowCount: row.row_count as number | undefined,
       importedCount: row.imported_count as number | undefined,
       errorCount: row.error_count as number | undefined,
       createdAt: new Date(row.created_at as string),
-      completedAt: row.completed_at ? new Date(row.completed_at as string) : undefined,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined
+      completedAt: row.completed_at
+        ? new Date(row.completed_at as string)
+        : undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
     }));
   }
 }
@@ -277,18 +352,25 @@ export function detectStandardFormat(headers: string[]): {
   format: StandardFormat | null;
   confidence: number;
 } {
-  const normalizedHeaders = headers.map(h => h.toLowerCase().trim());
-  
-  let bestMatch: { format: StandardFormat | null; score: number } = { format: null, score: 0 };
+  const normalizedHeaders = headers.map((h) => h.toLowerCase().trim());
+
+  let bestMatch: { format: StandardFormat | null; score: number } = {
+    format: null,
+    score: 0,
+  };
 
   for (const [format, standardFields] of Object.entries(STANDARD_FORMATS)) {
-    const normalizedFields = standardFields.map(f => f.toLowerCase());
-    
+    const normalizedFields = standardFields.map((f) => f.toLowerCase());
+
     // Count matching fields
     let matches = 0;
     for (const header of normalizedHeaders) {
       for (const field of normalizedFields) {
-        if (header.includes(field) || field.includes(header) || isSimilar(header, field)) {
+        if (
+          header.includes(field) ||
+          field.includes(header) ||
+          isSimilar(header, field)
+        ) {
           matches++;
           break;
         }
@@ -296,7 +378,7 @@ export function detectStandardFormat(headers: string[]): {
     }
 
     const score = matches / standardFields.length;
-    
+
     if (score > bestMatch.score) {
       bestMatch = { format: format as StandardFormat, score };
     }
@@ -316,16 +398,16 @@ export function detectStandardFormat(headers: string[]): {
 function isSimilar(str1: string, str2: string, threshold = 0.7): boolean {
   const longer = str1.length > str2.length ? str1 : str2;
   const shorter = str1.length > str2.length ? str2 : str1;
-  
+
   if (longer.length === 0) return true;
-  
+
   // Simple contains check
   if (longer.includes(shorter) || shorter.includes(longer)) return true;
-  
+
   // Calculate similarity ratio
   const editDistance = calculateEditDistance(str1, str2);
   const similarity = (longer.length - editDistance) / longer.length;
-  
+
   return similarity >= threshold;
 }
 
@@ -350,8 +432,8 @@ function calculateEditDistance(str1: string, str2: string): number {
       } else {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1,     // insertion
-          matrix[i - 1][j] + 1      // deletion
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1, // deletion
         );
       }
     }
@@ -366,34 +448,36 @@ function calculateEditDistance(str1: string, str2: string): number {
 export function suggestColumnMappings(
   headers: string[],
   sampleData: any[][],
-  targetFormat: StandardFormat
+  targetFormat: StandardFormat,
 ): ColumnMapping[] {
   const standardFields = STANDARD_FORMATS[targetFormat];
   const mappings: ColumnMapping[] = [];
 
   for (let i = 0; i < headers.length; i++) {
     const header = headers[i].toLowerCase().trim();
-    
+
     // Find best matching standard field
     let bestMatch: { field: string; confidence: number } | null = null;
-    
+
     for (const field of standardFields) {
       const fieldLower = field.toLowerCase();
-      
+
       // Direct match
       if (header === fieldLower) {
         bestMatch = { field, confidence: 1.0 };
         break;
       }
-      
+
       // Contains match
       if (header.includes(fieldLower) || fieldLower.includes(header)) {
-        const confidence = Math.min(header.length, fieldLower.length) / Math.max(header.length, fieldLower.length);
+        const confidence =
+          Math.min(header.length, fieldLower.length) /
+          Math.max(header.length, fieldLower.length);
         if (!bestMatch || confidence > bestMatch.confidence) {
           bestMatch = { field, confidence: 0.9 * confidence };
         }
       }
-      
+
       // Similar match
       if (isSimilar(header, fieldLower, 0.6)) {
         const confidence = 0.7;
@@ -405,8 +489,11 @@ export function suggestColumnMappings(
 
     if (bestMatch && bestMatch.confidence > 0.5) {
       // Get sample values from the column
-      const sampleValues = sampleData.slice(0, 5).map(row => String(row[i] || '')).filter(v => v);
-      
+      const sampleValues = sampleData
+        .slice(0, 5)
+        .map((row) => String(row[i] || ""))
+        .filter((v) => v);
+
       // Detect data type from sample values
       const dataType = detectDataType(sampleValues);
 
@@ -415,7 +502,7 @@ export function suggestColumnMappings(
         targetField: bestMatch.field,
         confidence: bestMatch.confidence,
         dataType,
-        sampleValues
+        sampleValues,
       });
     }
   }
@@ -426,19 +513,26 @@ export function suggestColumnMappings(
 /**
  * Detect data type from sample values
  */
-function detectDataType(sampleValues: string[]): ColumnMapping['dataType'] {
-  if (sampleValues.length === 0) return 'string';
+function detectDataType(sampleValues: string[]): ColumnMapping["dataType"] {
+  if (sampleValues.length === 0) return "string";
 
-  const allNumbers = sampleValues.every(v => !isNaN(Number(v)) && v.trim() !== '');
-  if (allNumbers) return 'number';
-
-  const allDates = sampleValues.every(v => !isNaN(Date.parse(v)));
-  if (allDates) return 'date';
-
-  const allBooleans = sampleValues.every(v => 
-    ['true', 'false', 'yes', 'no', '1', '0'].includes(v.toLowerCase())
+  const allNumbers = sampleValues.every(
+    (v) => !isNaN(Number(v)) && v.trim() !== "",
   );
-  if (allBooleans) return 'boolean';
+  if (allNumbers) return "number";
 
-  return 'string';
+  // Require ISO format or common date patterns
+  const datePattern =
+    /^\d{4}-\d{2}-\d{2}|^\d{1,2}\/\d{1,2}\/\d{2,4}|^\w{3}\s+\d{1,2},?\s+\d{4}/;
+  const allDates = sampleValues.every(
+    (v) => datePattern.test(v) && !isNaN(Date.parse(v)),
+  );
+  if (allDates) return "date";
+
+  const allBooleans = sampleValues.every((v) =>
+    ["true", "false", "yes", "no", "1", "0"].includes(v.toLowerCase()),
+  );
+  if (allBooleans) return "boolean";
+
+  return "string";
 }
