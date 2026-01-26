@@ -19,7 +19,7 @@ alwaysApply: true
 
   - Task Master now provides a global CLI through the `task-master` command
   - All functionality from `scripts/dev.js` is available through this interface
-  - Install globally with `npm install -g claude-task-master` or use locally via `npx`
+  - Beads Task Agent is available through the `opencode` tool (subagent_type: "beads-task-agent")
   - Use `task-master <command>` instead of `node scripts/dev.js <command>`
   - Examples:
     - `task-master list` instead of `node scripts/dev.js list`
@@ -523,7 +523,7 @@ alwaysApply: true
 
 Follow WINDSURF_RULES for proper rule formatting and structure of windsurf rule sections.
 
-# Added by Task Master - Development Workflow Rules
+# Added by Beads Task Agent - Development Workflow Rules
 
 Below you will find a variety of important rules spanning:
 
@@ -546,7 +546,7 @@ alwaysApply: true
 
   - Task Master now provides a global CLI through the `task-master` command
   - All functionality from `scripts/dev.js` is available through this interface
-  - Install globally with `npm install -g claude-task-master` or use locally via `npx`
+  - Beads Task Agent is available through the `opencode` tool (subagent_type: "beads-task-agent")
   - Use `task-master <command>` instead of `node scripts/dev.js <command>`
   - Examples:
     - `task-master list` instead of `node scripts/dev.js list`
