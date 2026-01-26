@@ -5,11 +5,14 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Copy go.mod and go.sum files
-COPY go.mod go.sum ./
+# Copy go.mod (go.sum is optional)
+COPY go.mod* ./
 
 # Download dependencies
-RUN go mod download
+RUN go mod download || true
+
+# Copy source code
+COPY . .
 
 # Build the Go application
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o main .
@@ -25,8 +28,11 @@ WORKDIR /app
 # Copy the compiled binary from builder
 COPY --from=builder /app/main .
 
-# Health check endpoint
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["/app/main", "health"] || exit 1
+# Expose default port
+EXPOSE 8080
+
+# Health check endpoint using curl
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Run the application
 CMD ["/app/main"]
